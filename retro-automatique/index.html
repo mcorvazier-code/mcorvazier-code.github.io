@@ -617,14 +617,14 @@ function hudMenu(items){
 }
 function hud(){
   return h('div',{class:'hud'},
+    S.m>=1?h('span',{class:'hud-score',title:`Départ : ${SCORE0} pts · bonne réponse +${GOOD_PTS} · mauvaise réponse −${ERR_PEN} · indice −${HINT_PEN}`,'aria-live':'polite'},'Score : '+gameScore()+' pts'):null,
     hudMenu([
       h('button',{role:'menuitem',onclick:()=>{closeAll();showTitle();}},'🏠 Accueil'),
       S.m>=1&&S.m<=4?h('button',{role:'menuitem',onclick:()=>{closeAll();briefing(S.m);},title:'Revoir la présentation de la mission en cours'},'🎯 Objectif de mission'):null,
       h('button',{role:'menuitem',onclick:()=>openPapers(),title:'Codes et documents trouvés'},'📒 Carnet'),
       h('button',{role:'menuitem',onclick:e=>toggleMute(e.currentTarget),title:'Activer ou couper les sons'},MUTED?'🔇 Son : non':'🔊 Son : oui'),
       fsCtl(),
-      profBtn()]),
-    S.m>=1?h('span',{class:'hud-score',title:`Départ : ${SCORE0} pts · bonne réponse +${GOOD_PTS} · mauvaise réponse −${ERR_PEN} · indice −${HINT_PEN}`,'aria-live':'polite'},'Score : '+gameScore()+' pts'):null);
+      profBtn()]));
 }
 function baseScene(img,{title=true}={}){
   clearStage();
