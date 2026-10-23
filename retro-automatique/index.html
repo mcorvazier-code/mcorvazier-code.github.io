@@ -594,9 +594,9 @@ const FS_STEPS=[0.8,0.9,1,1.15,1.3,1.5];
 let FS=1;try{FS=+localStorage.getItem('retro-fs')||1;}catch(e){}
 function setFS(d){let i=FS_STEPS.indexOf(FS);if(i<0)i=2;i=Math.max(0,Math.min(FS_STEPS.length-1,i+d));FS=FS_STEPS[i];try{localStorage.setItem('retro-fs',String(FS));}catch(e){}applyScale();document.querySelectorAll('.fs-val').forEach(el=>el.textContent=Math.round(FS*100)+' %');}
 function applyScale(){const r=$stage.getBoundingClientRect();
-  const auto=Math.max(1,Math.min(1.6,Math.min(r.width,innerWidth)/1180,Math.min(r.height,innerHeight)/664));
+  const auto=Math.max(1,0.8*Math.min(1.6,Math.min(r.width,innerWidth)/1180,Math.min(r.height,innerHeight)/664));
   $ui.style.setProperty('--uiz',(auto*FS).toFixed(3));
-  document.body.style.setProperty('--clz',(Math.max(1,Math.min(1.5,innerWidth/1280,innerHeight/720))*FS).toFixed(3));}
+  document.body.style.setProperty('--clz',(Math.max(1,0.8*Math.min(1.5,innerWidth/1280,innerHeight/720))*FS).toFixed(3));}
 function fsCtl(){return h('div',{class:'hm-fs',role:'group','aria-label':'Taille du texte'},h('span',null,'🔠 Texte'),h('button',{onclick:e=>{e.stopPropagation();setFS(-1);},'aria-label':'Réduire le texte'},'A−'),h('b',{class:'fs-val'},Math.round(FS*100)+' %'),h('button',{onclick:e=>{e.stopPropagation();setFS(1);},'aria-label':'Agrandir le texte'},'A+'));}
 function placeHud(){applyScale();const r=$stage.getBoundingClientRect(),u=$ui.getBoundingClientRect();
   const hz=+getComputedStyle($ui).getPropertyValue('--uiz')||1,hzz=Math.max(1,hz/FS);
