@@ -57,9 +57,11 @@ button,input,select{font:inherit;color:inherit}
 @keyframes rbBlink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
 @media (prefers-reduced-motion:reduce){.oscbtn .rb,.rb-eye{animation:none}}
 .hmenu{position:relative}
-.hm-list{position:absolute;right:0;top:100%;padding-top:6px;display:none;flex-direction:column;gap:4px;min-width:130px}
+.hm-list{position:absolute;right:0;top:100%;padding-top:6px;display:none;flex-direction:column;gap:4px;min-width:190px}
+.hm-list button{white-space:nowrap}
 .hmenu:hover .hm-list,.hmenu:focus-within .hm-list,.hmenu.open .hm-list{display:flex}
-.hm-list button{text-align:left;border-radius:6px!important;padding:6px 12px!important;background:rgba(0,0,0,.82)!important}
+.hm-list button{text-align:left;border-radius:6px!important;padding:6px 12px!important;background:rgba(0,0,0,.82)!important;color:#fff!important}
+.hm-list button.profon{background:var(--gold)!important;color:#1b1405!important;border-color:var(--gold)!important}
 .hud-score{display:inline-flex;align-items:center;color:#1b1405;background:var(--gold);border-radius:999px;padding:4px 12px;font:700 12px var(--f-ui);white-space:nowrap}
 .hud-score.hit{animation:scoreHit .6s ease}.hud-score.up{animation:scoreUp .6s ease}
 @keyframes scoreUp{0%{background:#2f9e44;color:#fff;transform:scale(1.12)}100%{background:var(--gold);color:#1b1405;transform:none}}
@@ -486,8 +488,8 @@ body.classic-on #ui .hud{display:none}
    Les codes sont stockés sous forme d'empreintes (hash) pour ne pas
    être lisibles dans le code source. Les valeurs numériques attendues
    sont dans NUM (valeur + tolérance). */
-const HASH = {"door1":"1euus66462b","printer":"1tsn1whjul2","m3":["23iahs4k544","t6xtmxeguf"],"sim":"1gsziitnixd","door4":"a47gu7nsjc","stop":"1ag3s1uckn8","prof":"2e2k6bk6ftu","wheel":"rlzfq7cgc2"};
-const SECRET = {"sim":"CgURDA4NDRM=","printer":"PCM5NCUiNg==","key":"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","frag_rap":"SlI=","frag_pre":"RlY=","frag_gm":"Rw==","frag_phi":"QA=="};
+const HASH = {"door1":"1euus66462b","printer":"1tsn1whjul2","m3":["23iahs4k544","t6xtmxeguf"],"sim":"1gsziitnixd","door4":"18y6o27p3x6","stop":"1ag3s1uckn8","prof":"yir35hp06k","wheel":"rlzfq7cgc2"};
+const SECRET = {"sim":"CgURDA4NDRM=","printer":"PCM5NCUiNg==","key":"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","frag_rap":"SlI=","frag_pre":"RlY=","frag_gm":"Rw==","frag_phi":"QA=="};
 const NUM = {
   d1:{v:115,tol:4},                 // M2 : valeur du 1er dépassement (°C)
   m:{v:0.108,tol:0.012},              // M2 : coefficient d'amortissement lu sur l'abaque
@@ -600,9 +602,10 @@ function hudMenu(items){
 function hud(){
   return h('div',{class:'hud'},
     hudMenu([
+      h('button',{role:'menuitem',onclick:()=>{closeAll();showTitle();}},'🏠 Accueil'),
+      S.m>=1&&S.m<=4?h('button',{role:'menuitem',onclick:()=>{closeAll();briefing(S.m);},title:'Revoir la présentation de la mission en cours'},'🎯 Objectif de mission'):null,
       h('button',{role:'menuitem',onclick:()=>openPapers(),title:'Codes et documents trouvés'},'📒 Carnet'),
       h('button',{role:'menuitem',onclick:e=>toggleMute(e.currentTarget),title:'Activer ou couper les sons'},MUTED?'🔇 Son : non':'🔊 Son : oui'),
-      h('button',{role:'menuitem',onclick:()=>{closeAll();showTitle();}},'⌂ Accueil'),
       profBtn()]),
     S.m>=1?h('span',{class:'hud-score',title:`Départ : ${SCORE0} pts · bonne réponse +${GOOD_PTS} · mauvaise réponse −${ERR_PEN} · indice −${HINT_PEN}`,'aria-live':'polite'},'Score : '+gameScore()+' pts'):null);
 }
@@ -834,13 +837,8 @@ function openPapers(){
   const add=(k,t)=>{if(has(k))items.push(h('li',null,t));};
   add('echelon',"Signal de consigne : échelon de 180 °C");
   if(has('m1quizdone'))items.push(h('li',null,"Code de la porte de la salle des machines = valeur de la constante de temps τ = R.m.c, avec ",h('span',{style:{fontFamily:'var(--f-mono)',fontSize:'14px',lineHeight:'1.4'}},'c = 4186 J.kg⁻¹.K⁻¹ ; m = 200 kg ; R = 0,01 K/W')));
-  add('m1done',"Accès à la salle des machines obtenu");
-  add('printed',"Rapport d'essai n°0147 imprimé");
   if(has('tr5')||has('m2done')||(S.f.m2s||0)>=9)items.push(h('li',null,"Temps de réponse à 5 % de l'essai n°0147 : tr5% ≈ "+fmtN(NUM.tr5.v)+" s"));
   add('m2done',"Modèle identifié : 2e ordre, m = 0,108, ω0 ≈ 1,06.10⁻³ rad/s, gain statique 1");
-  add('key',"Clés du casier du technicien");
-  add('sim',"Simulation fréquentielle déverrouillée");
-  add('m3done',"Réponse fréquentielle relevée");
   const fr=(S.f.frags||[]);
   if(fr.some(Boolean))items.push(h('li',null,'Fragments du code d’arrêt : ',...fr.flatMap((x,i)=>i?[' ',h('span',{class:'frag'},x||'·')]:[h('span',{class:'frag'},x||'·')])));
   const docs=[];
@@ -1808,7 +1806,7 @@ function profMenu(){
   layer(card);
 }
 function profKey(){
-  let K=null;try{const b=atob(SECRET.key),k=new TextEncoder().encode(PROF||''),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i)^k[i%k.length];K=JSON.parse(new TextDecoder().decode(u));}catch(e){}
+  let K=null;try{const b=atob(SECRET.key),k=new TextEncoder().encode(normCode(PROF||'')),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i)^k[i%k.length];K=JSON.parse(new TextDecoder().decode(u));}catch(e){}
   const card=h('div',{class:'card quiz prof'},h('h2',{class:'stamp'},'Corrigé'));
   if(!K)card.append(h('p',null,'Impossible d’afficher le corrigé.'));
   else for(const [m,rows] of K)card.append(h('h4',{class:'pkh'},m),h('div',{style:{overflowX:'auto'}},h('table',{class:'table'},rows.map(([q,a])=>h('tr',null,h('td',null,q),h('td',null,h('b',null,a)))))));
