@@ -788,8 +788,8 @@ function wrong(msg){gameErr();
     h('div',{html:'<svg viewBox="0 0 60 60" width="70"><path d="M14 14l32 32M46 14 14 46" stroke="#c4141f" stroke-width="7" stroke-linecap="round"/></svg>',style:{textAlign:'center',marginTop:'10px'}})));
   layer(card);
 }
-function codeBox({img,pos,title,text,ph="Entre le code d'accès",key,check,onOK,cls='orange'}){
-  const inp=h('input',{class:'field',id:'code-'+(key||'x'),placeholder:ph,autocomplete:'off',autocapitalize:'off',spellcheck:'false'});
+function codeBox({img,pos,title,text,ph="Entre le code d'accès",key,check,onOK,cls='orange',secret=false}){
+  const inp=h('input',{class:'field',id:'code-'+(key||'x'),type:secret?'password':'text',placeholder:ph,autocomplete:secret?'current-password':'off',autocapitalize:'off',spellcheck:'false'});
   const fb=h('div',{class:'fb'});
   const go=()=>{const ok=check?check(inp.value):codeOk(key,inp.value);
     if(ok){sfx('ok');fb.className='fb good';fb.textContent='Code accepté';setTimeout(()=>{closeTop();onOK();},600);}
@@ -1932,7 +1932,7 @@ let PROF=null; // mot de passe saisi (sert à déchiffrer le corrigé), uniqueme
 try{PROF=sessionStorage.getItem('retro-prof');}catch(e){}
 function profLogin(){
   if(PROF)return profMenu();
-  codeBox({title:'Mode prof',key:'prof',cls:'',ph:'Mot de passe',text:'Accès réservé à l’enseignant.',onOK:()=>{},check:v=>{if(codeOk('prof',v)){PROF=v.trim();try{sessionStorage.setItem('retro-prof',PROF);}catch(e){}setTimeout(profMenu,650);return true;}return false;}});
+  codeBox({title:'Mode prof',key:'prof',cls:'',ph:'Mot de passe',secret:true,text:'Accès réservé à l’enseignant.',onOK:()=>{},check:v=>{if(codeOk('prof',v)){PROF=v.trim();try{sessionStorage.setItem('retro-prof',PROF);}catch(e){}setTimeout(profMenu,650);return true;}return false;}});
 }
 function profPrereq(m){
   if(m>=2){S.f.echelon=true;S.f.m1done=true;S.f.m1quizdone=true;}
