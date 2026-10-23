@@ -1605,8 +1605,8 @@ function wheel(){
   const wrap=h('div',{class:'roue',html:wheelSVG()});wrap.append(svg);
   draw();
   const card=h('div',{class:'card quiz',style:{maxWidth:'620px'}},h('h2',{class:'stamp'},'Roue codée'),
-    h('p',{class:'center hint'},"Pour chaque question de l'examen de qualification, clique sur le secteur correspondant à la réponse (A, B, C ou D) de la roue codée ci-dessous : une lettre s'y révèle."),
-    h('p',{class:'center hint',style:{fontSize:'.85em'}},"Le formulaire de qualification est affiché à côté de la roue ; tu le retrouves aussi dans ton carnet."),
+    h('p',{class:'center hint',style:{fontSize:'15px',opacity:'1'}},"Pour chaque question de l'examen de qualification, clique sur le secteur correspondant à la réponse (A, B, C ou D) de la roue codée ci-dessous : une lettre s'y révèle."),
+    h('p',{class:'center hint',style:{fontSize:'14px'}},"Le formulaire de qualification est affiché à côté de la roue ; tu le retrouves aussi dans ton carnet."),
     h('div',{class:'row',style:{marginBottom:'10px'}},h('button',{class:'btn',style:{padding:'.3em 1.1em'},onclick:()=>{marks={};S.f.wheelMarks='{}';save();draw();}},'Init')),
     wrap);
   const pair=h('div',{class:'wpair'},formDoc(),card);layer(pair);const cb=pair.querySelector(':scope>.close');if(cb){cb.style.background='#111';card.append(cb);}setTimeout(()=>{pair.scrollTop=0;},60);
