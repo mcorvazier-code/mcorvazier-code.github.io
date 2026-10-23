@@ -280,6 +280,21 @@ button.docthumb{border:0;padding:0;cursor:pointer}
 .docview{background:var(--acc);color:var(--on);width:min(100%,900px);max-height:100%;display:flex;flex-direction:column;border-radius:4px;box-shadow:0 12px 40px rgba(0,0,0,.55);position:relative;overflow:hidden}
 .dv-bar{display:flex;align-items:center;gap:12px;padding:10px 52px 10px 16px;color:var(--on);font-family:var(--f-ui)}
 .dv-t{flex:1;font-weight:600}
+.card.rules{max-width:980px;text-align:left}
+.ru-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;align-items:start}
+.rules section{background:var(--tint);border-radius:6px;padding:10px 14px}
+.rules h3{margin:0 0 6px;font:600 16px var(--f-ui)}
+.rules p{margin:.3em 0;font-size:14px;line-height:1.45}
+.ru-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.35}
+.ru-list li{display:flex;gap:10px;align-items:center}
+.ru-ic{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.7)}
+.ru-ic svg{width:15px;height:15px}.ru-q{font-weight:700;font-size:14px}.ru-e{background:transparent;border:0;font-size:18px}
+.ru-pts li b{min-width:42px;text-align:center;border-radius:4px;padding:2px 6px;font-family:var(--f-ui)}
+.ru-pts b.up{background:#2f9e44;color:#fff}.ru-pts b.dn{background:#d9443a;color:#fff}
+.ru-bot{grid-column:1/-1;display:flex;gap:14px;align-items:flex-start}
+.ru-bot ul{margin:.3em 0;padding-left:1.2em;font-size:14px;line-height:1.45}
+.ru-av{flex:none;width:64px;height:64px}
+@media (max-width:720px){.ru-grid{grid-template-columns:1fr}}
 .choice{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:10px;padding:56px 6% 24px;text-align:center;color:#fff;z-index:2;overflow:auto;pointer-events:auto;background:rgba(8,10,12,.55)}
 .choice h1{font-size:clamp(24px,4.4vw,52px)!important}.ch-sub{font-size:clamp(13px,1.5vw,17px)!important}.ch-opt b{font-size:clamp(17px,2.2vw,26px)!important}.ch-opt span:last-child{font-size:clamp(12.5px,1.3vw,14.5px)!important}.ch-ico{font-size:clamp(28px,4vw,46px)!important}.ch-conf p{font-size:clamp(12.5px,1.3vw,14px)!important}
 .choice h1{margin:0;font:400 clamp(24px,4.4cqw,52px) var(--f-title);letter-spacing:.03em}
@@ -635,6 +650,7 @@ function hud(){
       h('button',{role:'menuitem',onclick:()=>{closeAll();showTitle();}},'🏠 Accueil'),
       S.m>=1&&S.m<=4?h('button',{role:'menuitem',onclick:()=>{closeAll();briefing(S.m);},title:'Revoir la présentation de la mission en cours'},'🎯 Objectif de mission'):null,
       h('button',{role:'menuitem',onclick:()=>openPapers(),title:'Codes et documents trouvés'},'📒 Carnet'),
+      h('button',{role:'menuitem',onclick:()=>{closeAll();showRules();}},'📜 Règles du jeu'),
       h('button',{role:'menuitem',onclick:e=>toggleMute(e.currentTarget),title:'Activer ou couper les sons'},MUTED?'🔇 Son : non':'🔊 Son : oui'),
       fsCtl(),
       profBtn()]));
@@ -954,8 +970,49 @@ function showLetter(){
   addHud(h('div',{class:'hud'},profBtn()));
   const c=h('div',{class:'card letter'},
     ...["“Bienvenue apprenti ingénieur.","Un processus asservi de ce laboratoire abandonné est tombé en panne il y a plus de dix ans.","Ton objectif : tenter de restaurer son fonctionnement.","Pour y parvenir, tu devras explorer ce laboratoire et accomplir des missions qui t'aideront à comprendre l'origine de la panne.","Tu devras pour cela t'appuyer sur tes connaissances de première année en automatique, mais rassure-toi, ce laboratoire fourmille d'informations qui t'aideront à rafraîchir ta mémoire.","Chaque mission réussie te donnera un code qui te donnera accès à la mission suivante.","Bonne chance, apprenti ingénieur.”"].map(t=>h('p',{style:{margin:'0 0 .8em'}},t)),
-    h('div',{style:{textAlign:'right'}},h('button',{class:'btn',style:{background:'var(--m1)',color:'var(--m1-on)'},onclick:()=>briefing(1)},'Suivant →')));
+    h('div',{style:{textAlign:'right'}},h('button',{class:'btn',style:{background:'var(--m1)',color:'var(--m1-on)'},onclick:()=>{closeTop();showRules(()=>briefing(1));}},'Suivant →')));
   layer(c,{dim:false,closable:false});
+}
+/* Règles du jeu et présentation de l'interface (au début, puis depuis le menu) */
+function showRules(next){
+  const ic=k=>h('span',{class:'ru-ic',html:ICON[k]});
+  const row=(a,t)=>h('li',null,a,h('span',null,t));
+  const card=h('div',{class:'card quiz rules'},h('h2',{class:'stamp'},'Règles du jeu'),
+    h('div',{class:'ru-grid'},
+      h('section',null,h('h3',null,'🎯 Le but'),
+        h('p',null,"Le jeu compte 4 missions. Chacune s'ouvre par une fenêtre qui présente son objectif. Pour avancer, tu explores les salles du laboratoire, tu réponds aux questions d'automatique et tu trouves les codes qui ouvrent la suite."),
+        h('p',null,"Les missions 3 et 4 se débloquent avec un code donné en cours.")),
+      h('section',null,h('h3',null,'🖱️ Explorer'),
+        h('ul',{class:'ru-list'},
+          row(ic('pin'),'Une pastille signale un élément à examiner : clique dessus.'),
+          row(ic('gear'),'Un engrenage ouvre un poste de travail ou un ordinateur.'),
+          row(ic('lock'),'Un cadenas : une porte ou un casier fermé, il faut un code ou une clé.'),
+          row(ic('next'),'Les flèches mènent vers une autre salle, ou te ramènent en arrière.'),
+          row(h('span',{class:'ru-ic ru-q'},'?'),'Certains objets ne sont pas signalés : observe bien les décors… et méfie-toi de ce qui est dangereux !'),
+          row(h('span',{class:'ru-ic ru-q'},'↔'),'Sur téléphone tenu à la verticale, fais glisser la salle pour la parcourir.'))),
+      h('section',null,h('h3',null,'🏆 Le score'),
+        h('p',null,`Tu pars avec ${SCORE0} points, affichés en haut à droite.`),
+        h('ul',{class:'ru-list ru-pts'},
+          h('li',null,h('b',{class:'up'},`+${GOOD_PTS}`),h('span',null,'par bonne réponse')),
+          h('li',null,h('b',{class:'dn'},`−${ERR_PEN}`),h('span',null,'par mauvaise réponse')),
+          h('li',null,h('b',{class:'dn'},`−${HINT_PEN}`),h('span',null,'par indice demandé au robot'))),
+        h('p',{class:'hint'},"Prends le temps de réfléchir avant de répondre.")),
+      h('section',null,h('h3',null,'☰ Le menu'),
+        h('ul',{class:'ru-list'},
+          row(h('span',{class:'ru-ic ru-e'},'🏠'),"Accueil : revenir à l'écran d'accueil (ta progression est conservée)."),
+          row(h('span',{class:'ru-ic ru-e'},'🎯'),"Objectif de mission : relire l'énoncé de la mission en cours."),
+          row(h('span',{class:'ru-ic ru-e'},'📒'),"Carnet : tes notes, les codes trouvés et les documents récupérés (cours, rapports, fiches…)."),
+          row(h('span',{class:'ru-ic ru-e'},'🔊'),'Son : activer ou couper les sons.'),
+          row(h('span',{class:'ru-ic ru-e'},'🔠'),'Texte : agrandir ou réduire la taille du texte.'),
+          row(h('span',{class:'ru-ic ru-e'},'📜'),'Règles du jeu : revoir cette page.'))),
+      h('section',{class:'ru-bot'},h('span',{class:'ru-av',html:ROBOT_SVG}),h('div',null,h('h3',null,'🤖 ICAM_BOT 2.0, ton assistant'),
+        h('p',null,"Le robot en bas à droite de l'écran peut t'aider à tout moment :"),
+        h('ul',null,h('li',null,h('b',null,'Indices'),' : trois indices progressifs sur ton objectif du moment (chacun coûte des points).'),
+          h('li',null,h('b',null,'Questions'),' : pose une question sur une notion d’automatique. Il te répond gratuitement et t’indique la page du cours à relire.')),
+        h('p',{class:'hint'},'Il ne donne jamais les codes ni les réponses !')))),
+    h('p',{class:'center hint',style:{marginTop:'10px'}},'Ta progression est enregistrée automatiquement : tu peux quitter et reprendre plus tard.'),
+    next?nextBtn("C'est parti !",()=>{closeTop();next();}):null);
+  layer(card,{dim:true,closable:!next});
 }
 const BRIEF={
  1:{img:'a/hall.webp',title:'Mission 1 : Accéder à la salle des machines',p:["Pour rétablir le fonctionnement du processus asservi, tu dois accéder à la salle des machines, mais celle-ci n'est accessible qu'à des <b>ingénieurs capables de définir le modèle d'un système asservi</b>.","Avant toute chose, tu dois donc te rappeler quels sont les différents modèles de systèmes linéaires pour pouvoir identifier celui qui est à l'œuvre dans le processus contrôlé dans ce laboratoire.","Cherche dans ta mémoire les notions abordées en 1ère année, et si tu as besoin d'aide, des ressources sont accessibles dans cette salle.","Bonne chance."],scene:'hall'},
