@@ -280,14 +280,17 @@ button.docthumb{border:0;padding:0;cursor:pointer}
 .docview{background:var(--acc);color:var(--on);width:min(100%,900px);max-height:100%;display:flex;flex-direction:column;border-radius:4px;box-shadow:0 12px 40px rgba(0,0,0,.55);position:relative;overflow:hidden}
 .dv-bar{display:flex;align-items:center;gap:12px;padding:10px 52px 10px 16px;color:var(--on);font-family:var(--f-ui)}
 .dv-t{flex:1;font-weight:600}
-.card.rules{max-width:980px;text-align:left}
+.card.rules{max-width:980px;text-align:left;background:rgba(58,62,60,.94);color:#eef0e6}
+.card.rules .stamp{color:var(--acc)}
+.card.rules .hint{color:#c9cdc3;opacity:1}
 .ru-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;align-items:start}
-.rules section{background:rgba(255,255,255,.28);border-radius:6px;padding:10px 14px}
+.rules section{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:10px 14px}
+.rules h3{color:var(--acc)}
 .rules h3{margin:0 0 6px;font:600 16px var(--f-ui)}
 .rules p{margin:.3em 0;font-size:14px;line-height:1.45}
 .ru-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.35}
 .ru-list li{display:flex;gap:10px;align-items:center}
-.ru-ic{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.7)}
+.ru-ic{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--acc);color:var(--on);border:2px solid rgba(255,255,255,.7)}
 .ru-ic svg{width:15px;height:15px}.ru-q{font-weight:700;font-size:14px}.ru-e{background:transparent;border:0;font-size:18px}
 .ru-pts li b{min-width:42px;text-align:center;border-radius:4px;padding:2px 6px;font-family:var(--f-ui)}
 .ru-pts b.up{background:#2f9e44;color:#fff}.ru-pts b.dn{background:#d9443a;color:#fff}
