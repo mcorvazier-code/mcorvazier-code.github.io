@@ -282,7 +282,7 @@ button.docthumb{border:0;padding:0;cursor:pointer}
 .dv-t{flex:1;font-weight:600}
 .card.rules{max-width:980px;text-align:left}
 .ru-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;align-items:start}
-.rules section{background:var(--tint);border-radius:6px;padding:10px 14px}
+.rules section{background:rgba(255,255,255,.28);border-radius:6px;padding:10px 14px}
 .rules h3{margin:0 0 6px;font:600 16px var(--f-ui)}
 .rules p{margin:.3em 0;font-size:14px;line-height:1.45}
 .ru-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.35}
@@ -1023,7 +1023,7 @@ function showRules(next){
         h('p',{class:'hint'},'Il ne donne jamais les codes ni les réponses !')))),
     h('p',{class:'center hint',style:{marginTop:'10px'}},'Ta progression est enregistrée automatiquement : tu peux quitter et reprendre plus tard.'),
     next?nextBtn("C'est parti !",()=>{closeTop();next();}):null);
-  layer(card,{dim:true,closable:!next});
+  layer(card,{dim:!next,closable:!next});
 }
 const BRIEF={
  1:{img:'a/hall.webp',title:'Mission 1 : Accéder à la salle des machines',p:["Pour rétablir le fonctionnement du processus asservi, tu dois accéder à la salle des machines, mais celle-ci n'est accessible qu'à des <b>ingénieurs capables de définir le modèle d'un système asservi</b>.","Avant toute chose, tu dois donc te rappeler quels sont les différents modèles de systèmes linéaires pour pouvoir identifier celui qui est à l'œuvre dans le processus contrôlé dans ce laboratoire.","Cherche dans ta mémoire les notions abordées en 1ère année, et si tu as besoin d'aide, des ressources sont accessibles dans cette salle.","Bonne chance."],scene:'hall'},
