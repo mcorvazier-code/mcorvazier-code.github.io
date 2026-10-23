@@ -280,7 +280,8 @@ button.docthumb{border:0;padding:0;cursor:pointer}
 .docview{background:var(--acc);color:var(--on);width:min(100%,900px);max-height:100%;display:flex;flex-direction:column;border-radius:4px;box-shadow:0 12px 40px rgba(0,0,0,.55);position:relative;overflow:hidden}
 .dv-bar{display:flex;align-items:center;gap:12px;padding:10px 52px 10px 16px;color:var(--on);font-family:var(--f-ui)}
 .dv-t{flex:1;font-weight:600}
-.choice{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:4% 6%;text-align:center;color:#fff;z-index:2}
+.choice{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:10px;padding:56px 6% 24px;text-align:center;color:#fff;z-index:2;overflow:auto;pointer-events:auto;background:rgba(8,10,12,.55)}
+.choice h1{font-size:clamp(24px,4.4vw,52px)!important}.ch-sub{font-size:clamp(13px,1.5vw,17px)!important}.ch-opt b{font-size:clamp(17px,2.2vw,26px)!important}.ch-opt span:last-child{font-size:clamp(12.5px,1.3vw,14.5px)!important}.ch-ico{font-size:clamp(28px,4vw,46px)!important}.ch-conf p{font-size:clamp(12.5px,1.3vw,14px)!important}
 .choice h1{margin:0;font:400 clamp(24px,4.4cqw,52px) var(--f-title);letter-spacing:.03em}
 .ch-sub{margin:0 0 10px;font-size:clamp(13px,1.5cqw,17px);opacity:.85}
 .ch-opts{display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,2cqw,24px);width:min(100%,820px)}
@@ -914,13 +915,13 @@ function showChoice(){
   document.body.dataset.m='1';clearStage();
   $stage.append(h('div',{class:'bg',style:{backgroundImage:'url(a/hall.webp)',filter:'blur(4px) brightness(.45)'}}));
   let pick=null;
-  const opt=(k,ico,t,d)=>h('button',{class:'ch-opt','data-k':k,onclick:e=>{pick=k;wrap.querySelectorAll('.ch-opt').forEach(b=>b.classList.toggle('sel',b.dataset.k===k));conf.hidden=false;cb.textContent=k==='game'?'Je choisis l’escape game':'Je choisis le parcours e-learning';}},h('span',{class:'ch-ico'},ico),h('b',null,t),h('span',null,d));
+  const opt=(k,ico,t,d)=>h('button',{class:'ch-opt','data-k':k,onclick:e=>{pick=k;wrap.querySelectorAll('.ch-opt').forEach(b=>b.classList.toggle('sel',b.dataset.k===k));conf.hidden=false;requestAnimationFrame(()=>conf.scrollIntoView({block:'nearest',behavior:'smooth'}));cb.textContent=k==='game'?'Je choisis l’escape game':'Je choisis le parcours e-learning';}},h('span',{class:'ch-ico'},ico),h('b',null,t),h('span',null,d));
   const cb=h('button',{class:'btn',onclick:()=>{if(!pick)return;setMode(pick);if(pick==='game')showTitle();else classic();}},'Valider');
   const conf=h('div',{class:'ch-conf',hidden:true},h('p',null,'⚠ Ce choix est définitif : tu ne pourras plus changer de format ensuite.'),cb);
   const wrap=h('div',{class:'choice'},h('h1',null,'Automatique linéaire'),h('p',{class:'ch-sub'},'Choisis comment tu veux travailler. Les deux formats abordent exactement les mêmes notions.'),
     h('div',{class:'ch-opts'},opt('game','🕹️','Escape game',"Une enquête dans un laboratoire abandonné : explore les salles, résous les énigmes et stoppe le processus avant la catastrophe."),
       opt('classic','📘','Parcours e-learning',"Un parcours classique en 4 chapitres : ressources, questions et bilan avec une note par chapitre.")),conf);
-  $stage.append(wrap);
+  $ui.append(wrap);
   addHud(h('div',{class:'hud'},profBtn()));
 }
 function showTitle(){
