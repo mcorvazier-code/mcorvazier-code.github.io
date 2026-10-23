@@ -343,6 +343,12 @@ body.classic-on #ui .hud{display:none}
 #classic .field{background:#fff;color:#111;border:1px solid #c9c6b8}
 #classic .match .cell{background:#f7f6f1;color:#1d2124}
 .cl-curve{margin:4px auto 12px;max-width:760px}.cl-ct{font:600 13px var(--f-ui);text-align:center;margin:0 0 4px;color:#444}
+.cl-rbtn{flex:none;background:#f1f0ea;border:1px solid #dcd9cc;border-radius:999px;padding:.3em .8em;font:600 12.5px var(--f-ui);color:#1d2124;cursor:pointer;white-space:nowrap}
+.cl-rbtn:hover,.cl-rbtn:focus-visible,.cl-rbtn.on{background:color-mix(in srgb,var(--acc) 22%,#fff);border-color:var(--acc)}
+.cl-rbox{background:#faf9f4;border:1px solid #e3e0d4;border-radius:6px;padding:10px 12px;margin:0 0 12px}
+.cl-rbox[hidden]{display:none}
+.cl-rt{margin:0 0 8px;font:600 12px var(--f-ui);text-transform:uppercase;letter-spacing:.06em;opacity:.65}
+@media (max-width:640px){.cl-qh{flex-wrap:wrap}.cl-rbtn{order:3}}
 .cl-tool{text-align:center;margin:4px 0 14px}
 .cl-pick .blk{cursor:pointer}.cl-pick .blk rect{transition:fill .15s}.cl-pick .blk:hover rect,.cl-pick .blk:focus-visible rect{fill:#fff6d6}.cl-pick .blk.sel rect{fill:color-mix(in srgb,var(--acc) 30%,#fff);stroke:var(--acc);stroke-width:2.5}
 .cl-pick{max-width:560px;margin:0 auto}
@@ -1271,6 +1277,52 @@ const BLK_SVG=`<svg viewBox="0 0 330 110" role="img" aria-label="Schéma-bloc de
 const ALLVIDS=()=>[...LINKS.vids.map(v=>['▶ Vidéo : '+v.t,v.href]),['▶ Vidéo : L’analyse harmonique',LINKS.vidHarmo]];
 const THEO=()=>h('div',{class:'cl-curve'},h('p',{class:'cl-ct'},'Réponse théorique du four en boucle ouverte — entrée : échelon de puissance de 18 000 W'),measureChart('a/rep_theo.png',769,376,mkMap(29,0,748,50000),mkMap(351,0,9,180),'theo','Réponse théorique en boucle ouverte',{y1:171,y2:162,x1:5000,x2:20000}));
 const FULL=(init)=>h('div',{class:'cl-curve'},h('p',{class:'cl-ct'},'Réponse expérimentale du four en boucle fermée — consigne : échelon de 180 °C'),measureChart('a/rep_full.png',1168,526,mkMap(47.5,0,1138.5,50000),mkMap(485,0,12,300),'full','Réponse expérimentale en boucle fermée',init||{y1:188.1,y2:171.9,x1:2900,x2:26935}));
+/* Ressources documentaires adaptées à chaque question */
+const RS={
+  c:(p,t)=>['📖 Cours p. '+p+' : '+t,()=>coursView(p)],
+  v:i=>{const v=i==='h'?{t:'L’analyse harmonique',href:LINKS.vidHarmo}:LINKS.vids[i];return ['▶ Vidéo : '+v.t,v.href];},
+  abD:()=>['📈 Abaque des dépassements',abaqueD],abT:()=>['📈 Abaque des temps de réponse',abaqueTr],
+  bode:()=>['📊 Diagramme de Bode du four',bodeTool],black:()=>['📊 Diagramme de Black du four',blackTool],
+  f:k=>['📄 '+DOCS[k].t,()=>docView(k)]};
+const QRES={
+  c1:()=>[RS.c(20,'signaux canoniques'),RS.v(0)],
+  c2:()=>[RS.c(20,'l’échelon'),RS.v(3)],
+  c3:()=>[RS.c(25,'systèmes fondamentaux'),RS.v(1),RS.v(3)],
+  c4:()=>[RS.c(2,'la notion de bloc'),RS.c(3,'structures de schéma bloc'),RS.v(1)],
+  c5:()=>[RS.c(21,'transformée de Laplace'),RS.v(2)],
+  c6:()=>[RS.c(33,'systèmes du 1er ordre'),RS.c(21,'transformée de Laplace'),RS.v(2)],
+  d0:()=>[RS.c(29,'critères de performance'),RS.c(38,'dépassement')],
+  d1:()=>[RS.c(25,'gain statique'),RS.c(33,'réponse du 1er ordre')],
+  d2:()=>[RS.c(33,'constante de temps du 1er ordre'),RS.v(3)],
+  d3:()=>[RS.c(3,'structures de schéma bloc'),RS.c(8,'algèbre de blocs')],
+  d4:()=>[RS.c(8,'boucle fermée'),RS.c(36,'systèmes du 2e ordre')],
+  d5:()=>[RS.c(36,'régimes du 2e ordre'),RS.c(38,'régime pseudo-périodique')],
+  d6:()=>[RS.c(38,'dépassement')],
+  d7:()=>[RS.abD(),RS.c(38,'dépassement'),RS.c(40,'abaques du 2e ordre')],
+  d8:()=>[RS.c(29,'temps de réponse à 5 %'),RS.c(40,'abaques du 2e ordre')],
+  d9:()=>[RS.abT(),RS.c(40,'abaques du 2e ordre')],
+  h1:()=>[RS.c(41,'réponse fréquentielle'),RS.c(44,'étude harmonique'),RS.v('h')],
+  h2:()=>[RS.c(44,'gain et phase'),RS.v('h')],
+  h3:()=>[RS.c(44,'gain en décibels'),RS.v('h')],
+  h4:()=>[RS.c(44,'phase'),RS.v('h')],
+  h5:()=>[RS.c(46,'harmonique du 1er ordre'),RS.v('h')],
+  h6:()=>[RS.c(48,'harmonique du 2e ordre'),RS.c(51,'tracé du diagramme de Bode'),RS.v('h')],
+  h7:()=>[RS.c(48,'harmonique du 2e ordre'),RS.v('h')],
+  h8:()=>[RS.c(51,'diagramme de Bode'),RS.v('h')],
+  e0:()=>[RS.c(33,'réponse du 1er ordre'),RS.c(36,'réponse du 2e ordre'),RS.v(3)],
+  e1:()=>[RS.c(33,'réponse du 1er ordre'),RS.c(36,'réponse du 2e ordre'),RS.v(3)],
+  e2:()=>[RS.c(33,'réponse du 1er ordre'),RS.c(36,'réponse du 2e ordre'),RS.v(3)],
+  e3:()=>[RS.c(33,'réponse du 1er ordre'),RS.c(36,'réponse du 2e ordre'),RS.v(3)],
+  wr:()=>[RS.c(48,'résonance du 2e ordre'),RS.black(),RS.v('h')],
+  w0:()=>[RS.c(44,'étude harmonique'),RS.black(),RS.v('h')],
+  p1:()=>[RS.f('rap'),RS.c(29,'temps de réponse à 5 %')],
+  p1c:()=>[RS.f('cdc'),RS.f('rap')],
+  p2:()=>[RS.f('stab'),RS.bode(),RS.black()],
+  p2c:()=>[RS.f('cdc'),RS.f('stab')],
+  p3:()=>[RS.f('stab'),RS.bode(),RS.black()],
+  p3c:()=>[RS.f('cdc'),RS.f('stab')],
+  p4:()=>[RS.f('prec'),RS.c(29,'précision')],
+  p4c:()=>[RS.f('cdc'),RS.f('prec')]};
 let CHAPTERS_=null;
 function CH(){return CHAPTERS_||(CHAPTERS_=[
  {n:1,t:'Modéliser un système asservi',m:'Mission 1',intro:"Ce chapitre porte sur les signaux canoniques d'entrée, les systèmes linéaires fondamentaux, la structure d'une boucle d'asservissement et la transformée de Laplace. Le fil conducteur est un four dont on régule la température.",
@@ -1360,7 +1412,7 @@ function lockView(ch){
 function chapterView(ch){
   const show=!!C.res[ch.n];
   const out=[h('p',{class:'cl-kicker'},'Chapitre '+ch.n+' · correspond à la '+ch.m),h('h2',null,ch.t),h('p',{class:'cl-intro'},ch.intro)];
-  out.push(h('section',{class:'cl-card'},h('h3',null,'Ressources'),h('div',{class:'cl-res'},...ch.res().map(([t,a])=>typeof a==='string'?h('a',{class:'cl-rb',href:a,target:'_blank',rel:'noopener'},t):h('button',{class:'cl-rb',onclick:a},t)))));
+  out.push(h('p',{class:'hint',style:{fontSize:'14px'}},'📚 Chaque question propose ses propres ressources (cours, vidéos, documents) : clique sur « Ressources » à côté de la question.'));
   ch.q.forEach((q,i)=>out.push(qCard(ch,q,i,show)));
   const s=chScore(ch);
   const sum=h('section',{class:'cl-card cl-sum'},h('h3',null,'Bilan du chapitre'),
@@ -1374,7 +1426,10 @@ function qCard(ch,q,i,show){
   const r=qOk(q);const mark=h('span',{class:'cl-mark'});
   const setMark=()=>{const rr=qOk(q);mark.textContent=!show?'':rr===null?'—':rr?'✓':'✗';mark.className='cl-mark'+(show&&rr!==null?(rr?' ok':' ko'):'');};
   const save=v=>{C.ans[q.id]=v;csave();setMark();updNav();};
-  const card=h('section',{class:'cl-card cl-q'},h('div',{class:'cl-qh'},h('span',{class:'cl-qn'},'Q'+(i+1)),h('p',null,q.q),mark));
+  const rl=QRES[q.id]?QRES[q.id]():[];
+  const rbox=h('div',{class:'cl-rbox',hidden:true},h('p',{class:'cl-rt'},'Ressources utiles pour cette question'),h('div',{class:'cl-res'},...rl.map(([t,a])=>typeof a==='string'?h('a',{class:'cl-rb',href:a,target:'_blank',rel:'noopener'},t):h('button',{class:'cl-rb',onclick:a},t))));
+  const rbtn=rl.length?h('button',{class:'cl-rbtn','aria-expanded':'false',onclick:()=>{rbox.hidden=!rbox.hidden;rbtn.setAttribute('aria-expanded',String(!rbox.hidden));rbtn.classList.toggle('on',!rbox.hidden);}},'📚 Ressources'):null;
+  const card=h('section',{class:'cl-card cl-q'},h('div',{class:'cl-qh'},h('span',{class:'cl-qn'},'Q'+(i+1)),h('p',null,q.q),rbtn,mark),rbox);
   if(q.pre)card.append(q.pre());
   if(q.t==='mcq'){const box=h('div',{class:'cl-opts'+(q.o.some(o=>o.length>45)?' col':'')});if(!box.classList.contains('col'))box.style.setProperty('--cols',q.o.length<=4?q.o.length:Math.ceil(q.o.length/2));
     q.o.forEach((o,j)=>{const b=h('button',{class:'opt'+(C.ans[q.id]===j?' sel':''),'aria-pressed':String(C.ans[q.id]===j),onclick:()=>{box.querySelectorAll('.opt').forEach(x=>{x.classList.remove('sel');x.setAttribute('aria-pressed','false');});b.classList.add('sel');b.setAttribute('aria-pressed','true');save(j);}},o);box.append(b);});card.append(box);}
