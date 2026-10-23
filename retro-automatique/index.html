@@ -1076,7 +1076,7 @@ function oscarGoal(){
       9:["L'abaque des temps de réponse donne le produit tr5%·ω0 en fonction de m.","Lis tr5%·ω0 pour la valeur de m trouvée.","ω0 = (valeur lue) / tr5%."]}[s];
       const ref={1:CP(33,'1er ordre'),2:CP(33,'1er ordre'),3:CP(3,'Schémas bloc'),4:CP(36,'2e ordre'),5:CP(36,'2e ordre'),6:CP(38,'Dépassement'),7:CP(38,'Dépassement'),8:CP(29,'Temps de réponse'),9:CP(40,'Abaques du 2e ordre')}[s];
       return{k:'m2s'+s,g:T?"Étude du rapport d'essai : "+['','gain statique','constante de temps','bloc du processus','boucle fermée','amortissement','1er dépassement','coefficient m','temps de réponse à 5 %','pulsation propre ω0'][s]:"Étudier le rapport d'essai",h:T||["Clique sur l'imprimante pour reprendre l'étude du rapport.","Lis attentivement chaque étape : les questions s'enchaînent.","Le code de fin de mission est donné à la fin de l'étude."],ref};}
-    return{k:'m2e',g:"Mission 2 terminée",h:["Le code de la mission 3 sera communiqué à l'issue du prochain cours.","En attendant, tu peux relire le rapport d'essai depuis le carnet.","Révise l'analyse harmonique (cours, partie 5) : elle sera utile."],ref:CP(41,'Réponse fréquentielle')};
+    return{k:'m2e',g:"Débloquer la mission 3",h:["Le code de la mission 3 est communiqué à l'issue du prochain cours.","Pour le saisir, va à l'imprimante du poste de maintenance : bouton « Saisir le code de la mission 3 ».","En attendant, révise l'analyse harmonique (cours, partie 5) : elle sera utile."],ref:CP(41,'Réponse fréquentielle')};
   }
   if(m===3){
     if(!has('key'))return{k:'m3a',g:"Trouver les clés du casier",h:["Le casier fermé est dans l'atelier, derrière le poste de maintenance.","Les clés sont cachées dans l'atelier : observe bien l'établi.","Un petit reflet attire l'œil au centre de l'image…"]};
@@ -1352,7 +1352,7 @@ function printJob(){
 function printer(){
   const study=()=>{closeAll();goScene(S.scene);m2Study(S.f.m2s||0);};
   if(has('printed')){
-    pop({img:'a/maint.webp',pos:'63.5% 51% 3.6x',title:'Imprimante',parts:[h('p',null,"Le rapport d'essai n°0147 est imprimé. Garde-le, il te servira jusqu'au questionnaire final. Tu retrouveras désormais ce document à tout moment dans ton carnet."),h('div',{class:'row'},h('button',{class:'btn',onclick:rapport},'📄 Consulter le rapport d’essai')),S.m===2&&!has('m2done')?nextBtn(S.f.m2s?'Reprendre l’étude du document':'Étudier le document',study):null]});
+    pop({img:'a/maint.webp',pos:'63.5% 51% 3.6x',title:'Imprimante',parts:[h('p',null,"Le rapport d'essai n°0147 est imprimé. Garde-le, il te servira jusqu'au questionnaire final. Tu retrouveras désormais ce document à tout moment dans ton carnet."),h('div',{class:'row'},h('button',{class:'btn',onclick:rapport},'📄 Consulter le rapport d’essai')),S.m===2&&!has('m2done')?nextBtn(S.f.m2s?'Reprendre l’étude du document':'Étudier le document',study):S.m===2?nextBtn('🔑 Saisir le code de la mission 3',()=>{closeAll();goScene(S.scene);m2Study(11);}):null]});
     return;
   }
   codeBox({img:'a/maint.webp',pos:'63.5% 51% 3.6x',title:'Imprimante',key:'printer',cls:'',ph:"Code de l'imprimante",onOK:()=>{flag('printed');printer();}});
