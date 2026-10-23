@@ -349,6 +349,10 @@ body.classic-on #ui .hud{display:none}
 .cl-rbox[hidden]{display:none}
 .cl-rt{margin:0 0 8px;font:600 12px var(--f-ui);text-transform:uppercase;letter-spacing:.06em;opacity:.65}
 @media (max-width:640px){.cl-qh{flex-wrap:wrap}.cl-rbtn{order:3}}
+.fsw-tabs{display:flex;justify-content:center;gap:6px;margin:0 0 6px}
+.fsw-tab{background:#f1f0ea;border:2px solid #dcd9cc;border-radius:999px;padding:.35em 1em;font:600 13px var(--f-ui);color:#1d2124;cursor:pointer}
+.fsw-tab[aria-selected=true]{background:var(--acc);border-color:var(--acc);color:var(--on)}
+.fsw-view{min-height:200px}
 .cl-tool{text-align:center;margin:4px 0 14px}
 .cl-pick .blk{cursor:pointer}.cl-pick .blk rect{transition:fill .15s}.cl-pick .blk:hover rect,.cl-pick .blk:focus-visible rect{fill:#fff6d6}.cl-pick .blk.sel rect{fill:color-mix(in srgb,var(--acc) 30%,#fff);stroke:var(--acc);stroke-width:2.5}
 .cl-pick{max-width:560px;margin:0 auto}
@@ -1358,9 +1362,9 @@ function CH(){return CHAPTERS_||(CHAPTERS_=[
   q:[
    {id:'p1',t:'num',key:'trM4',q:'Sur la réponse ci-dessous, place les réglettes à ±5 % autour de la valeur finale et déduis-en le temps de réponse à 5 % de la régulation du four (en s).',pre:()=>zoomReader(),ph:'tr5% (s)'},
    {id:'p1c',t:'mcq',q:'Rapidité : le cahier des charges est-il respecté ?',o:['OUI','NON'],a:1},
-   {id:'p2',t:'num',key:'mphi',q:"À l'aide du diagramme de Bode ci-dessous (ou du diagramme de Black), détermine la marge de phase de la régulation (en degrés, arrondie à l'entier).",pre:()=>h('div',null,h('p',{class:'hint center'},'Passe ta souris (ou ton doigt) sur les courbes pour lire les valeurs.'),bodeReader(),h('div',{class:'cl-tool'},h('button',{class:'btn ghost',onclick:blackTool},'📊 Ouvrir le diagramme de Black'))),ph:'Marge de phase (°)'},
+   {id:'p2',t:'num',key:'mphi',q:"À l'aide du diagramme de Bode ou de Black ci-dessous (bascule de l'un à l'autre avec les onglets), détermine la marge de phase de la régulation (en degrés, arrondie à l'entier).",pre:freqSwitch,ph:'Marge de phase (°)'},
    {id:'p2c',t:'mcq',q:'Marge de phase : le cahier des charges est-il respecté ?',o:['OUI','NON'],a:1},
-   {id:'p3',t:'mcq',q:'Quelle est la marge de gain de la régulation ?',pre:()=>h('div',null,h('p',{class:'hint center'},'Diagramme de Bode de la régulation :'),bodeReader(),h('div',{class:'cl-tool'},h('button',{class:'btn ghost',onclick:blackTool},'📊 Ouvrir le diagramme de Black'))),o:['Infini','34,36 dB','20 dB','0 dB'],a:0},
+   {id:'p3',t:'mcq',q:'Quelle est la marge de gain de la régulation ?',pre:freqSwitch,o:['Infini','34,36 dB','20 dB','0 dB'],a:0},
    {id:'p3c',t:'mcq',q:'Marge de gain : le cahier des charges est-il respecté ?',o:['OUI','NON'],a:0},
    {id:'p4',t:'num',key:'eps',q:"Sur la réponse expérimentale ci-dessous, que vaut l'écart statique (en degrés) ?",pre:()=>FULL({y1:185,y2:175,x1:30000,x2:45000}),ph:'Écart statique'},
    {id:'p4c',t:'mcq',q:'Précision : le cahier des charges est-il respecté ?',o:['OUI','NON'],a:0}]}]);}
@@ -1766,12 +1770,22 @@ function bodeTool(){
     card.append(h('p',{class:'center hint'},'ⓘ Passe ta souris (ou ton doigt) sur la courbe pour déterminer les valeurs remarquables de la réponse fréquentielle.'),bodeReader());
   });
 }
+function blackReader(){
+  const X=mkMap(53,-240,512,0),Y=mkMap(11,40,557,-100);
+  return h('div',{style:{maxWidth:'min(500px, 64vh)',margin:'0 auto'}},imgReader('a/black.webp',538,607,PTS.black,'Diagramme de Black du système étudié',(x,y)=>`Phase = ${fmtN(X.toV(x),1)}°   |   Gain = ${fmtN(Y.toV(y),1)} dB`));
+}
 function blackTool(){
   freqCard('Analyse harmonique du modèle : BLACK',card=>{
-    const X=mkMap(53,-240,512,0),Y=mkMap(11,40,557,-100);
-    card.append(h('p',{class:'center hint'},'ⓘ Passe ta souris (ou ton doigt) sur la courbe pour lire la phase et le gain. Les nombres le long de la courbe indiquent la pulsation (rad/s).'),
-      h('div',{style:{maxWidth:'min(500px, 64vh)',margin:'0 auto'}},imgReader('a/black.webp',538,607,PTS.black,'Diagramme de Black du processus',(x,y)=>`Phase = ${fmtN(X.toV(x),1)}°   |   Gain = ${fmtN(Y.toV(y),1)} dB`)));
+    card.append(h('p',{class:'center hint'},'ⓘ Passe ta souris (ou ton doigt) sur la courbe pour lire la phase et le gain. Les nombres le long de la courbe indiquent la pulsation (rad/s).'),blackReader());
   });
+}
+/* Bode et Black dans le même cadre, avec bascule */
+function freqSwitch(){
+  const box=h('div',{class:'fsw-view'});let cur=null;
+  const tabs=[['bode','📊 Diagramme de Bode'],['black','📊 Diagramme de Black']].map(([k,t])=>h('button',{class:'fsw-tab',role:'tab',onclick:()=>show(k)},t));
+  const show=k=>{if(cur===k)return;cur=k;tabs.forEach((b,i)=>b.setAttribute('aria-selected',String(['bode','black'][i]===k)));box.innerHTML='';box.append(k==='bode'?bodeReader():blackReader());};
+  show('bode');
+  return h('div',{class:'fsw'},h('div',{class:'fsw-tabs',role:'tablist'},...tabs),h('p',{class:'hint center'},'Passe ta souris (ou ton doigt) sur les courbes pour lire les valeurs.'),box);
 }
 const ESSAIS=[
   {d:'Essai du 27/12/2013 - 12:11',img:'a/essai2.webp',ord:1,ax:[28,485],marks:[{t:23242,txt:'Tr5% = 23242s'}]},
@@ -1869,7 +1883,7 @@ function relev(k){
         mcq(['OUI','NON'],conf?0:1,()=>{flag(k+'_ok');revealSlots(k);fill();},{wrongMsg:['Compare ta valeur avec l’extrait du cahier des charges...','Compare ta valeur avec l’extrait du cahier des charges...']}));};
     const ok=()=>{flag(k);step2.hidden=false;fill();};
     if(k==='rap')c.append(h('p',{class:'q center'},'Quel est le temps de réponse à 5 % actuel du processus ?'),has(k)?h('p',{class:'center'},h('span',{class:'fb good'},'Relevé enregistré')):numInput('trM4','Temps de réponse à 5 % du processus (s)',ok));
-    if(k==='phi'||k==='gm')c.append(h('div',{class:'row',style:{marginBottom:'8px'}},h('button',{class:'btn',onclick:bodeTool},'📊 Diagramme de Bode'),h('button',{class:'btn',onclick:blackTool},'📊 Diagramme de Black')));
+    if(k==='phi'||k==='gm')c.append(h('div',{class:'row',style:{marginBottom:'8px'}},h('button',{class:'btn',onclick:()=>freqCard('Analyse harmonique du modèle',card=>card.append(freqSwitch()))},'📊 Diagrammes de Bode et de Black')));
     if(k==='phi')c.append(h('p',{class:'q center'},'Quelle est la marge de phase du processus (en degrés) ?'),has(k)?h('p',{class:'center'},h('span',{class:'fb good'},'Relevé enregistré')):numInput('mphi',"Marge de phase arrondie à l'entier près (sans l'unité)",ok));
     if(k==='gm')c.append(h('p',{class:'q center'},'Quelle est la marge de gain du processus ?'),has(k)?h('p',{class:'center'},h('span',{class:'fb good'},'Relevé enregistré')):mcq(['Infini','34,36 dB','20 dB','0 dB'],0,ok));
     if(k==='pre')c.append(h('p',{class:'q center'},'Que vaut l’écart statique de la réponse temporelle du processus (en degrés) ?'),has(k)?h('p',{class:'center'},h('span',{class:'fb good'},'Relevé enregistré')):numInput('eps',"Écart statique (sans l'unité)",ok));
