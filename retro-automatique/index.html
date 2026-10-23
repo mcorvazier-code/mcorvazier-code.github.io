@@ -1306,9 +1306,9 @@ function CH(){return CHAPTERS_||(CHAPTERS_=[
   q:[
    {id:'p1',t:'num',key:'trM4',q:'Sur la réponse ci-dessous, place les réglettes à ±5 % autour de la valeur finale et déduis-en le temps de réponse à 5 % de la régulation du four (en s).',pre:()=>zoomReader(),ph:'tr5% (s)'},
    {id:'p1c',t:'mcq',q:'Rapidité : le cahier des charges est-il respecté ?',o:['OUI','NON'],a:1},
-   {id:'p2',t:'num',key:'mphi',q:"Quelle est la marge de phase de la régulation (en degrés, arrondie à l'entier) ?",ph:'Marge de phase (°)'},
+   {id:'p2',t:'num',key:'mphi',q:"À l'aide du diagramme de Bode ci-dessous (ou du diagramme de Black), détermine la marge de phase de la régulation (en degrés, arrondie à l'entier).",pre:()=>h('div',null,h('p',{class:'hint center'},'Passe ta souris (ou ton doigt) sur les courbes pour lire les valeurs.'),bodeReader(),h('div',{class:'cl-tool'},h('button',{class:'btn ghost',onclick:blackTool},'📊 Ouvrir le diagramme de Black'))),ph:'Marge de phase (°)'},
    {id:'p2c',t:'mcq',q:'Marge de phase : le cahier des charges est-il respecté ?',o:['OUI','NON'],a:1},
-   {id:'p3',t:'mcq',q:'Quelle est la marge de gain de la régulation ?',o:['Infini','34,36 dB','20 dB','0 dB'],a:0},
+   {id:'p3',t:'mcq',q:'Quelle est la marge de gain de la régulation ?',pre:()=>h('div',null,h('p',{class:'hint center'},'Diagramme de Bode de la régulation :'),bodeReader(),h('div',{class:'cl-tool'},h('button',{class:'btn ghost',onclick:blackTool},'📊 Ouvrir le diagramme de Black'))),o:['Infini','34,36 dB','20 dB','0 dB'],a:0},
    {id:'p3c',t:'mcq',q:'Marge de gain : le cahier des charges est-il respecté ?',o:['OUI','NON'],a:0},
    {id:'p4',t:'num',key:'eps',q:"Sur la réponse expérimentale ci-dessous, que vaut l'écart statique (en degrés) ?",pre:()=>FULL({y1:185,y2:175,x1:30000,x2:45000}),ph:'Écart statique'},
    {id:'p4c',t:'mcq',q:'Précision : le cahier des charges est-il respecté ?',o:['OUI','NON'],a:0}]}]);}
@@ -1814,6 +1814,7 @@ function relev(k){
         mcq(['OUI','NON'],conf?0:1,()=>{flag(k+'_ok');revealSlots(k);fill();},{wrongMsg:['Compare ta valeur avec l’extrait du cahier des charges...','Compare ta valeur avec l’extrait du cahier des charges...']}));};
     const ok=()=>{flag(k);step2.hidden=false;fill();};
     if(k==='rap')c.append(h('p',{class:'q center'},'Quel est le temps de réponse à 5 % actuel du processus ?'),has(k)?h('p',{class:'center'},h('span',{class:'fb good'},'Relevé enregistré')):numInput('trM4','Temps de réponse à 5 % du processus (s)',ok));
+    if(k==='phi'||k==='gm')c.append(h('div',{class:'row',style:{marginBottom:'8px'}},h('button',{class:'btn',onclick:bodeTool},'📊 Diagramme de Bode'),h('button',{class:'btn',onclick:blackTool},'📊 Diagramme de Black')));
     if(k==='phi')c.append(h('p',{class:'q center'},'Quelle est la marge de phase du processus (en degrés) ?'),has(k)?h('p',{class:'center'},h('span',{class:'fb good'},'Relevé enregistré')):numInput('mphi',"Marge de phase arrondie à l'entier près (sans l'unité)",ok));
     if(k==='gm')c.append(h('p',{class:'q center'},'Quelle est la marge de gain du processus ?'),has(k)?h('p',{class:'center'},h('span',{class:'fb good'},'Relevé enregistré')):mcq(['Infini','34,36 dB','20 dB','0 dB'],0,ok));
     if(k==='pre')c.append(h('p',{class:'q center'},'Que vaut l’écart statique de la réponse temporelle du processus (en degrés) ?'),has(k)?h('p',{class:'center'},h('span',{class:'fb good'},'Relevé enregistré')):numInput('eps',"Écart statique (sans l'unité)",ok));
