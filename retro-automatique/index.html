@@ -178,6 +178,7 @@ button,input,select{font:inherit;color:inherit}
 .layer>*{margin:auto;flex-shrink:0}
 /* mise à l'échelle des fenêtres sur grand écran : le calque est mis en page dans un « écran virtuel » plus petit puis agrandi */
 .layer{zoom:var(--uiz,1)}
+.layer{right:auto!important;bottom:auto!important;left:calc(var(--sl,0px) / var(--uiz,1))!important;top:calc(var(--st,0px) / var(--uiz,1))!important;width:calc(var(--sw,100vw) / var(--uiz,1));height:calc(var(--sh,100vh) / var(--uiz,1))}
 #classic{zoom:var(--clz,1)}
 .hm-fs{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.82);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 8px;color:#fff;font:12px var(--f-ui);white-space:nowrap}
 .hm-fs span{flex:1}
@@ -597,6 +598,9 @@ function setFS(d){let i=FS_STEPS.indexOf(FS);if(i<0)i=2;i=Math.max(0,Math.min(FS
 function applyScale(){const r=$stage.getBoundingClientRect();
   const auto=Math.max(1,0.8*Math.min(1.6,Math.min(r.width,innerWidth)/1180,Math.min(r.height,innerHeight)/664));
   $ui.style.setProperty('--uiz',(auto*FS).toFixed(3));
+  /* les fenêtres restent dans la partie visible de la scène */
+  const L=Math.max(r.left,0),T=Math.max(r.top,0),Rr=Math.min(r.right,innerWidth),B=Math.min(r.bottom,innerHeight);
+  if(Rr-L>100&&B-T>100){$ui.style.setProperty('--sl',L+'px');$ui.style.setProperty('--st',T+'px');$ui.style.setProperty('--sw',(Rr-L)+'px');$ui.style.setProperty('--sh',(B-T)+'px');}
   document.body.style.setProperty('--clz',(Math.max(1,0.8*Math.min(1.5,innerWidth/1280,innerHeight/720))*FS).toFixed(3));}
 function fsCtl(){return h('div',{class:'hm-fs',role:'group','aria-label':'Taille du texte'},h('span',null,'🔠 Texte'),h('button',{onclick:e=>{e.stopPropagation();setFS(-1);},'aria-label':'Réduire le texte'},'A−'),h('b',{class:'fs-val'},Math.round(FS*100)+' %'),h('button',{onclick:e=>{e.stopPropagation();setFS(1);},'aria-label':'Agrandir le texte'},'A+'));}
 function placeHud(){applyScale();const r=$stage.getBoundingClientRect(),u=$ui.getBoundingClientRect();
