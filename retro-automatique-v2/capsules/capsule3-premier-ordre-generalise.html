@@ -255,7 +255,7 @@ function drawCursor(){
 }
 function redraw(){const box=$('#plot');if(!box)return;box.innerHTML='';box.append(S.tab==='bode'?drawBode():drawBlack());drawCursor();
   const tf=$('#tf');if(tf)tf.innerHTML=mathH(fr(S.tau,3),fr(S.a*S.tau,3))+`<span style="color:var(--dim)">a = ${fr(S.a,3)} · τ = ${fr(S.tau,3)} s</span>`;
-  $('#a-out').textContent=fr(S.a,3);$('#t-out').textContent=fr(S.tau,3)+' s';checkTask();}
+  $('#a-out').textContent=fr(S.a,3);$('#t-out').textContent=fr(S.tau,3)+' s';if(CH[S.ch]&&CH[S.ch].t==='Plan de Black'){if(S.a<.9)S.seen.av=true;if(S.a>1.1)S.seen.rt=true;}checkTask();}
 function setW(w){S.w=w;drawCursor();}
 function setA(a,t){S.a=a;if(t!=null)S.tau=t;const as=$('#a-sl'),ts=$('#t-sl');if(as)as.value=Math.round(L10(S.a)*100);if(ts)ts.value=Math.round(L10(S.tau)*100);redraw();}
 function preset(a,t,w){S.a=a;S.tau=t;S.w=w;}
@@ -282,10 +282,10 @@ const CH=[
    `<b>Phase.</b> Elle devient négative, avec un creux au milieu des deux cassures. C'est un circuit à <b>retard de phase</b>.`],
   task:{q:`Règle a pour que la carte atténue les hautes fréquences de 20 dB exactement.`,ok:()=>S.a>9.3&&S.a<10.7,
    res:()=>`a = 10 donne −20.log 10 = −20 dB. Pour trouver a sur un diagramme de Bode, il suffit de lire le palier haute fréquence.`}},
- {t:'Plan de Black',enter:()=>{S.seen={av:true};preset(0.01,10,1);},
+ {t:'Plan de Black',enter:()=>{S.seen={};preset(0.01,10,1);},
   say:[`Le même boîtier dans le <b>plan de Black</b> : la phase en abscisse, le gain en ordonnée. Chaque point du lieu correspond à une pulsation, repérée par les petits ronds.`,
    `En avance de phase, le lieu part de (0° ; 0 dB), passe <b>à droite</b>, dans les phases positives, et monte jusqu'à −20.log a. En retard de phase, il part <b>à gauche</b> et descend.`],
-  task:{q:`Bascule entre les deux cas avec « Avance » et « Retard », puis promène le point blanc le long du lieu.`,ok:()=>S.seen.av&&S.seen.rt,
+  task:{q:`Fais passer la carte d'une avance à un retard de phase, avec les boutons « Avance » et « Retard » sous le diagramme ou avec le curseur a (au-delà de 1). Regarde de quel côté de l'axe 0° passe le lieu.`,ok:()=>S.seen.av&&S.seen.rt,
    res:()=>`À retenir : avance de phase = lieu à droite de l'axe 0°, retard de phase = lieu à gauche. Le lieu revient toujours sur l'axe 0° aux deux extrémités.`},
   extra:()=>h('div',{class:'mon-act'},h('button',{class:'btn ghost',onclick:()=>{S.seen.av=true;setA(0.01,10);}},'Avance (a = 0,01)'),h('button',{class:'btn ghost',onclick:()=>{S.seen.rt=true;setA(1000,0.1);}},'Retard (a = 1000)'))},
  {t:'À retenir',memo:true},
