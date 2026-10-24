@@ -14,7 +14,10 @@ La version en ligne du jeu (`retro-automatique/` sur la branche `main`) n'est pa
 - Ordinateur : vidéo ressource (lien à renseigner dans `LINKS.vidM5`), simulateur, test de la carte en service C(p) = (1 + 100.p)/p.
 - Fin : code de la mission 6 donné en cours (provisoire : `CORRECTEUR`).
 
+## Parcours e-learning : chapitre 5 « Identifier les systèmes particuliers »
+- Même code de déverrouillage que la mission 5 ; 18 questions : 6 systèmes (type + paramètre) puis l'analyse du correcteur de la régulation.
+
 ## À faire
 - Codes définitifs des missions 5 et 6, lien de la vidéo ressource.
-- Chapitre 5 du parcours e-learning sans scénario.
-- Mission 6 (correcteurs).
+- Mission 6 et chapitre 6 (correcteurs).
+- Identifiants des nouvelles questions à ajouter au tableau de bord Moodle.

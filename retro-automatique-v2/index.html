@@ -555,6 +555,7 @@ body.classic-on #ui .hud{display:none}
 .botask:hover,.botask:focus-visible{background:rgba(0,0,0,.55)}
 .botask .rb{width:30px;height:30px;display:block;flex:none}
 .botask .rb svg{width:100%;height:100%}
+#classic .btn.sgn{color:#1d2124;border-color:#9a978a}
 
 </style>
 
@@ -1000,7 +1001,7 @@ function showChoice(){
   const conf=h('div',{class:'ch-conf',hidden:true},h('p',null,'⚠ Ce choix est définitif : tu ne pourras plus changer de format ensuite.'),cb);
   const wrap=h('div',{class:'choice'},h('h1',null,'Automatique linéaire'),h('p',{class:'ch-sub'},'Choisis comment tu veux travailler. Les deux formats abordent exactement les mêmes notions.'),
     h('div',{class:'ch-opts'},opt('game','🕹️','Escape game',"Une enquête dans un laboratoire abandonné : explore les salles, résous les énigmes et stoppe le processus avant la catastrophe."),
-      opt('classic','📘','Parcours e-learning',"Un parcours classique en 4 chapitres : ressources, questions et bilan avec une note par chapitre.")),conf);
+      opt('classic','📘','Parcours e-learning',"Un parcours classique en 5 chapitres : ressources, questions et bilan avec une note par chapitre.")),conf);
   $ui.append(wrap);
   addHud(h('div',{class:'hud'},profBtn()));
 }
@@ -1438,9 +1439,9 @@ function CH(){return CHAPTERS_||(CHAPTERS_=[
    {id:'p3',t:'mcq',q:'Quelle est la marge de gain de la régulation ?',pre:freqSwitch,o:['Infini','34,36 dB','20 dB','0 dB'],a:0},
    {id:'p3c',t:'mcq',q:'Marge de gain : le cahier des charges est-il respecté ?',o:['OUI','NON'],a:0},
    {id:'p4',t:'num',key:'eps',q:"Sur la réponse expérimentale ci-dessous, que vaut l'écart statique (en degrés) ?",pre:()=>FULL({y1:185,y2:175,x1:30000,x2:45000}),ph:'Écart statique'},
-   {id:'p4c',t:'mcq',q:'Précision : le cahier des charges est-il respecté ?',o:['OUI','NON'],a:0}]}]);}
+   {id:'p4c',t:'mcq',q:'Précision : le cahier des charges est-il respecté ?',o:['OUI','NON'],a:0}]},M5_CHAPTER()]);}
 function qOk(q){const v=C.ans[q.id];if(v==null||v==='')return null;
-  if(q.t==='mcq'||q.t==='pick')return v===q.a;if(q.t==='num')return numOk(q.key,v);
+  if(q.t==='mcq'||q.t==='pick')return v===q.a;if(q.t==='num')return q.chk?q.chk(v):numOk(q.key,v);
   if(q.t==='match')return Array.isArray(v)&&q.a.every((x,i)=>v[i]===x);return false;}
 const PEN=0.25; /* chaque erreur constatée à la validation retire 1/4 de point à la question */
 function qPts(q){const r=qOk(q);if(!r)return 0;return Math.max(0,1-PEN*(C.err[q.id]||0));}
@@ -1460,7 +1461,7 @@ function classic(n){
 }
 function leaveClassic(){if($cl)$cl.hidden=true;document.body.classList.remove('classic-on');showTitle();}
 function renderClassic(){
-  const cur=C.ch;document.body.dataset.m=String(cur==='bilan'?5:cur);
+  const cur=C.ch;document.body.dataset.m=String(cur==='bilan'?'end':cur);
   const nav=h('nav',{class:'cl-nav','aria-label':'Chapitres'},
     ...CH().map(ch=>{const s=chScore(ch);const b=h('button',{class:'cl-ch'+(cur===ch.n?' on':''),onclick:()=>{C.ch=ch.n;csave();renderClassic();}},
       h('span',{class:'cl-n'},chOpen(ch)?ch.n:'🔒'),h('span',{class:'cl-tt'},h('small',null,'Chapitre '+ch.n),ch.t),h('span',{class:'cl-pr'},s.ans+'/'+s.tot));b.style.setProperty('--c',`var(--m${ch.n})`);return b;}),
@@ -1493,7 +1494,7 @@ function chapterView(ch){
   const sum=h('section',{class:'cl-card cl-sum'},h('h3',null,'Bilan du chapitre'),
     show?h('p',{class:'cl-score'},`${s.ok} / ${s.tot} bonnes réponses · note : ${f20(chNote(ch).note)} / 20`):h('p',null,`Tu as répondu à ${s.ans} question(s) sur ${s.tot}. Tu peux répondre dans l'ordre que tu veux et modifier tes réponses.`),
     h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{countErrors(ch);C.res[ch.n]=true;csave();renderClassic();const m=$cl.querySelector('.cl-main');m.scrollTop=m.scrollHeight;sfx(chDone(ch.n)?'win':ch.q.some(q=>qOk(q)===false)?'ko':'ok');}},'Valider'),
-      ch.n<4?h('button',{class:'btn ghost',onclick:()=>{C.ch=ch.n+1;csave();renderClassic();}},'Chapitre suivant ⟶'):h('button',{class:'btn ghost',onclick:()=>{C.ch='bilan';csave();renderClassic();}},'Voir mon bilan global ⟶')),
+      ch.n<CH().length?h('button',{class:'btn ghost',onclick:()=>{C.ch=ch.n+1;csave();renderClassic();}},'Chapitre suivant ⟶'):h('button',{class:'btn ghost',onclick:()=>{C.ch='bilan';csave();renderClassic();}},'Voir mon bilan global ⟶')),
     show?h('p',{class:'hint'},'Les questions fausses sont marquées ✗ : corrige-les puis valide à nouveau.'):null);
   out.push(sum);return out;
 }
@@ -1510,14 +1511,14 @@ function qCard(ch,q,i,show){
     q.o.forEach((o,j)=>{const b=h('button',{class:'opt'+(C.ans[q.id]===j?' sel':''),'aria-pressed':String(C.ans[q.id]===j),onclick:()=>{box.querySelectorAll('.opt').forEach(x=>{x.classList.remove('sel');x.setAttribute('aria-pressed','false');});b.classList.add('sel');b.setAttribute('aria-pressed','true');save(j);}},o);box.append(b);});card.append(box);}
   if(q.t==='pick'){const d=h('div',{class:'diagram fit cl-pick',html:q.svg});const sel=()=>d.querySelectorAll('.blk').forEach(g=>g.classList.toggle('sel',C.ans[q.id]===+g.dataset.k));
     d.querySelectorAll('.blk').forEach(g=>{const f=()=>{save(+g.dataset.k);sel();};g.addEventListener('click',f);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f();}});});sel();card.append(d);}
-  if(q.t==='num'){const inp=h('input',{class:'field',inputmode:'decimal',placeholder:q.ph||'Valeur',value:C.ans[q.id]||'',autocomplete:'off'});inp.addEventListener('change',()=>save(inp.value.trim()));inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();});card.append(h('div',{class:'formrow'},inp,h('span',{class:'hint'},'Enregistré automatiquement')));}
+  if(q.t==='num'){const inp=h('input',{class:'field',inputmode:'decimal',placeholder:q.ph||'Valeur',value:C.ans[q.id]||'',autocomplete:'off'});inp.addEventListener('change',()=>save(inp.value.trim()));inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();});const sg=q.signed?h('button',{class:'btn ghost sgn',type:'button','aria-label':'Changer le signe (plus ou moins)',onclick:()=>{const v=inp.value.trim();inp.value=/^[-−]/.test(v)?v.replace(/^[-−]\s*/,''):'-'+v;save(inp.value.trim());}},'±'):null;card.append(h('div',{class:'formrow'},sg,inp,h('span',{class:'hint'},'Enregistré automatiquement')));}
   if(q.t==='match'){const v=Array.isArray(C.ans[q.id])?C.ans[q.id].slice():q.rows.map(()=>null);
     card.append(h('div',{class:'match'},...q.rows.map((row,k)=>{const s=h('select',{class:'field','aria-label':'Réponse '+(k+1)},h('option',{value:''},'— choisir —'),...q.names.map((nm,j)=>h('option',{value:j},nm)));if(v[k]!=null)s.value=String(v[k]);
       s.addEventListener('change',()=>{v[k]=s.value===''?null:+s.value;save(v.some(x=>x!=null)?v.slice():'');});return h('div',{class:'cell'},row(),s);})));}
   setMark();return card;
 }
 function updNav(){if(!$cl)return;CH().forEach((ch,i)=>{const b=$cl.querySelectorAll('.cl-ch .cl-pr')[i];if(b){const s=chScore(ch);b.textContent=s.ans+'/'+s.tot;}const n=$cl.querySelectorAll('.cl-ch .cl-n')[i];if(n)n.textContent=chOpen(ch)?ch.n:'🔒';});
-  const cur=CH().find(c=>c.n===C.ch);if(cur&&cur.n<4){const nx=CH().find(c=>c.n===cur.n+1);if(nx.after&&chDone(cur.n)&&!$cl.dataset.toasted){$cl.dataset.toasted='1';toast('Chapitre '+cur.n+' terminé : le chapitre '+nx.n+' est débloqué !');}}}
+  const cur=CH().find(c=>c.n===C.ch);if(cur&&cur.n<CH().length){const nx=CH().find(c=>c.n===cur.n+1);if(nx.after&&chDone(cur.n)&&!$cl.dataset.toasted){$cl.dataset.toasted='1';toast('Chapitre '+cur.n+' terminé : le chapitre '+nx.n+' est débloqué !');}}}
 function bilanView(){
   let P=0,N=0;const rows=CH().map(ch=>{const s=chScore(ch),n=chNote(ch);P+=n.pts;N+=s.tot;const pc=Math.round(5*n.note);
     return h('div',{class:'cl-brow'},h('span',null,h('b',null,'Chapitre '+ch.n),' — '+ch.t),
@@ -2269,6 +2270,30 @@ function m5Gate(){
   layer(c,{dim:false,closable:false});
 }
 
+/* ===================== PARCOURS E-LEARNING : CHAPITRE 5 ===================== */
+const RS5={vid:()=>LINKS.vidM5?['▶ Vidéo ressource : les systèmes particuliers',LINKS.vidM5]:['▶ Vidéo ressource (bientôt disponible)',m5Video],sim:()=>['🧪 Simulateur : systèmes particuliers',m5Sim]};
+const M5_CL_SVC=[
+ "Voici les diagrammes de Bode et de Black du correcteur installé dans la régulation étudiée aux chapitres précédents. Il se comporte comme deux des systèmes ci-dessus placés en série. Lesquels ?",
+ "Sur ces mêmes diagrammes, que vaut la constante de temps τd du montage dérivateur (en s) ?",
+ "Le processus commandé a pour fonction de transfert 0,01 / (1 + 8732.p). Quelle est la classe de la FTBO avec ce correcteur ?",
+ "D’après le cours, que garantit cette classe pour une consigne en échelon ?",
+ "La pulsation de coupure de la régulation vaut ωc ≈ 1,07.10⁻³ rad/s (chapitre 4). Que vaut la phase du correcteur à cette pulsation (en degrés, arrondie à l’unité) ? Utilise le bouton ± pour le signe.",
+ "Conclusion : à la pulsation ωc, où se joue la stabilité, ce correcteur…"];
+function M5_CHAPTER(){
+  const q=[];
+  M5_CARDS.forEach(c=>{
+    q.push({id:'k'+c.id+'t',t:'mcq',q:`Voici les diagrammes de Bode et de Black du système ${c.id}. De quel type de système s’agit-il ?`,pre:()=>freqPlot(c.f,{w:c.w}),o:M5_TYPES,a:c.type});
+    q.push({id:'k'+c.id+'p',t:'num',q:`Sur les diagrammes du système ${c.id} (question précédente) : ${c.q.replace('cette carte','ce système')}`,ph:c.ph,chk:v=>m5ok(v,c.ans,c.tol)});
+    QRES['k'+c.id+'t']=QRES['k'+c.id+'p']=()=>[RS5.vid(),RS5.sim()];});
+  M5_SVC_Q.forEach((s,i)=>{
+    const pre=i===0?()=>freqPlot(M5_SVC,{w:[1e-5,1e1]}):i===4?()=>freqPlot(M5_SVC,{w:[1e-5,1e1],init:M5_WC}):null;
+    q.push(s.num!=null?{id:'ks'+i,t:'num',q:M5_CL_SVC[i],pre,ph:s.ph,chk:v=>m5ok(v,s.num,s.tol),signed:s.signed}:{id:'ks'+i,t:'mcq',q:M5_CL_SVC[i],pre,o:s.o,a:s.a});
+    QRES['ks'+i]=()=>[RS5.vid(),RS5.sim()];});
+  return {n:5,t:'Identifier les systèmes particuliers',m:'Mission 5',lock:'m5',
+    intro:"Ce chapitre porte sur les systèmes particuliers : intégrateur et dérivateur purs, montages intégrateur et dérivateur, premier ordre généralisé. Tu identifies six systèmes à partir de leurs diagrammes de Bode et de Black, puis tu analyses le correcteur de la régulation étudiée aux chapitres précédents. Commence par la vidéo ressource ; le simulateur te permet d’observer l’effet de chaque paramètre. Sur les diagrammes, déplace le curseur ω pour lire les valeurs.",
+    res:()=>[RS5.vid(),RS5.sim()],q};
+}
+
 /* ===================== MODE PROF ===================== */
 let PROF=null; // mot de passe saisi (sert à déchiffrer le corrigé), uniquement pour cet onglet
 try{PROF=sessionStorage.getItem('retro-prof');}catch(e){}
@@ -2293,7 +2318,7 @@ function profMenu(){
   if(document.body.classList.contains('classic-on')){
     const card=h('div',{class:'card quiz prof'},h('h2',{class:'stamp'},'Mode prof'),
       h('p',{class:'center hint'},'Parcours e-learning : en mode prof, tous les chapitres sont ouverts.'),
-      h('div',{class:'pmiss'},...CH().map(ch=>h('button',{class:'pmis pm'+ch.n,onclick:()=>{closeAll();C.ch=ch.n;csave();renderClassic();}},h('b',null,'Chapitre '+ch.n),h('span',null,ch.t))),
+      h('div',{class:'pmiss'},...CH().map(ch=>h('button',{class:'pmis pm'+(ch.n===5?'5m':ch.n),onclick:()=>{closeAll();C.ch=ch.n;csave();renderClassic();}},h('b',null,'Chapitre '+ch.n),h('span',null,ch.t))),
         h('button',{class:'pmis pm5',onclick:()=>{closeAll();C.ch='bilan';csave();renderClassic();}},h('b',null,'Bilan'),h('span',null,'Notes par chapitre'))),
       h('div',{class:'row',style:{marginTop:'14px'}},
         h('button',{class:'btn',style:{background:'var(--gold)',color:'#1b1405'},onclick:()=>{closeTop();profKey();}},'Voir le corrigé'),
