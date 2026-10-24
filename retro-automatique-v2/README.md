@@ -21,6 +21,10 @@ La version en ligne du jeu (`retro-automatique/` sur la branche `main`) n'est pa
 - Chacun peut passer de l'escape game au parcours e-learning (menu ☰ ou bandeau du parcours).
 - Une mission validée dans le jeu valide le chapitre correspondant (réponses justes en place, mention « validé dans l'escape game »), et un chapitre validé fait avancer le jeu. Les codes saisis dans un format comptent dans l'autre. La synchronisation se fait à chaque ouverture et à chaque changement de format.
 
+## Score commun et indices
+- Même score dans les deux formats : départ 100 pts, +10 par bonne réponse, −10 par erreur, −5 par indice. Dans le parcours, une bonne réponse rapporte des points une seule fois, à la première validation juste.
+- ICAM_BOT donne aussi des indices dans le parcours : l'élève choisit la question (par défaut, la première non résolue).
+
 ## À faire
 - Codes définitifs des missions 5 et 6, lien de la vidéo ressource.
 - Mission 6 et chapitre 6 (correcteurs).

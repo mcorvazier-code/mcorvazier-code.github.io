@@ -553,6 +553,9 @@ body.classic-on #ui .hud{display:none}
 #classic .btn.sgn{color:#1d2124;border-color:#9a978a}
 @media (max-width:640px){.cl-head{flex-wrap:wrap;padding:8px 12px}.cl-head h1{font-size:19px}.cl-hb{flex-wrap:wrap;gap:6px;width:100%}.cl-hb button{padding:4px 10px;white-space:nowrap}}
 .cl-via{background:color-mix(in srgb,var(--ok) 14%,#fff);border-left:4px solid var(--ok);padding:8px 12px;border-radius:4px;font-size:14.5px}
+.os-qrow{display:flex;align-items:center;gap:8px;margin:0 0 8px;font:600 13px var(--f-ui)}
+.os-qsel{padding:.35em .6em;border-radius:4px;border:1px solid var(--tint2);background:#fff;color:#111;font:600 13px var(--f-ui)}
+#classic .cl-hb .hud-score{display:inline-flex;align-items:center}
 
 </style>
 
@@ -998,7 +1001,7 @@ function showChoice(){
   const conf=h('div',{class:'ch-conf',hidden:true},h('p',null,'Tu pourras changer de format à tout moment depuis le menu : une mission validée dans un format l’est aussi dans l’autre.'),cb);
   const wrap=h('div',{class:'choice'},h('h1',null,'Automatique linéaire'),h('p',{class:'ch-sub'},'Choisis comment tu veux travailler. Les deux formats abordent exactement les mêmes notions.'),
     h('div',{class:'ch-opts'},opt('game','🕹️','Escape game',"Une enquête dans un laboratoire abandonné : explore les salles, résous les énigmes et stoppe le processus avant la catastrophe."),
-      opt('classic','📘','Parcours e-learning',"Un parcours classique en 5 chapitres : ressources, questions et bilan avec une note par chapitre.")),conf);
+      opt('classic','📘','Parcours e-learning',"Un parcours classique en 5 chapitres : ressources, questions, indices du robot et bilan. Le score est commun avec l’escape game.")),conf);
   $ui.append(wrap);
   addHud(h('div',{class:'hud'},profBtn()));
 }
@@ -1301,11 +1304,11 @@ function oscarAnswer(q){
 }
 let OSCAR_LOG=[];
 function oscar(){
-  const g=oscarGoal();S.f.hints=S.f.hints||{};const lvl=()=>S.f.hints[g.k]||0;
+  const _cl=document.body.classList.contains('classic-on');let clQ=_cl?clDefaultQ():null;let g=_cl?(clQ?clGoal(clQ):{k:'cl_none',g:'',h:[]}):oscarGoal();S.f.hints=S.f.hints||{};const lvl=()=>S.f.hints[g.k]||0;
   const log=h('div',{class:'os-log',role:'log','aria-live':'polite'});
   const say=(who,nodes)=>{const b=h('div',{class:'os-msg '+who},...nodes);log.append(b);log.scrollTop=log.scrollHeight;OSCAR_LOG.push([who,nodes.map(x=>typeof x==='string'?x:x.cloneNode(true))]);};
   const refBtns=e=>{const r=[];if(e.ref||e.r){const c=e.ref||e.r;r.push(h('button',{class:'os-link',onclick:()=>coursView(c.cours)},'📖 Cours p. '+c.cours+' – '+c.label));}
-    const d=e.doc||e.d;if(d&&has('doc_fiches'))r.push(h('button',{class:'os-link',onclick:()=>docView(d)},'📄 '+DOCS[d].t.replace('Fiche de synthèse – ','Fiche : ')));return r.length?[h('div',{class:'os-refs'},...r)]:[];};
+    const d=e.doc||e.d;if(d&&(has('doc_fiches')||document.body.classList.contains('classic-on')))r.push(h('button',{class:'os-link',onclick:()=>docView(d)},'📄 '+DOCS[d].t.replace('Fiche de synthèse – ','Fiche : ')));return r.length?[h('div',{class:'os-refs'},...r)]:[];};
   const hintArea=h('div',{class:'os-hints'});
   const drawHints=()=>{hintArea.innerHTML='';const L=lvl();
     g.h.slice(0,L).forEach((t,i)=>hintArea.append(h('p',{class:'os-hint'},h('b',null,'Indice '+(i+1)+' : '),t)));
@@ -1321,14 +1324,14 @@ function oscar(){
   /* les boutons recopiés du journal perdent leurs actions : on les rebranche */
   log.querySelectorAll('.os-link').forEach(b=>{const m=b.textContent.match(/Cours p\. (\d+)/);if(m)b.onclick=()=>coursView(+m[1]);});
   const chips=h('div',{class:'os-chips'},((S.m===5&&has('m5open'))||(document.body.classList.contains('classic-on')&&C.ch===5)?OSCAR_SUGG5:OSCAR_SUGG).map(s=>h('button',{class:'os-chip',onclick:()=>ask(s)},s)));
-  const pHint=h('div',{class:'os-pane'},h('p',{class:'os-goal'},h('span',null,'Objectif actuel'),g.g),hintArea);
+  const goalP=h('p',{class:'os-goal'},h('span',null,_cl?'Énoncé':'Objectif actuel'),g.g);const pHint=h('div',{class:'os-pane'},_cl&&clQ?clPicker(clQ,id=>{clQ=id;g=clGoal(id);goalP.lastChild.textContent=g.g;drawHints();}):null,goalP,hintArea);
   const pAsk=h('div',{class:'os-pane',hidden:true},log,chips,h('div',{class:'os-row'},inp,h('button',{class:'btn',onclick:()=>ask(inp.value)},'Envoyer')));
   const tb=['💡 Indices','💬 Questions'].map((t,i)=>h('button',{class:'os-tab',role:'tab',onclick:()=>tabs(i)},t));
   const tabs=i=>{tb.forEach((b,j)=>b.setAttribute('aria-selected',String(i===j)));pHint.hidden=i!==0;pAsk.hidden=i!==1;if(i===1)setTimeout(()=>{inp.focus({preventScroll:true});log.scrollTop=log.scrollHeight;},30);};
   const card=h('div',{class:'card oscar'},
     h('div',{class:'os-head'},h('span',{class:'os-av',html:ROBOT_SVG}),h('div',null,h('h2',null,'ICAM_BOT 2.0'),h('p',null,"Robot assistant du laboratoire — je t'aide sans te donner les réponses."))),
     h('div',{class:'os-tabs',role:'tablist'},...tb),pHint,pAsk);
-  if(document.body.classList.contains('classic-on')){tb[0].hidden=true;tabs(1);}else tabs(0);layer(card);
+  if(_cl&&!clQ){tb[0].hidden=true;tabs(1);}else tabs(0);layer(card);
 }
 
 /* ===================== PARCOURS E-LEARNING CLASSIQUE ===================== */
@@ -1454,7 +1457,7 @@ function qOk(q){const v=C.ans[q.id];if(v==null||v==='')return null;
 const PEN=0.25; /* chaque erreur constatée à la validation retire 1/4 de point à la question */
 function qPts(q){const r=qOk(q);if(!r)return 0;return Math.max(0,1-PEN*(C.err[q.id]||0));}
 function chNote(ch){let p=0,e=0;ch.q.forEach(q=>{p+=qPts(q);e+=C.err[q.id]||0;});return{pts:p,err:e,note:20*p/ch.q.length};}
-function countErrors(ch){cfix();ch.q.forEach(q=>{const r=qOk(q);const k=JSON.stringify(C.ans[q.id]);if(r===false&&C.bad[q.id]!==k){C.err[q.id]=(C.err[q.id]||0)+1;C.bad[q.id]=k;}});}
+function countErrors(ch){cfix();ch.q.forEach(q=>{const r=qOk(q);const k=JSON.stringify(C.ans[q.id]);if(r===false&&C.bad[q.id]!==k){C.err[q.id]=(C.err[q.id]||0)+1;S.f.errs=(S.f.errs||0)+1;C.bad[q.id]=k;}});}
 const f20=x=>(Math.round(x*10)/10).toLocaleString('fr-FR');
 function chScore(ch){const tot=ch.q.length;let ok=0,ans=0;ch.q.forEach(q=>{const r=qOk(q);if(r!==null)ans++;if(r)ok++;});return{ok,ans,tot};}
 function chDone(n){const ch=CH().find(c=>c.n===n);const sc=chScore(ch);return sc.ok===sc.tot;}
@@ -1478,7 +1481,7 @@ function renderClassic(){
   if(cur==='bilan')main.append(...bilanView());else{let ch=CH().find(c=>c.n===cur);if(!ch){ch=CH()[0];C.ch=ch.n;csave();}main.append(...(chOpen(ch)?chapterView(ch):lockView(ch)));}
   $cl.innerHTML='';
   $cl.append(h('header',{class:'cl-head'},h('div',null,h('h1',null,'Rétro-automatique'),h('p',null,'Parcours e-learning — Automatique linéaire')),
-    h('div',{class:'cl-hb'},h('button',{onclick:resetMode,title:'Passer à l’escape game (ta progression est conservée)'},'🔁 Escape game'),h('button',{class:'cl-fs',onclick:()=>setFS(-1),'aria-label':'Réduire le texte',title:'Réduire le texte'},'A−'),h('button',{class:'cl-fs',onclick:()=>setFS(1),'aria-label':'Agrandir le texte',title:'Agrandir le texte'},'A+'),h('button',{onclick:e=>toggleMute(e.currentTarget)},MUTED?'🔇 Son : non':'🔊 Son : oui'),profBtn())),
+    h('div',{class:'cl-hb'},h('span',{class:'hud-score'},'Score : '+gameScore()+' pts'),h('button',{onclick:resetMode,title:'Passer à l’escape game (ta progression est conservée)'},'🔁 Escape game'),h('button',{class:'cl-fs',onclick:()=>setFS(-1),'aria-label':'Réduire le texte',title:'Réduire le texte'},'A−'),h('button',{class:'cl-fs',onclick:()=>setFS(1),'aria-label':'Agrandir le texte',title:'Agrandir le texte'},'A+'),h('button',{onclick:e=>toggleMute(e.currentTarget)},MUTED?'🔇 Son : non':'🔊 Son : oui'),profBtn())),
     h('div',{class:'cl-body'},nav,main),oscarBtn(),fullBtn());
   const ob=$cl.querySelector('.oscbtn');ob.style.position='fixed';ob.style.right='18px';ob.style.bottom='18px';ob.hidden=cur==='bilan';
   main.scrollTop=0;
@@ -1501,8 +1504,8 @@ function chapterView(ch){
   ch.q.forEach((q,i)=>out.push(qCard(ch,q,i,show)));
   const s=chScore(ch);
   const sum=h('section',{class:'cl-card cl-sum'},h('h3',null,'Bilan du chapitre'),
-    show?h('p',{class:'cl-score'},`${s.ok} / ${s.tot} bonnes réponses · note : ${f20(chNote(ch).note)} / 20`):h('p',null,`Tu as répondu à ${s.ans} question(s) sur ${s.tot}. Tu peux répondre dans l'ordre que tu veux et modifier tes réponses.`),
-    h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{countErrors(ch);C.res[ch.n]=true;csave();renderClassic();const m=$cl.querySelector('.cl-main');m.scrollTop=m.scrollHeight;sfx(chDone(ch.n)?'win':ch.q.some(q=>qOk(q)===false)?'ko':'ok');}},'Valider'),
+    show?h('p',{class:'cl-score'},`${s.ok} / ${s.tot} bonnes réponses · score : ${gameScore()} pts`):h('p',null,`Tu as répondu à ${s.ans} question(s) sur ${s.tot}. Tu peux répondre dans l'ordre que tu veux et modifier tes réponses.`),
+    h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{countErrors(ch);clScoreValidate(ch);C.res[ch.n]=true;csave();renderClassic();const m=$cl.querySelector('.cl-main');m.scrollTop=m.scrollHeight;sfx(chDone(ch.n)?'win':ch.q.some(q=>qOk(q)===false)?'ko':'ok');}},'Valider'),
       ch.n<CH().length?h('button',{class:'btn ghost',onclick:()=>{C.ch=ch.n+1;csave();renderClassic();}},'Chapitre suivant ⟶'):h('button',{class:'btn ghost',onclick:()=>{C.ch='bilan';csave();renderClassic();}},'Voir mon bilan global ⟶')),
     show?h('p',{class:'hint'},'Les questions fausses sont marquées ✗ : corrige-les puis valide à nouveau.'):null);
   out.push(sum);return out;
@@ -2307,7 +2310,7 @@ function M5_CHAPTER(){
 function gameLevel(){return has('m5done')?5:S.m>=5?4:has('m3done')?3:has('m2done')?2:has('m1done')?1:0;}
 function classicLevel(){let k=0;while(k<CH().length&&chDone(k+1))k++;return k;}
 function clCorrect(q){if(q.t==='mcq'||q.t==='pick')return q.a;if(q.t==='match')return q.a.slice();if(q.t==='num')return q.val!=null?q.val:String(NUM[q.key].v);return '';}
-function fillChapter(n){const ch=CH()[n-1];ch.q.forEach(q=>{if(qOk(q)!==true)C.ans[q.id]=clCorrect(q);});C.res[n]=true;C.via=C.via||{};C.via[n]='game';}
+function fillChapter(n){const ch=CH()[n-1];C.got=C.got||{};ch.q.forEach(q=>{if(qOk(q)!==true)C.ans[q.id]=clCorrect(q);C.got[q.id]=true;});C.res[n]=true;C.via=C.via||{};C.via[n]='game';}
 function setGameLevel(k){
   const up=m=>{if(S.m<m){S.m=m;S.scene=null;}};
   if(k>=1){profPrereq(2);up(2);}
@@ -2327,6 +2330,60 @@ function syncProgress(){
       if(c&&!g&&gameLevel()>=n-1){if(n===5)S.f.m5open=true;else if(S.m<n){S.m=n;S.scene=null;}}});
     csave();save();
   }catch(e){}
+}
+
+/* ===================== SCORE COMMUN ET INDICES DANS LE PARCOURS E-LEARNING ===================== */
+/* bonnes réponses validées : +GOOD_PTS (une seule fois par question), erreurs constatées : −ERR_PEN (dans countErrors), indices : −HINT_PEN */
+function clScoreValidate(ch){C.got=C.got||{};ch.q.forEach(q=>{if(qOk(q)===true&&!C.got[q.id]){C.got[q.id]=true;S.f.goods=(S.f.goods||0)+1;}});save();csave();updScore(1);}
+/* indices : les mêmes que dans le jeu quand ils ne parlent que d'automatique, sinon des indices propres au parcours */
+function goalFor(m,f){const s0=S;S={m,scene:null,f:Object.assign({hints:(s0.f&&s0.f.hints)||{}},f)};let g;try{g=oscarGoal();}finally{S=s0;}return g;}
+const CL_HINTS={
+ c1:{h:["La consigne passe d'un coup de 0 à 180 °C, puis reste constante.","Parmi les signaux canoniques, lequel modélise un brusque changement de valeur ?","Les signaux canoniques sont présentés dans le cours."],ref:CP(20,'Signaux canoniques')},
+ d0:{h:["La température passe au-dessus de la consigne avant de se stabiliser.","Quel critère de performance mesure cet écart au-dessus de la valeur finale ?","Les critères de performance sont présentés dans le cours."],ref:CP(29,'Critères de performance')},
+ h1:{h:["Les deux outils d'analyse harmonique vus en cours portent le nom de leur inventeur.","L'un d'eux trace le gain en fonction de la phase.","Le premier est le diagramme de Bode… et le second ?"],ref:CP(44,'Étude harmonique')},
+ h2:{h:["Le gain s'exprime en décibels.","On passe du module |H(jω)| aux décibels avec un logarithme.","G = 20.log(…) : de quelle grandeur ?"],ref:CP(44,'Étude harmonique')},
+ h3:{h:["Le gain est calculé avec 20.log|H(jω)|.","Cette échelle logarithmique a une unité bien connue.","C'est la même unité que pour un niveau sonore."],ref:CP(44,'Étude harmonique')},
+ h4:{h:["H(jω) est un nombre complexe : il a un module et un argument.","Le gain vient du module.","Et la phase ?"],ref:CP(44,'Étude harmonique')},
+ h5:{h:["Un premier ordre a un seul pôle.","Chaque pôle apporte au plus −90° de phase.","Pour ω → ∞, la phase tend vers −90° × (nombre de pôles)."],ref:CP(46,'1er ordre')},
+ h6:{h:["En hautes fréquences, chaque pôle ajoute −20 dB/décade.","Un second ordre a deux pôles.","Additionne les pentes."],ref:CP(48,'2e ordre')},
+ h7:{h:["Le gain est constant en basses fréquences, puis présente un pic avant de décroître.","Un pic de résonance n'existe que pour un système d'ordre 2 (ou plus) peu amorti.","Regarde aussi la pente finale du gain."],ref:CP(48,'2e ordre')},
+ h8:{h:["Gain et phase sont tracés en fonction d'une même grandeur.","Cet axe est gradué en échelle logarithmique, en rad/s.","Quelle grandeur s'exprime en rad/s ?"],ref:CP(51,'Diagramme de Bode')},
+ e:{h:["Observe le début de la courbe : la tangente à l'origine est-elle horizontale ou inclinée ?","Un premier ordre démarre avec une pente non nulle et ne dépasse jamais sa valeur finale ; un second ordre démarre avec une tangente horizontale et peut osciller.","Une sortie qui croît sans fin vient d'un intégrateur ; une simple impulsion, d'un dérivateur."],ref:CP(33,'1er ordre')},
+ wr:{h:["La résonance correspond au maximum (pic) de la courbe de gain.","Passe le curseur sur le sommet du pic.","Lis la pulsation ω sous ce pic."],ref:CP(48,'2e ordre : résonance')},
+ w0:{h:["Repère l'endroit où la courbe de gain croise l'axe 0 dB.","Au-delà de cette pulsation, le gain devient négatif.","Place le curseur à cet endroit et lis ω."],ref:CP(44,'Étude harmonique')},
+ p1:{h:["Place les réglettes à ±5 % de la variation totale de la sortie, autour de la valeur finale.","tr5% est l'instant à partir duquel la courbe reste dans cette bande.","La fiche « rapidité » rappelle la méthode."],doc:'rap'},
+ pc:{h:["Ouvre l'extrait du cahier des charges (bouton « Ressources »).","Compare la valeur que tu as relevée à la valeur exigée.","Attention au sens : un temps de réponse doit rester sous le maximum, une marge au-dessus du minimum."],doc:'cdc'}};
+function clGoal(id){
+  const all=CH().flatMap(ch=>ch.q.map((q,i)=>({q,i,ch})));const it=all.find(x=>x.q.id===id);if(!it)return null;
+  const tx=String(it.q.q).replace(/\s+/g,' ');const lab=tx.length>150?tx.slice(0,147)+'…':tx;const r=x=>Object.assign({},x,{g:lab});
+  let mm;
+  if(CL_HINTS[id])return r({k:'cl_'+id,...CL_HINTS[id]});
+  if(/^e\d$/.test(id))return r({k:'cl_'+id,...CL_HINTS.e});
+  if(/^p\dc$/.test(id))return r({k:'cl_'+id,...CL_HINTS.pc});
+  if((mm=/^c(\d)$/.exec(id)))return r(goalFor(1,{echelon:1,accredSeen:1,m1q:+mm[1]-1}));
+  if((mm=/^d(\d)$/.exec(id)))return r(goalFor(2,{lcdok:1,printed:1,m2s:+mm[1]}));
+  const P4={p2:{rap_ok:1},p3:{rap_ok:1,phi_ok:1},p4:{rap_ok:1,phi_ok:1,gm_ok:1}};
+  if(P4[id])return r(goalFor(4,Object.assign({doc_fiches:1,doc_cdc:1},P4[id])));
+  const base={m5open:1,m5note:1,m5drawer:1};
+  if((mm=/^k([A-F])([tp])$/.exec(id)))return r(goalFor(5,Object.assign({},base,{m5cur:mm[1]},mm[2]==='p'?{['c'+mm[1]+'t']:1}:{})));
+  if((mm=/^ks(\d)$/.exec(id))){const f=Object.assign({},base,{svc:+mm[1]});M5_CARDS.forEach(c=>{f['c'+c.id+'t']=1;f['c'+c.id+'p']=1;});return r(goalFor(5,f));}
+  return r({k:'cl_'+id,h:["Relis l'énoncé et repère la grandeur demandée.","Ouvre les ressources proposées à côté de la question.","Pose ta question au robot dans l'onglet « Questions »."]});
+}
+function clDefaultQ(){const ch=CH().find(c=>c.n===C.ch);if(!ch||!chOpen(ch))return null;const q=ch.q.find(q=>qOk(q)!==true)||ch.q[0];return q.id;}
+function clPicker(cur,onchg){const ch=CH().find(c=>c.n===C.ch);
+  const sel=h('select',{class:'os-qsel','aria-label':'Question pour laquelle tu veux un indice'},...ch.q.map((q,i)=>h('option',{value:q.id},`Question ${i+1}${qOk(q)===true?' ✓':''}`)));
+  sel.value=cur;sel.addEventListener('change',()=>onchg(sel.value));
+  return h('label',{class:'os-qrow'},h('span',null,'Indice pour la'),sel);}
+function bilanView(){
+  const rows=CH().map(ch=>{const s=chScore(ch),n=chNote(ch),pc=Math.round(100*s.ok/s.tot),via=C.via&&C.via[ch.n]==='game'&&chDone(ch.n);
+    return h('div',{class:'cl-brow'},h('span',null,h('b',null,'Chapitre '+ch.n),' — '+ch.t),
+      h('span',{class:'cl-bd'},via?'validé dans l’escape game':chOpen(ch)?`${n.err} erreur${n.err>1?'s':''}`:'verrouillé'),
+      h('div',{class:'cl-bar'},h('i',{style:{width:pc+'%',background:`var(--m${ch.n})`}})),h('b',{class:'cl-note'},chOpen(ch)?`${s.ok}/${s.tot}`:'🔒'));});
+  const nx=CH().find(ch=>chOpen(ch)&&!chDone(ch.n))||CH().filter(chOpen).pop();
+  return[h('p',{class:'cl-kicker'},'Synthèse'),h('h2',null,'Mon bilan'),h('section',{class:'cl-card'},h('p',{class:'cl-score'},`Score : ${gameScore()} pts`),
+    h('p',{class:'hint'},`Ton score est commun à l’escape game et au parcours : départ ${SCORE0} pts, +${GOOD_PTS} par bonne réponse validée, −${ERR_PEN} par erreur constatée en cliquant sur « Valider », −${HINT_PEN} par indice demandé au robot. Actuellement : ${S.f.goods||0} bonne${(S.f.goods||0)>1?'s':''} réponse${(S.f.goods||0)>1?'s':''}, ${S.f.errs||0} erreur${(S.f.errs||0)>1?'s':''}, ${hintCount()} indice${hintCount()>1?'s':''}.`),
+    h('div',{class:'cl-brow cl-bhead'},h('span',null,'Chapitre'),h('span',null,'Détail'),h('span'),h('span',{class:'cl-note'},'Justes')),...rows,
+    h('div',{style:{marginTop:'16px'}},h('button',{class:'btn',onclick:()=>{C.ch=nx.n;csave();renderClassic();}},chDone(nx.n)?'Revoir le chapitre '+nx.n:'Reprendre le chapitre '+nx.n+' ⟶')))];
 }
 
 /* ===================== MODE PROF ===================== */
