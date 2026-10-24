@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Archive 3 · Premier ordre généralisé</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Mise en page : un « moniteur d'archive » (diagramme interactif) à gauche, ICAM_BOT qui commente à droite ; chapitres en haut. Univers sombre du jeu, choisi délibérément. */
+:root{
+  color-scheme:dark;
+  --night:#0c0e0f;        /* fond de page */
+  --panel:#15191b;        /* surfaces */
+  --steel:#2b3236;        /* bordures, grilles */
+  --paper:#eceee6;        /* texte */
+  --dim:#a3aaa4;          /* texte secondaire */
+  --m5:#9a7cff;           /* couleur de la mission 5 */
+  --m5-on:#14101f;
+  --gain:#4fc3f7;         /* courbe de gain */
+  --phase:#ffb74d;        /* courbe de phase */
+  --asym:#e2e6dd;         /* asymptotes */
+  --ok:#3fb872; --ko:#e0574b;
+  --f-title:"Russo One","Chakra Petch",system-ui,sans-serif;
+  --f-ui:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--night);color:var(--paper);font:15px/1.55 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px;
+  background-image:radial-gradient(ellipse at 20% -10%,color-mix(in srgb,var(--m5) 14%,transparent),transparent 55%)}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--m5);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+/* en-tête */
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.eyebrow{margin:0;font:600 12px var(--f-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--m5)}
+h1{margin:2px 0 0;font:400 clamp(22px,3.4vw,34px)/1.1 var(--f-title);letter-spacing:.02em;text-wrap:balance}
+.rec{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--f-mono);color:var(--dim)}
+.rec i{width:9px;height:9px;border-radius:50%;background:var(--ko);box-shadow:0 0 8px var(--ko);animation:blink 1.6s infinite}
+@keyframes blink{50%{opacity:.25}}
+.chaps{display:flex;gap:6px;flex-wrap:wrap;list-style:none;margin:0;padding:0}
+.chaps button{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--steel);border-radius:999px;padding:5px 12px 5px 6px;font:600 13px var(--f-ui);cursor:pointer;color:var(--dim)}
+.chaps button b{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--steel);color:var(--paper);font-size:12px}
+.chaps button[aria-current="step"]{color:var(--paper);border-color:var(--m5)}
+.chaps button[aria-current="step"] b{background:var(--m5);color:var(--m5-on)}
+.chaps button.done b{background:color-mix(in srgb,var(--ok) 70%,#000);color:#fff}
+.chaps button:disabled{opacity:.4;cursor:not-allowed}
+
+/* zone principale */
+.main{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:1fr}}
+.monitor{background:var(--panel);border:1px solid var(--steel);border-radius:10px;padding:12px;min-width:0;
+  box-shadow:inset 0 0 0 4px #0b0d0e,0 18px 40px rgba(0,0,0,.45)}
+.mon-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.tf{font:500 15px var(--f-mono);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tf math{font-size:1.15em}
+.tabs{display:flex;gap:4px;background:#0e1113;border-radius:999px;padding:3px}
+.tabs button{border:0;background:transparent;border-radius:999px;padding:4px 14px;font:600 12.5px var(--f-ui);color:var(--dim);cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--m5);color:var(--m5-on)}
+.plot{background:#0a0d0e;border-radius:6px;position:relative;line-height:0}
+.plot svg{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+.plot text{font-family:var(--f-mono)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:8px;font:500 13px var(--f-mono);font-variant-numeric:tabular-nums;color:var(--paper)}
+.readout span{white-space:nowrap}.readout em{font-style:normal;color:var(--dim)}
+.ctrls{display:grid;grid-template-columns:auto minmax(0,1fr) 6.5em;gap:8px 12px;align-items:center;margin-top:12px}
+.ctrls label{font:600 13px var(--f-ui)}
+.ctrls output{font:500 13px var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--m5)}
+.mon-act{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.btn{border:0;border-radius:999px;padding:.5em 1.2em;background:var(--steel);color:var(--paper);font:600 13.5px var(--f-ui);cursor:pointer}
+.btn:hover{filter:brightness(1.15)}
+.btn.main-b{background:var(--m5);color:var(--m5-on)}
+.btn.ghost{background:transparent;border:1.5px solid var(--steel)}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+
+/* ICAM_BOT */
+.bot{background:color-mix(in srgb,var(--m5) 10%,var(--panel));border:1px solid color-mix(in srgb,var(--m5) 40%,var(--steel));border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.bot-h{display:flex;align-items:center;gap:12px}
+.bot-h .av{width:56px;height:56px;flex:none}
+.bot-h h2{margin:0;font:400 19px/1.15 var(--f-title);text-wrap:balance}
+.bot-h p{margin:2px 0 0;font:500 12px var(--f-ui);color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
+.say{display:flex;flex-direction:column;gap:10px}
+.say p{margin:0;max-width:62ch}
+.say b{color:#fff}
+.task{border:1.5px dashed color-mix(in srgb,var(--m5) 70%,transparent);border-radius:8px;padding:10px 12px;background:rgba(0,0,0,.18)}
+.task h3{margin:0 0 4px;font:600 12px var(--f-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--m5)}
+.task p{margin:0}
+.task.done{border-style:solid;border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.task.done h3{color:var(--ok)}
+.task .res{margin-top:8px}
+.nav{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.voice{align-self:flex-start}
+.eye{animation:eye 5s infinite;transform-origin:center;transform-box:fill-box}
+@keyframes eye{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+
+/* fiche à retenir */
+.memo{overflow-x:auto}
+.memo table{width:100%;border-collapse:collapse;font-size:14px}
+.memo th,.memo td{padding:8px 10px;border-bottom:1px solid var(--steel);text-align:left;vertical-align:top}
+.memo thead th{font:600 14px var(--f-mono);color:var(--paper)}
+.memo tbody th{font:600 13px var(--f-ui);color:var(--paper)}
+.memo td{font-family:var(--f-mono);font-size:12.5px}
+.memo .av-c{color:var(--gain)}.memo .rt-c{color:var(--phase)}
+
+/* contrôle */
+.quiz{background:var(--panel);border:1px solid var(--steel);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.qhead .n{font:600 13px var(--f-ui);color:var(--m5);letter-spacing:.1em;text-transform:uppercase}
+.dots{display:flex;gap:5px}.dots i{width:22px;height:6px;border-radius:3px;background:var(--steel)}
+.dots i.on{background:var(--m5)}.dots i.ok{background:var(--ok)}
+.qtext{margin:0;font-size:16.5px;max-width:70ch;text-wrap:pretty}
+.qtext math{font-size:1.15em}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:8px}
+.opt{text-align:left;background:#0f1214;border:1.5px solid var(--steel);border-radius:8px;padding:.7em .9em;cursor:pointer;font:500 14.5px var(--f-body);color:var(--paper)}
+.opt math{font-size:1.1em}
+.opt:hover{border-color:var(--m5)}
+.opt.bad{border-color:var(--ko);background:color-mix(in srgb,var(--ko) 14%,#0f1214);text-decoration:line-through}
+.opt.good{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,#0f1214)}
+.numrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.numrow input{background:#fff;color:#111;border:2px solid #fff;border-radius:6px;padding:.45em .7em;font:500 15px var(--f-mono);width:min(100%,220px)}
+.fb{min-height:1.4em;font:600 14px var(--f-ui)}
+.fb.ok{color:var(--ok)}.fb.ko{color:var(--ko)}
+.expl{border-left:3px solid var(--ok);padding:4px 0 4px 12px;margin:0;color:var(--paper);max-width:70ch}
+.end{text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px}
+.end h2{margin:0;font:400 26px var(--f-title);color:var(--m5)}
+.stamp{font:400 15px var(--f-title);letter-spacing:.12em;text-transform:uppercase;border:3px solid var(--ok);color:var(--ok);padding:6px 16px;border-radius:4px;transform:rotate(-4deg)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.rec i,.eye{animation:none}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">Mission 5 · Archive vidéo 3 / 4</p>
+      <h1>Le premier ordre généralisé</h1>
+    </div>
+    <span class="rec"><i></i>ENREG. LABO-X · CARTE 1OG</span>
+  </header>
+  <nav aria-label="Chapitres"><ol class="chaps" id="chaps"></ol></nav>
+  <div id="stage"></div>
+</div>
+
+<script>
+"use strict";
+/* ---------- outils ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+function h(tag,attrs,...kids){const e=document.createElement(tag);if(attrs)for(const[k,v]of Object.entries(attrs)){if(v==null||v===false)continue;if(k==='class')e.className=v;else if(k==='html')e.innerHTML=v;else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else e.setAttribute(k,v===true?'':v);}for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c instanceof Node?c:document.createTextNode(c));}return e;}
+const NS='http://www.w3.org/2000/svg';
+function s(tag,a){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);return e;}
+const fr=(v,d=2)=>{if(!isFinite(v))return'—';const r=Number(v.toPrecision(3));return r.toLocaleString('fr-FR',{maximumFractionDigits:Math.max(d,r<1?4:2)});};
+const fmtW=w=>{if(w>=0.01&&w<1000)return fr(w,3);const e=Math.floor(Math.log10(w));const m=w/10**e;return (Math.abs(m-1)<.005?'':fr(m,2)+'.')+'10'+String(e).replace('-','⁻').replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);};
+const L10=Math.log10;
+function mathH(t,a){const tok=v=>v==null?null:(/^[0-9]/.test(v)?`<mn>${v}</mn>`:`<mi>${v}</mi>`);const tt=tok(t)||'<mi>τ</mi>',aa=tok(a)||'<mi>a</mi><mo>.</mo><mi>τ</mi>';return `<math><mi>H</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>=</mo><mfrac><mrow><mn>1</mn><mo>+</mo>${tt}<mo>.</mo><mi>p</mi></mrow><mrow><mn>1</mn><mo>+</mo>${aa}<mo>.</mo><mi>p</mi></mrow></mfrac></math>`;}
+function mathNum(n,d){return `<math><mfrac><mrow><mn>1</mn><mo>+</mo>${n}<mi>p</mi></mrow><mrow><mn>1</mn><mo>+</mo>${d}<mi>p</mi></mrow></mfrac></math>`;}
+const mn=v=>`<mn>${String(v).replace('.',',')}</mn><mo>.</mo>`;
+
+/* ---------- modèle ---------- */
+const S={a:0.1,tau:1,w:1,tab:'bode',ch:0,done:{},seen:{},quiz:{i:0,err:0,ok:{}}};
+const KEY='capsule3-1og-v1';
+try{const r=JSON.parse(localStorage.getItem(KEY)||'null');if(r&&typeof r==='object'){S.done=r.done||{};S.quiz=Object.assign(S.quiz,r.quiz||{});S.ch=r.ch||0;}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({done:S.done,quiz:S.quiz,ch:S.ch}));}catch(e){}}
+function H(w,a=S.a,t=S.tau){const n=Math.hypot(1,w*t),d=Math.hypot(1,w*a*t);return{db:20*L10(n/d),ph:(Math.atan(w*t)-Math.atan(w*a*t))*180/Math.PI};}
+function asymG(w,a=S.a,t=S.tau){return 20*L10(Math.max(1,w*t))-20*L10(Math.max(1,w*a*t));}
+function asymP(w,a=S.a,t=S.tau){const w1=1/t,w2=1/(a*t);if(a<1)return(w>w1&&w<w2)?90:0;if(a>1)return(w>w2&&w<w1)?-90:0;return 0;}
+const wM=()=>1/(S.tau*Math.sqrt(S.a));
+
+/* ---------- tracés ---------- */
+const W=660,LM=56,RM=14,WL=-4,WR=4;
+const xOf=lw=>LM+(lw-WL)*(W-LM-RM)/(WR-WL);
+const lwOf=x=>WL+(x-LM)*(WR-WL)/(W-LM-RM);
+function gRange(){const ghf=-20*L10(S.a);let lo=Math.min(0,ghf)-10,hi=Math.max(0,ghf)+10;lo=Math.floor(lo/10)*10;hi=Math.ceil(hi/10)*10;if(hi-lo<40){lo-=10;hi+=10;}return[lo,hi];}
+let svg,cursorG;
+function drawBode(){
+  const H1=200,T1=18,T2=262,H2=150,HT=T2+H2+30;
+  svg=s('svg',{viewBox:`0 0 ${W} ${HT}`,role:'img','aria-label':'Diagramme de Bode de la carte'});
+  const [g0,g1]=gRange(),gs=(g1-g0)>80?20:10;
+  const yG=v=>T1+(g1-v)*H1/(g1-g0),yP=v=>T2+(90-v)*H2/180;
+  const grid=s('g',{stroke:'#243036','stroke-width':1});
+  for(let e=WL;e<=WR;e++)for(let k=1;k<10;k++){const lw=e+L10(k);if(lw>WR)break;const x=xOf(lw),op=k===1?1:.4;grid.append(s('line',{x1:x,x2:x,y1:T1,y2:T1+H1,'stroke-opacity':op}),s('line',{x1:x,x2:x,y1:T2,y2:T2+H2,'stroke-opacity':op}));}
+  for(let v=g0;v<=g1;v+=gs)grid.append(s('line',{x1:LM,x2:W-RM,y1:yG(v),y2:yG(v),stroke:v===0?'#6d828a':'#243036'}));
+  for(let v=-90;v<=90;v+=45)grid.append(s('line',{x1:LM,x2:W-RM,y1:yP(v),y2:yP(v),stroke:v===0?'#6d828a':'#243036'}));
+  svg.append(grid);
+  const lab=s('g',{fill:'#9aa7ab','font-size':12});
+  const t=(x,y,str,anc='end',fill)=>{const e=s('text',{x,y,'text-anchor':anc});if(fill)e.setAttribute('fill',fill);e.textContent=str;lab.append(e);return e;};
+  for(let v=g0;v<=g1;v+=gs)t(LM-6,yG(v)+4,v);
+  for(let v=-90;v<=90;v+=45)t(LM-6,yP(v)+4,(v>0?'+':'')+v+'°');
+  for(let e=WL;e<=WR;e++)t(xOf(e),T2+H2+16,'10'+(e<0?'⁻':'')+String(Math.abs(e)).replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d]),'middle');
+  t(LM,T1-6,'Gain (dB)','start','#4fc3f7');t(LM,T2-6,'Phase (°)','start','#ffb74d');t(W-RM,T2+H2+28,'ω (rad/s)','end');
+  svg.append(lab);
+  // cassures
+  const w1=1/S.tau,w2=1/(S.a*S.tau),cas=s('g',{'stroke-dasharray':'2 4','stroke-width':1.4});
+  [[w1,'1/τ'],[w2,'1/(a.τ)']].forEach(([w,l],i)=>{const lw=L10(w);if(lw<WL||lw>WR||Math.abs(S.a-1)<.03)return;const x=xOf(lw);cas.append(s('line',{x1:x,x2:x,y1:T1,y2:T2+H2,stroke:'#c9b8ff'}));const tx=s('text',{x:x+4,y:i?T1+H1-6:T1+H1-22,fill:'#c9b8ff','font-size':12,'font-family':'IBM Plex Mono, monospace'});tx.textContent=l;svg.append(tx);});
+  svg.append(cas);
+  // asymptotes (en pointillés, comme dans le cours)
+  let da='',dpa='';const N=800;let prev=null;
+  for(let i=0;i<=N;i++){const lw=WL+(WR-WL)*i/N,w=10**lw,x=xOf(lw);da+=(i?'L':'M')+x.toFixed(1)+' '+yG(asymG(w)).toFixed(1);const p=asymP(w);if(prev!==null&&p!==prev)dpa+='L'+x.toFixed(1)+' '+yP(prev).toFixed(1);dpa+=(i?'L':'M')+x.toFixed(1)+' '+yP(p).toFixed(1);prev=p;}
+  svg.append(s('path',{d:da,fill:'none',stroke:'#e2e6dd','stroke-width':1.6,'stroke-dasharray':'7 5',opacity:.8}),s('path',{d:dpa,fill:'none',stroke:'#e2e6dd','stroke-width':1.6,'stroke-dasharray':'7 5',opacity:.8}));
+  // courbes réelles
+  let dg='',dp='';for(let i=0;i<=N;i++){const lw=WL+(WR-WL)*i/N,r=H(10**lw),x=xOf(lw);dg+=(i?'L':'M')+x.toFixed(1)+' '+yG(r.db).toFixed(1);dp+=(i?'L':'M')+x.toFixed(1)+' '+yP(r.ph).toFixed(1);}
+  svg.append(s('path',{d:dg,fill:'none',stroke:'#4fc3f7','stroke-width':2.6}),s('path',{d:dp,fill:'none',stroke:'#ffb74d','stroke-width':2.6}));
+  cursorG=s('g');svg.append(cursorG);
+  svg._y={yG,yP,T1,T2,H2};
+  const pick=e=>{const r=svg.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width;const lw=Math.max(WL,Math.min(WR,lwOf(x)));setW(10**lw);};
+  let drag=false;svg.addEventListener('pointerdown',e=>{drag=true;svg.setPointerCapture(e.pointerId);pick(e);});
+  svg.addEventListener('pointermove',e=>{if(drag||e.pointerType==='mouse')pick(e);});
+  svg.addEventListener('pointerup',()=>drag=false);svg.addEventListener('pointercancel',()=>drag=false);
+  return svg;
+}
+function drawBlack(){
+  const HT=430,T=18,B=40,X0=-90,X1=90;
+  svg=s('svg',{viewBox:`0 0 ${W} ${HT}`,role:'img','aria-label':'Lieu de Black de la carte'});
+  const [g0,g1]=gRange(),gs=(g1-g0)>80?20:10;
+  const xP=p=>LM+(p-X0)*(W-LM-RM)/(X1-X0),yG=v=>T+(g1-v)*(HT-T-B)/(g1-g0);
+  const grid=s('g',{stroke:'#243036'});
+  for(let p=X0;p<=X1;p+=15)grid.append(s('line',{x1:xP(p),x2:xP(p),y1:T,y2:HT-B,stroke:p===0?'#6d828a':'#243036'}));
+  for(let v=g0;v<=g1;v+=gs)grid.append(s('line',{x1:LM,x2:W-RM,y1:yG(v),y2:yG(v),stroke:v===0?'#6d828a':'#243036'}));
+  svg.append(grid);
+  const lab=s('g',{fill:'#9aa7ab','font-size':12});
+  const t=(x,y,str,anc='end',fill)=>{const e=s('text',{x,y,'text-anchor':anc});if(fill)e.setAttribute('fill',fill);e.textContent=str;lab.append(e);};
+  for(let p=X0;p<=X1;p+=45)t(xP(p),HT-B+16,(p>0?'+':'')+p+'°','middle');
+  for(let v=g0;v<=g1;v+=gs)t(LM-6,yG(v)+4,v);
+  t(LM,T-6,'Gain (dB)','start','#4fc3f7');t(W-RM,HT-6,'Phase (°)','end','#ffb74d');
+  t(xP(45),T+14,'avance (phase > 0)','middle','#9a7cff');t(xP(-45),T+14,'retard (phase < 0)','middle','#9a7cff');
+  svg.append(lab);
+  let d='';const N=700;for(let i=0;i<=N;i++){const r=H(10**(WL+(WR-WL)*i/N));d+=(i?'L':'M')+xP(r.ph).toFixed(1)+' '+yG(r.db).toFixed(1);}
+  svg.append(s('path',{d,fill:'none',stroke:'#9a7cff','stroke-width':2.6}));
+  // repères de pulsation
+  const marks=s('g',{'font-size':10.5,fill:'#c9b8ff'});
+  const placed=[];for(let e=WL+1;e<WR;e++){const r=H(10**e);const x=xP(r.ph),y=yG(r.db);if(placed.some(([px,py])=>Math.hypot(px-x,py-y)<26))continue;placed.push([x,y]);marks.append(s('circle',{cx:x,cy:y,r:3,fill:'#c9b8ff'}));const tx=s('text',{x:x+6,y:y-5});tx.textContent='ω='+fmtW(10**e);marks.append(tx);}
+  svg.append(marks);
+  cursorG=s('g');svg.append(cursorG);svg._y={xP,yG};
+  const pick=e=>{ // déplacement : on choisit la pulsation dont le point est le plus proche
+    const r=svg.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*HT/r.height;let best=0,bd=1e9;
+    for(let i=0;i<=400;i++){const lw=WL+(WR-WL)*i/400,q=H(10**lw),dd=(xP(q.ph)-x)**2+(yG(q.db)-y)**2;if(dd<bd){bd=dd;best=lw;}}setW(10**best);};
+  let drag=false;svg.addEventListener('pointerdown',e=>{drag=true;svg.setPointerCapture(e.pointerId);pick(e);});
+  svg.addEventListener('pointermove',e=>{if(drag)pick(e);});svg.addEventListener('pointerup',()=>drag=false);
+  return svg;
+}
+function drawCursor(){
+  if(!cursorG)return;cursorG.innerHTML='';const r=H(S.w);
+  if(S.tab==='bode'){const {yG,yP,T1,T2,H2}=svg._y,x=xOf(L10(S.w));
+    cursorG.append(s('line',{x1:x,x2:x,y1:T1,y2:T2+H2,stroke:'#fff','stroke-width':1.2,'stroke-dasharray':'4 3'}),s('circle',{cx:x,cy:yG(r.db),r:5.5,fill:'#4fc3f7',stroke:'#0a0d0e','stroke-width':2}),s('circle',{cx:x,cy:yP(r.ph),r:5.5,fill:'#ffb74d',stroke:'#0a0d0e','stroke-width':2}));}
+  else{const {xP,yG}=svg._y;cursorG.append(s('circle',{cx:xP(r.ph),cy:yG(r.db),r:7,fill:'#fff',stroke:'#9a7cff','stroke-width':3}));}
+  const ro=$('#ro');const f1=v=>(Math.abs(v)<.05?0:v).toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1});if(ro)ro.innerHTML=`<span><em>ω =</em> ${fmtW(S.w)} rad/s</span><span><em>Gain =</em> ${f1(r.db)} dB</span><span><em>Phase =</em> ${r.ph>=.05?'+':''}${f1(r.ph)}°</span>`;
+  const ws=$('#w-sl');if(ws&&document.activeElement!==ws)ws.value=Math.round(L10(S.w)*100);
+  checkTask();
+}
+function redraw(){const box=$('#plot');if(!box)return;box.innerHTML='';box.append(S.tab==='bode'?drawBode():drawBlack());drawCursor();
+  const tf=$('#tf');if(tf)tf.innerHTML=mathH(fr(S.tau,3),fr(S.a*S.tau,3))+`<span style="color:var(--dim)">a = ${fr(S.a,3)} · τ = ${fr(S.tau,3)} s</span>`;
+  $('#a-out').textContent=fr(S.a,3);$('#t-out').textContent=fr(S.tau,3)+' s';checkTask();}
+function setW(w){S.w=w;drawCursor();}
+function setA(a,t){S.a=a;if(t!=null)S.tau=t;const as=$('#a-sl'),ts=$('#t-sl');if(as)as.value=Math.round(L10(S.a)*100);if(ts)ts.value=Math.round(L10(S.tau)*100);redraw();}
+function preset(a,t,w){S.a=a;S.tau=t;S.w=w;}
+function snap(lv){const r=Math.round(lv);return Math.abs(lv-r)<.04?r:lv;}
+
+/* ---------- chapitres ---------- */
+const CH=[
+ {t:'La carte',enter:()=>preset(0.1,1,1),
+  say:[`Dans le tiroir de l'armoire, plusieurs cartes portent la même étiquette : <b>« 1er ordre généralisé »</b>. Leur fonction de transfert a toujours la même forme :`,
+   `<span class="tf">${mathH()}</span>`,
+   `Deux réglages suffisent à la décrire : <b>τ</b>, une constante de temps en secondes, et <b>a</b>, un coefficient sans unité. Chaque binôme « 1 + … p » crée une pulsation de cassure : <b>1/τ</b> pour le numérateur, <b>1/(a.τ)</b> pour le dénominateur.`,
+   `Bouge les curseurs a et τ : les deux traits violets suivent ces cassures. Les pointillés blancs sont les asymptotes, les courbes pleines le comportement réel.`],
+  task:{q:`Règle a = 1. Que devient la carte ?`,ok:()=>Math.abs(L10(S.a))<.03,
+   res:()=>`Avec a = 1, numérateur et dénominateur sont identiques : H(p) = 1. Gain de 0 dB et phase de 0° à toutes les pulsations, la carte ne fait rien. Tout l'intérêt vient de l'écart entre a et 1.`}},
+ {t:'a < 1 : avance',enter:()=>preset(0.01,10,0.01),
+  say:[`Reprenons l'<b>application 1</b> du cours : a = 0,01 et τ = 10 s. Comme a < 1, la cassure du numérateur, 1/τ = 0,1 rad/s, arrive <b>avant</b> celle du dénominateur, 1/(a.τ) = 10 rad/s.`,
+   `<b>Gain.</b> 0 dB en basses fréquences. Le numérateur fait ensuite monter la courbe de +20 dB/déc, puis le dénominateur la remet à plat. Le palier haute fréquence vaut <b>−20.log a = +40 dB</b>.`,
+   `<b>Phase.</b> Le numérateur ajoute jusqu'à +90°, le dénominateur les reprend. La phase reste positive : la sortie est <b>en avance</b> sur l'entrée. C'est un circuit à <b>avance de phase</b>.`],
+  task:{q:`Fais glisser le curseur ω (ou ton doigt sur le diagramme) jusqu'au sommet de la bosse de phase.`,ok:()=>S.a<.5&&Math.abs(L10(S.w)-L10(wM()))<.07,
+   res:()=>`Le sommet est à ω = ${fmtW(wM())} rad/s, au milieu des deux cassures sur l'échelle logarithmique. La phase y atteint ${fr(H(wM()).ph,1)}°, sans jamais toucher 90°. Ce point servira pour régler un correcteur.`}},
+ {t:'a > 1 : retard',enter:()=>preset(1000,0.1,1e-3),
+  say:[`<b>Application 2</b> du cours : a = 1000 et τ = 0,1 s. Cette fois a > 1, donc la cassure du dénominateur, 1/(a.τ) = 0,01 rad/s, passe <b>en premier</b>.`,
+   `<b>Gain.</b> La courbe descend de −20 dB/déc entre 0,01 et 10 rad/s, puis se stabilise à <b>−20.log a = −60 dB</b>. La carte atténue les hautes fréquences.`,
+   `<b>Phase.</b> Elle devient négative, avec un creux au milieu des deux cassures. C'est un circuit à <b>retard de phase</b>.`],
+  task:{q:`Règle a pour que la carte atténue les hautes fréquences de 20 dB exactement.`,ok:()=>S.a>9.3&&S.a<10.7,
+   res:()=>`a = 10 donne −20.log 10 = −20 dB. Pour trouver a sur un diagramme de Bode, il suffit de lire le palier haute fréquence.`}},
+ {t:'Plan de Black',enter:()=>{S.seen={av:true};preset(0.01,10,1);},
+  say:[`Le même boîtier dans le <b>plan de Black</b> : la phase en abscisse, le gain en ordonnée. Chaque point du lieu correspond à une pulsation, repérée par les petits ronds.`,
+   `En avance de phase, le lieu part de (0° ; 0 dB), passe <b>à droite</b>, dans les phases positives, et monte jusqu'à −20.log a. En retard de phase, il part <b>à gauche</b> et descend.`],
+  task:{q:`Bascule entre les deux cas avec « Avance » et « Retard », puis promène le point blanc le long du lieu.`,ok:()=>S.seen.av&&S.seen.rt,
+   res:()=>`À retenir : avance de phase = lieu à droite de l'axe 0°, retard de phase = lieu à gauche. Le lieu revient toujours sur l'axe 0° aux deux extrémités.`},
+  extra:()=>h('div',{class:'mon-act'},h('button',{class:'btn ghost',onclick:()=>{S.seen.av=true;setA(0.01,10);}},'Avance (a = 0,01)'),h('button',{class:'btn ghost',onclick:()=>{S.seen.rt=true;setA(1000,0.1);}},'Retard (a = 1000)'))},
+ {t:'À retenir',memo:true},
+ {t:'Contrôle',quiz:true}
+];
+
+/* ---------- questions ---------- */
+const Q=[
+ {q:`On considère la carte ${mathNum(mn(5),mn(0.5))}. Que vaut a ?`,o:['a = 0,1','a = 0,5','a = 5','a = 10'],a:0,
+  e:`τ = 5 s et a.τ = 0,5 s, donc a = 0,5 / 5 = 0,1.`},
+ {q:`Cette même carte, avec a = 0,1, est un circuit :`,o:['à avance de phase','à retard de phase','intégrateur','dérivateur pur'],a:0,
+  e:`a < 1 : la cassure du numérateur arrive en premier, la phase est positive. C'est une avance de phase.`},
+ {q:`Pour a = 0,01 et τ = 10 s, quel est le gain en hautes fréquences ?`,o:['−40 dB','0 dB','+20 dB','+40 dB'],a:3,
+  e:`Gain HF = −20.log a = −20.log 0,01 = +40 dB.`},
+ {q:`Un Bode montre 0 dB en basses fréquences, un palier à −20 dB en hautes fréquences et une phase négative. Que vaut a ?`,o:['a = 0,1','a = 1','a = 10','a = 20'],a:2,
+  e:`Phase négative : retard de phase, donc a > 1. Et −20.log a = −20 dB donne a = 10.`},
+ {q:`Pour a = 0,01 et τ = 10 s, à quelle pulsation la phase est-elle maximale ? (en rad/s)`,num:1,tol:.1,
+  e:`Au milieu des cassures 0,1 et 10 rad/s sur l'échelle logarithmique : ω = 1/(τ.√a) = 1/(10 × 0,1) = 1 rad/s.`},
+ {q:`Dans le tiroir, une carte affiche : 0 dB en basses fréquences, +20 dB en hautes fréquences, cassures à 1 rad/s puis 10 rad/s. Laquelle est-ce ?`,
+  o:[mathNum('','<mn>0,1</mn><mo>.</mo>'),mathNum('<mn>0,1</mn><mo>.</mo>',''),mathNum(mn(10),''),`<math><mn>10</mn><mo>.</mo></math>`+mathNum('','<mn>0,1</mn><mo>.</mo>')],a:0,html:true,
+  e:`Gain qui monte : a < 1. Première cassure 1/τ = 1 rad/s, donc τ = 1 s. Seconde cassure 1/(a.τ) = 10 rad/s, donc a = 0,1. Le gain de 10 de la dernière proposition donnerait +20 dB dès les basses fréquences.`}
+];
+
+/* ---------- rendu ---------- */
+let anim=null;
+function renderChaps(){
+  const ol=$('#chaps');ol.innerHTML='';
+  CH.forEach((c,i)=>{const unlocked=i===0||S.done[i-1]||(i>=4&&S.done[3]);const b=h('button',{type:'button','aria-current':i===S.ch?'step':null,class:S.done[i]?'done':'',disabled:!unlocked&&i!==S.ch,onclick:()=>go(i)},h('b',null,S.done[i]?'✓':String(i+1)),c.t);ol.append(h('li',null,b));});
+}
+function go(i){stopAnim();stopVoice();S.ch=i;save();const c=CH[i];if(c.enter){S.tab=c.t==='Plan de Black'?'black':'bode';c.enter();}render();}
+function robot(){return `<svg class="av" viewBox="0 0 128 128" aria-hidden="true"><defs><radialGradient id="rbM" cx="38%" cy="30%" r="80%"><stop offset="0" stop-color="#b9b29c"/><stop offset=".45" stop-color="#7d7462"/><stop offset="1" stop-color="#3a342b"/></radialGradient><radialGradient id="rbE" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#fff3c4"/><stop offset=".35" stop-color="#ffb347"/><stop offset=".8" stop-color="#c85a12"/><stop offset="1" stop-color="#3b1606"/></radialGradient></defs><circle cx="64" cy="64" r="62" fill="#0e1214"/><path d="M64 14v14" stroke="#4a4338" stroke-width="4"/><circle cx="64" cy="12" r="6" fill="#d9442a"/><rect x="13" y="54" width="12" height="26" rx="4" fill="#4b4438" stroke="#1d1a16" stroke-width="2"/><rect x="103" y="54" width="12" height="26" rx="4" fill="#4b4438" stroke="#1d1a16" stroke-width="2"/><path d="M24 60c0-22 18-34 40-34s40 12 40 34v26c0 10-8 16-18 16H42c-10 0-18-6-18-16z" fill="url(#rbM)" stroke="#1d1a16" stroke-width="2.5"/><path d="M30 88h68v8c0 5-5 8-11 8H41c-6 0-11-3-11-8z" fill="#3a342b" stroke="#1d1a16" stroke-width="2"/><circle cx="47" cy="66" r="13" fill="#6b6252" stroke="#1d1a16" stroke-width="2"/><circle cx="47" cy="66" r="8.5" fill="url(#rbE)" class="eye"/><circle cx="81" cy="66" r="13" fill="#6b6252" stroke="#1d1a16" stroke-width="2"/><circle cx="81" cy="66" r="8.5" fill="url(#rbE)" class="eye"/><g stroke="#15120f" stroke-width="2.4" stroke-linecap="round"><path d="M46 93v6M53 93v6M60 93v6M67 93v6M74 93v6M81 93v6"/></g></svg>`;}
+function render(){
+  renderChaps();const st=$('#stage');st.innerHTML='';const c=CH[S.ch];
+  if(c.quiz)return renderQuiz(st);
+  const mon=h('section',{class:'monitor','aria-label':'Moniteur'},
+    h('div',{class:'mon-top'},h('div',{class:'tf',id:'tf'}),h('div',{class:'tabs',role:'group','aria-label':'Diagramme'},
+      h('button',{type:'button','aria-pressed':String(S.tab==='bode'),onclick:()=>{S.tab='bode';render();}},'Bode'),
+      h('button',{type:'button','aria-pressed':String(S.tab==='black'),onclick:()=>{S.tab='black';render();}},'Black'))),
+    h('div',{class:'plot',id:'plot'}),h('div',{class:'readout',id:'ro','aria-live':'polite'}),
+    h('div',{class:'ctrls'},
+      h('label',{for:'a-sl'},'a'),h('input',{type:'range',id:'a-sl',min:-300,max:300,step:1,value:Math.round(L10(S.a)*100),oninput:e=>{S.a=10**snap(e.target.value/100);redraw();}}),h('output',{id:'a-out',for:'a-sl'}),
+      h('label',{for:'t-sl'},'τ'),h('input',{type:'range',id:'t-sl',min:-200,max:200,step:1,value:Math.round(L10(S.tau)*100),oninput:e=>{S.tau=10**snap(e.target.value/100);redraw();}}),h('output',{id:'t-out',for:'t-sl'}),
+      h('label',{for:'w-sl'},'ω'),h('input',{type:'range',id:'w-sl',min:-400,max:400,step:1,value:Math.round(L10(S.w)*100),oninput:e=>{setW(10**(e.target.value/100));}}),h('span',{class:'sr'},'pulsation du curseur')),
+    h('div',{class:'mon-act'},h('button',{class:'btn ghost',type:'button',id:'anim',onclick:toggleAnim},'▶ Balayer les pulsations')),
+    c.extra?c.extra():null);
+  const bot=h('aside',{class:'bot','aria-label':'ICAM_BOT 2.0'});
+  bot.append(h('div',{class:'bot-h',html:robot()+`<div><p>ICAM_BOT 2.0 · chapitre ${S.ch+1}</p><h2>${c.t==='La carte'?'Une carte, deux cassures':c.t==='a < 1 : avance'?'Quand a < 1 : l\'avance de phase':c.t==='a > 1 : retard'?'Quand a > 1 : le retard de phase':c.t==='Plan de Black'?'La même carte, vue dans Black':'La fiche à retenir'}</h2></div>`}));
+  if(c.memo){bot.append(memo());}
+  else{
+    bot.append(h('div',{class:'say',html:c.say.map(p=>p.startsWith('<span')?`<p>${p}</p>`:`<p>${p}</p>`).join('')}));
+    const tk=h('div',{class:'task'+(S.done[S.ch]?' done':''),id:'task'},h('h3',null,S.done[S.ch]?'Défi réussi':'Défi'),h('p',null,c.task.q),h('p',{class:'res',id:'tres'},S.done[S.ch]?c.task.res():''));
+    bot.append(tk);
+  }
+  const voice=h('button',{class:'btn ghost voice',type:'button',id:'voice',onclick:toggleVoice},'🔊 Écouter ICAM_BOT');if(!('speechSynthesis' in window))voice.hidden=true;
+  bot.append(voice);
+  const next=h('button',{class:'btn main-b',type:'button',id:'next',disabled:!(c.memo||S.done[S.ch]),onclick:()=>{if(c.memo){S.done[S.ch]=true;save();}go(S.ch+1);}},S.ch===4?'Passer au contrôle →':'Chapitre suivant →');
+  bot.append(h('div',{class:'nav'},h('button',{class:'btn ghost',type:'button',disabled:S.ch===0,onclick:()=>go(S.ch-1)},'← Précédent'),next));
+  st.append(h('div',{class:'main'},mon,bot));
+  redraw();
+}
+function memo(){
+  const row=(k,av,rt)=>`<tr><th scope="row">${k}</th><td class="av-c">${av}</td><td class="rt-c">${rt}</td></tr>`;
+  return h('div',{class:'memo',html:`<p style="margin:0 0 8px">${mathH()}</p><table><thead><tr><th></th><th>a &lt; 1</th><th>a &gt; 1</th></tr></thead><tbody>
+  ${row('Nom','avance de phase','retard de phase')}
+  ${row('1ʳᵉ cassure','1/τ (num.)','1/(a.τ) (dén.)')}
+  ${row('Gain BF','0 dB','0 dB')}
+  ${row('Entre les cassures','+20 dB/déc','−20 dB/déc')}
+  ${row('Gain HF','−20.log a &gt; 0','−20.log a &lt; 0')}
+  ${row('Phase','positive (bosse)','négative (creux)')}
+  ${row('Extremum de phase','ω = 1/(τ.√a)','ω = 1/(τ.√a)')}
+  ${row('Lieu de Black','à droite de 0°','à gauche de 0°')}
+  </tbody></table><p style="margin:10px 0 0;color:var(--dim);font-size:13.5px">Le sommet de la bosse se trouve toujours au milieu des deux cassures, en échelle logarithmique. Sa valeur exacte sera calculée dans la capsule sur les correcteurs à avance et à retard de phase.</p>`});
+}
+function checkTask(){
+  const c=CH[S.ch];if(!c||!c.task||S.done[S.ch])return;
+  if(c.task.ok()){S.done[S.ch]=true;save();const tk=$('#task');if(tk){tk.classList.add('done');tk.querySelector('h3').textContent='Défi réussi';$('#tres').textContent=c.task.res();}const n=$('#next');if(n)n.disabled=false;renderChaps();}
+}
+function toggleAnim(){if(anim){stopAnim();return;}if(matchMedia('(prefers-reduced-motion: reduce)').matches){setW(wM());return;}
+  const b=$('#anim');b.textContent='■ Arrêter';let t0=null;const D=5000;
+  const step=ts=>{if(!t0)t0=ts;const k=Math.min(1,(ts-t0)/D);setW(10**(WL+(WR-WL)*k));if(k<1)anim=requestAnimationFrame(step);else stopAnim();};anim=requestAnimationFrame(step);}
+function stopAnim(){if(anim)cancelAnimationFrame(anim);anim=null;const b=$('#anim');if(b)b.textContent='▶ Balayer les pulsations';}
+function toggleVoice(){try{const ss=window.speechSynthesis;if(ss.speaking){stopVoice();return;}const c=CH[S.ch];const tmp=document.createElement('div');
+  tmp.innerHTML=c.memo?'Voici la fiche à retenir. Avance de phase si a est inférieur à 1, retard de phase si a est supérieur à 1.':(c.say.filter(p=>!p.startsWith('<span')).join(' ')+' Ton défi : '+c.task.q);
+  const txt=tmp.textContent.replace(/1\/\(a\.τ\)/g,'1 sur a tau').replace(/1\/τ/g,'1 sur tau').replace(/−20\.log a/g,'moins 20 log a').replace(/τ/g,'tau').replace(/dB\/déc/g,'décibels par décade').replace(/dB/g,'décibels').replace(/rad\/s/g,'radians par seconde');
+  const u=new SpeechSynthesisUtterance(txt);u.lang='fr-FR';u.rate=1.02;u.onend=()=>{const v=$('#voice');if(v)v.textContent='🔊 Écouter ICAM_BOT';};ss.speak(u);$('#voice').textContent='■ Arrêter la lecture';}catch(e){}}
+function stopVoice(){try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}}
+
+/* ---------- contrôle ---------- */
+function renderQuiz(st){
+  const box=h('section',{class:'quiz','aria-label':'Contrôle'});st.append(box);
+  if(S.quiz.i>=Q.length){
+    box.append(h('div',{class:'end'},h('span',{class:'stamp'},'Capsule validée'),h('h2',null,'Archive 3 décodée'),
+      h('p',{style:'max-width:56ch;margin:0'},`Tu sais maintenant lire une carte « 1er ordre généralisé » : a < 1 pour l'avance de phase, a > 1 pour le retard. ${S.quiz.err?`Erreurs avant la bonne réponse : ${S.quiz.err}.`:'Aucune erreur, bravo.'} Retourne au tiroir de cartes pour identifier les dernières étiquettes.`),
+      h('div',{class:'mon-act'},h('button',{class:'btn ghost',type:'button',onclick:()=>go(4)},'Revoir la fiche'),h('button',{class:'btn ghost',type:'button',onclick:()=>{S.quiz={i:0,err:0,ok:{}};save();render();}},'Refaire le contrôle'))));
+    return;}
+  const q=Q[S.quiz.i];
+  box.append(h('div',{class:'qhead'},h('span',{class:'n'},`Question ${S.quiz.i+1} / ${Q.length}`),h('div',{class:'dots','aria-hidden':'true'},Q.map((_,i)=>h('i',{class:i<S.quiz.i?'ok':i===S.quiz.i?'on':''})))));
+  box.append(h('p',{class:'qtext',html:q.q}));
+  const fb=h('div',{class:'fb',role:'status'}),ex=h('div');
+  const win=()=>{S.quiz.ok[S.quiz.i]=true;fb.className='fb ok';fb.textContent='Bonne réponse !';ex.append(h('p',{class:'expl'},q.e),h('div',{class:'mon-act'},h('button',{class:'btn main-b',type:'button',onclick:()=>{S.quiz.i++;save();render();}},S.quiz.i===Q.length-1?'Terminer':'Question suivante →')));save();};
+  const lose=()=>{S.quiz.err++;save();fb.className='fb ko';fb.textContent='Ce n\'est pas ça. Retente : le moniteur des chapitres précédents peut t\'aider.';};
+  if(q.num!=null){
+    const inp=h('input',{id:'qnum',inputmode:'decimal',autocomplete:'off',placeholder:'Valeur en rad/s'});
+    const ok=()=>{const v=parseFloat(inp.value.replace(',','.').replace(/\s/g,''));if(!isFinite(v)){fb.className='fb ko';fb.textContent='Saisis une valeur numérique.';return;}if(Math.abs(v-q.num)<=q.tol*q.num){inp.disabled=true;vb.disabled=true;win();}else lose();};
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')ok();});
+    const vb=h('button',{class:'btn main-b',type:'button',onclick:()=>ok()},'Valider');
+    box.append(h('div',{class:'numrow'},h('label',{for:'qnum',class:'sr'},'Ta réponse'),inp,vb));
+  } else {
+    const opts=h('div',{class:'opts'});
+    q.o.forEach((o,i)=>{const b=h('button',{class:'opt',type:'button',html:q.html?o:null},q.html?null:o);b.addEventListener('click',()=>{if(i===q.a){b.classList.add('good');opts.querySelectorAll('.opt').forEach(x=>x.disabled=true);win();}else{b.classList.add('bad');b.disabled=true;lose();}});opts.append(b);});
+    box.append(opts);
+  }
+  box.append(fb,ex);
+}
+
+/* démarrage */
+if(S.ch>0&&!CH[S.ch].quiz&&!CH[S.ch].memo){CH[S.ch].enter();S.tab=CH[S.ch].t==='Plan de Black'?'black':'bode';}else if(S.ch===0)CH[0].enter();
+render();
+</script>
+</body>
+</html>
