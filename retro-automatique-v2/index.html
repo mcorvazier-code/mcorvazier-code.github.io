@@ -550,6 +550,11 @@ body.classic-on #ui .hud{display:none}
 .menu button.m5vid{grid-column:1/-1;background:color-mix(in srgb,var(--on) 18%,transparent)}
 .m5wrap{position:relative}
 .btn.sgn{min-width:2.6em;font-size:18px;padding:.35em .8em;border-color:currentColor}
+.botrow{display:flex;justify-content:center;margin:-4px 0 10px}
+.botask{display:inline-flex;align-items:center;gap:8px;padding:3px 14px 3px 3px;border-radius:999px;background:rgba(0,0,0,.35);color:var(--on);border:1.5px solid color-mix(in srgb,var(--on) 55%,transparent);font:600 13px var(--f-ui);cursor:pointer}
+.botask:hover,.botask:focus-visible{background:rgba(0,0,0,.55)}
+.botask .rb{width:30px;height:30px;display:block;flex:none}
+.botask .rb svg{width:100%;height:100%}
 
 </style>
 
@@ -900,6 +905,7 @@ function coursPop(img,title,text,snd='page'){
 /* ---------- panneaux de quiz ---------- */
 function panel(stampTxt,build,{closable=true}={}){
   const card=h('div',{class:'card quiz'},h('h2',{class:'stamp'},stampTxt));
+  if(!document.body.classList.contains('classic-on'))card.append(h('div',{class:'botrow'},h('button',{class:'botask',type:'button',onclick:()=>oscar(),title:'Demander un indice à ICAM_BOT 2.0'},h('span',{class:'rb',html:ROBOT_SVG}),'Besoin d’un indice ? Demande à ICAM_BOT')));
   build(card);
   return layer(card,{blur:true,closable});
 }
@@ -1228,7 +1234,7 @@ function oscarGoal(){
     if(!has('m5open'))return{k:'m5g',g:"Débloquer la mission 5",h:["Le code de la mission 5 est communiqué lors du prochain cours.","Saisis-le sur l'écran qui suit les félicitations (bouton « Continuer » de l'accueil).","En attendant, révise les systèmes particuliers : intégrateur, dérivateur, premier ordre généralisé."]};
     if(!has('m5note'))return{k:'m5a',g:"Fouiller le bureau de l'ingénieur en chef",h:["Un objet nouveau est apparu sur le bureau, près de l'ordinateur.","Les ingénieurs notent souvent leurs modifications à la main…","Clique sur la feuille posée à côté du clavier."]};
     if(!has('m5drawer'))return{k:'m5b',g:"Trouver les cartes de rechange",h:["Après la lecture de la note, un nouveau bouton est apparu dans le bureau.","Cherche du côté de l'armoire à tiroirs, au centre de la pièce.","Le bouton clignote : clique dessus."]};
-    const nx=M5_CARDS.find(c=>!m5CardDone(c.id));
+    const nx=(S.f.m5cur&&!m5CardDone(S.f.m5cur))?m5Card(S.f.m5cur):M5_CARDS.find(c=>!m5CardDone(c.id));
     if(nx){if(!has('c'+nx.id+'t'))return{k:'m5t'+nx.id,g:`Identifier le type de la carte ${nx.id}`,h:["Regarde la pente du gain (0, +20 ou −20 dB/déc) et le nombre de cassures.","Regarde ensuite la phase : reste-t-elle à ±90° ou revient-elle vers 0° ?","La vidéo ressource et le simulateur de l'ordinateur montrent chaque cas."]};
       return{k:'m5p'+nx.id,g:`Lire le paramètre de la carte ${nx.id}`,h:nx.hint};}
     if(!has('m5done')){const i=S.f.svc||0;const HS=[["Avant la cassure, la carte se comporte comme un intégrateur : pente −20 dB/déc, phase −90°.","Après la cassure, le gain devient constant et la phase remonte vers 0° : c'est le comportement d'une autre carte du tiroir.","Compare avec les cartes A et C."],
@@ -2155,7 +2161,7 @@ function m5Drawer(selected){
 
 /* ----- banc de test d'une carte (ordinateur) ----- */
 function m5Bench(id){
-  const c=m5Card(id);
+  const c=m5Card(id);S.f.m5cur=id;save();
   panel('Banc de test · carte '+id,card=>{
     card.append(h('p',{class:'center hint'},'La carte est branchée : l’ordinateur trace sa réponse fréquentielle. Lis les diagrammes avec le curseur.'),freqPlot(c.f,{w:c.w}));
     const zone=h('div',{class:'m5q'});card.append(zone);
