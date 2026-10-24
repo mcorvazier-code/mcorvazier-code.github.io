@@ -17,6 +17,10 @@ La version en ligne du jeu (`retro-automatique/` sur la branche `main`) n'est pa
 ## Parcours e-learning : chapitre 5 « Identifier les systèmes particuliers »
 - Même code de déverrouillage que la mission 5 ; 18 questions : 6 systèmes (type + paramètre) puis l'analyse du correcteur de la régulation.
 
+## Progression commune aux deux formats
+- Chacun peut passer de l'escape game au parcours e-learning (menu ☰ ou bandeau du parcours).
+- Une mission validée dans le jeu valide le chapitre correspondant (réponses justes en place, mention « validé dans l'escape game »), et un chapitre validé fait avancer le jeu. Les codes saisis dans un format comptent dans l'autre. La synchronisation se fait à chaque ouverture et à chaque changement de format.
+
 ## À faire
 - Codes définitifs des missions 5 et 6, lien de la vidéo ressource.
 - Mission 6 et chapitre 6 (correcteurs).

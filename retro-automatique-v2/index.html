@@ -552,6 +552,7 @@ body.classic-on #ui .hud{display:none}
 .btn.sgn{min-width:2.6em;font-size:18px;padding:.35em .8em;border-color:currentColor}
 #classic .btn.sgn{color:#1d2124;border-color:#9a978a}
 @media (max-width:640px){.cl-head{flex-wrap:wrap;padding:8px 12px}.cl-head h1{font-size:19px}.cl-hb{flex-wrap:wrap;gap:6px;width:100%}.cl-hb button{padding:4px 10px;white-space:nowrap}}
+.cl-via{background:color-mix(in srgb,var(--ok) 14%,#fff);border-left:4px solid var(--ok);padding:8px 12px;border-radius:4px;font-size:14.5px}
 
 </style>
 
@@ -987,14 +988,14 @@ function showSplash(){
 const MKEY='retro-mode-v2-dev';
 function getMode(){try{return localStorage.getItem(MKEY);}catch(e){return null;}}
 function setMode(m){try{localStorage.setItem(MKEY,m);}catch(e){}}
-function startByMode(){const m=getMode();if(m==='classic')classic();else if(m==='game')showTitle();else showChoice();}
+function startByMode(){syncProgress();const m=getMode();if(m==='classic')classic();else if(m==='game')showTitle();else showChoice();}
 function showChoice(){
   document.body.dataset.m='1';clearStage();
   $stage.append(h('div',{class:'bg',style:{backgroundImage:'url(a/hall.webp)',filter:'blur(4px) brightness(.45)'}}));
   let pick=null;
   const opt=(k,ico,t,d)=>h('button',{class:'ch-opt','data-k':k,onclick:e=>{pick=k;wrap.querySelectorAll('.ch-opt').forEach(b=>b.classList.toggle('sel',b.dataset.k===k));conf.hidden=false;requestAnimationFrame(()=>conf.scrollIntoView({block:'nearest',behavior:'smooth'}));cb.textContent=k==='game'?'Je choisis l’escape game':'Je choisis le parcours e-learning';}},h('span',{class:'ch-ico'},ico),h('b',null,t),h('span',null,d));
-  const cb=h('button',{class:'btn',onclick:()=>{if(!pick)return;setMode(pick);if(pick==='game')showTitle();else classic();}},'Valider');
-  const conf=h('div',{class:'ch-conf',hidden:true},h('p',null,'Tu pourras changer de format à tout moment depuis le menu ; ta progression dans chaque format est conservée.'),cb);
+  const cb=h('button',{class:'btn',onclick:()=>{if(!pick)return;setMode(pick);syncProgress();if(pick==='game')showTitle();else classic();}},'Valider');
+  const conf=h('div',{class:'ch-conf',hidden:true},h('p',null,'Tu pourras changer de format à tout moment depuis le menu : une mission validée dans un format l’est aussi dans l’autre.'),cb);
   const wrap=h('div',{class:'choice'},h('h1',null,'Automatique linéaire'),h('p',{class:'ch-sub'},'Choisis comment tu veux travailler. Les deux formats abordent exactement les mêmes notions.'),
     h('div',{class:'ch-opts'},opt('game','🕹️','Escape game',"Une enquête dans un laboratoire abandonné : explore les salles, résous les énigmes et stoppe le processus avant la catastrophe."),
       opt('classic','📘','Parcours e-learning',"Un parcours classique en 5 chapitres : ressources, questions et bilan avec une note par chapitre.")),conf);
@@ -1495,6 +1496,7 @@ function lockView(ch){
 function chapterView(ch){
   const show=!!C.res[ch.n];
   const out=[h('p',{class:'cl-kicker'},'Chapitre '+ch.n+' · correspond à la '+ch.m),h('h2',null,ch.t),h('p',{class:'cl-intro'},ch.intro)];
+  if(C.via&&C.via[ch.n]==='game'&&chDone(ch.n))out.push(h('p',{class:'cl-via'},'✓ Ce chapitre a été validé dans l’escape game : les bonnes réponses sont déjà en place. Tu peux les relire et t’entraîner.'));
   out.push(h('p',{class:'hint',style:{fontSize:'14px'}},'📚 Chaque question propose ses propres ressources (cours, vidéos, documents) : clique sur « Ressources » à côté de la question.'));
   ch.q.forEach((q,i)=>out.push(qCard(ch,q,i,show)));
   const s=chScore(ch);
@@ -1529,7 +1531,7 @@ function updNav(){if(!$cl)return;CH().forEach((ch,i)=>{const b=$cl.querySelector
 function bilanView(){
   let P=0,N=0;const rows=CH().map(ch=>{const s=chScore(ch),n=chNote(ch);P+=n.pts;N+=s.tot;const pc=Math.round(5*n.note);
     return h('div',{class:'cl-brow'},h('span',null,h('b',null,'Chapitre '+ch.n),' — '+ch.t),
-      h('span',{class:'cl-bd'},chOpen(ch)?`${s.ok}/${s.tot} justes · ${n.err} erreur${n.err>1?'s':''}`:'verrouillé'),
+      h('span',{class:'cl-bd'},C.via&&C.via[ch.n]==='game'&&chDone(ch.n)?'validé dans l’escape game':chOpen(ch)?`${s.ok}/${s.tot} justes · ${n.err} erreur${n.err>1?'s':''}`:'verrouillé'),
       h('div',{class:'cl-bar'},h('i',{style:{width:pc+'%',background:`var(--m${ch.n})`}})),h('b',{class:'cl-note'},chOpen(ch)?f20(n.note)+' /20':'🔒'));});
   const g=20*P/N;
   return[h('p',{class:'cl-kicker'},'Synthèse'),h('h2',null,'Mon bilan'),h('section',{class:'cl-card'},h('p',{class:'cl-score'},`Note globale : ${f20(g)} / 20`),
@@ -2290,15 +2292,41 @@ function M5_CHAPTER(){
   const q=[];
   M5_CARDS.forEach(c=>{
     q.push({id:'k'+c.id+'t',t:'mcq',q:`Voici les diagrammes de Bode et de Black du système ${c.id}. De quel type de système s’agit-il ?`,pre:()=>freqPlot(c.f,{w:c.w}),o:M5_TYPES,a:c.type});
-    q.push({id:'k'+c.id+'p',t:'num',q:`Sur les diagrammes du système ${c.id} (question précédente) : ${c.q.replace('cette carte','ce système')}`,ph:c.ph,chk:v=>m5ok(v,c.ans,c.tol)});
+    q.push({id:'k'+c.id+'p',t:'num',val:String(c.ans),q:`Sur les diagrammes du système ${c.id} (question précédente) : ${c.q.replace('cette carte','ce système')}`,ph:c.ph,chk:v=>m5ok(v,c.ans,c.tol)});
     QRES['k'+c.id+'t']=QRES['k'+c.id+'p']=()=>[RS5.vid(),RS5.sim()];});
   M5_SVC_Q.forEach((s,i)=>{
     const pre=i===0?()=>freqPlot(M5_SVC,{w:[1e-5,1e1]}):i===4?()=>freqPlot(M5_SVC,{w:[1e-5,1e1],init:M5_WC}):null;
-    q.push(s.num!=null?{id:'ks'+i,t:'num',q:M5_CL_SVC[i],pre,ph:s.ph,chk:v=>m5ok(v,s.num,s.tol),signed:s.signed}:{id:'ks'+i,t:'mcq',q:M5_CL_SVC[i],pre,o:s.o,a:s.a});
+    q.push(s.num!=null?{id:'ks'+i,t:'num',val:String(s.num),q:M5_CL_SVC[i],pre,ph:s.ph,chk:v=>m5ok(v,s.num,s.tol),signed:s.signed}:{id:'ks'+i,t:'mcq',q:M5_CL_SVC[i],pre,o:s.o,a:s.a});
     QRES['ks'+i]=()=>[RS5.vid(),RS5.sim()];});
   return {n:5,t:'Identifier les systèmes particuliers',m:'Mission 5',lock:'m5',
     intro:"Ce chapitre porte sur les systèmes particuliers : intégrateur et dérivateur purs, montages intégrateur et dérivateur, premier ordre généralisé. Tu identifies six systèmes à partir de leurs diagrammes de Bode et de Black, puis tu analyses le correcteur de la régulation étudiée aux chapitres précédents. Commence par la vidéo ressource ; le simulateur te permet d’observer l’effet de chaque paramètre. Sur les diagrammes, déplace le curseur ω pour lire les valeurs.",
     res:()=>[RS5.vid(),RS5.sim()],q};
+}
+
+/* ===================== PROGRESSION COMMUNE : ESCAPE GAME <-> E-LEARNING ===================== */
+function gameLevel(){return has('m5done')?5:S.m>=5?4:has('m3done')?3:has('m2done')?2:has('m1done')?1:0;}
+function classicLevel(){let k=0;while(k<CH().length&&chDone(k+1))k++;return k;}
+function clCorrect(q){if(q.t==='mcq'||q.t==='pick')return q.a;if(q.t==='match')return q.a.slice();if(q.t==='num')return q.val!=null?q.val:String(NUM[q.key].v);return '';}
+function fillChapter(n){const ch=CH()[n-1];ch.q.forEach(q=>{if(qOk(q)!==true)C.ans[q.id]=clCorrect(q);});C.res[n]=true;C.via=C.via||{};C.via[n]='game';}
+function setGameLevel(k){
+  const up=m=>{if(S.m<m){S.m=m;S.scene=null;}};
+  if(k>=1){profPrereq(2);up(2);}
+  if(k>=2)profPrereq(3);
+  if(k>=3){profPrereq(4);up(3);}
+  if(k>=4)up(5);
+  if(k>=5){Object.assign(S.f,{m5open:true,m5note:true,m5drawer:true,m5pc:true,svc:M5_SVC_Q.length,m5done:true});M5_CARDS.forEach(c=>{S.f['c'+c.id+'t']=true;S.f['c'+c.id+'p']=true;});S.f.via5='classic';}
+}
+const gameOpen=n=>n===5?has('m5open'):S.m>=n;
+function syncProgress(){
+  try{
+    cfix();const L=gameLevel(),Lc=classicLevel();
+    if(L>Lc)for(let n=1;n<=L;n++)if(!chDone(n))fillChapter(n);
+    if(Lc>L)setGameLevel(Lc);
+    [3,4,5].forEach(n=>{const g=gameOpen(n),c=!!C.unl[n];
+      if(g&&!c)C.unl[n]=true;
+      if(c&&!g&&gameLevel()>=n-1){if(n===5)S.f.m5open=true;else if(S.m<n){S.m=n;S.scene=null;}}});
+    csave();save();
+  }catch(e){}
 }
 
 /* ===================== MODE PROF ===================== */
