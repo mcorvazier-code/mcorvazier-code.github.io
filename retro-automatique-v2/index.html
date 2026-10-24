@@ -556,6 +556,7 @@ body.classic-on #ui .hud{display:none}
 .os-qrow{display:flex;align-items:center;gap:8px;margin:0 0 8px;font:600 13px var(--f-ui)}
 .os-qsel{padding:.35em .6em;border-radius:4px;border:1px solid var(--tint2);background:#fff;color:#111;font:600 13px var(--f-ui)}
 #classic .cl-hb .hud-score{display:inline-flex;align-items:center}
+.lvl-badge{display:inline-block;margin:0 0 4px;padding:3px 14px;border:2px solid currentColor;border-radius:999px;font:400 14px var(--f-stamp);letter-spacing:.12em;text-transform:uppercase}
 
 </style>
 
@@ -1993,11 +1994,12 @@ function showEnd(){
   sfx('win');
   document.body.dataset.m='end';
   baseScene('a/machines.webp',{title:false});
-  const c=h('div',{class:'end'},h('div',{html:'<svg width="60" height="60" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.8l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.9l-6.4 3.5 1.4-7.1-5.3-5 7.2-.9z" fill="#ffc928" stroke="#a86b00" stroke-width="1" stroke-linejoin="round"/></svg>'}),h('h2',null,'Félicitations !!!'),
+  const c=h('div',{class:'end'},h('div',{html:'<svg width="60" height="60" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.8l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.9l-6.4 3.5 1.4-7.1-5.3-5 7.2-.9z" fill="#ffc928" stroke="#a86b00" stroke-width="1" stroke-linejoin="round"/></svg>'}),h('p',{class:'lvl-badge'},'Niveau 1 terminé'),h('h2',null,'Félicitations !!!'),
     h('p',null,"Grâce à tes connaissances en automatique, et à ta détermination, tu as évité la catastrophe en stoppant la machine avant qu'elle n'explose !!!"),
-    h('p',{class:'end-note'},'Ton score final : ',h('b',null,gameScore()+' pts'),h('br'),h('small',null,`Départ ${SCORE0} pts · ${S.f.goods||0} bonne${(S.f.goods||0)>1?'s':''} réponse${(S.f.goods||0)>1?'s':''} (+${GOOD_PTS}) · ${S.f.errs||0} mauvaise${(S.f.errs||0)>1?'s':''} réponse${(S.f.errs||0)>1?'s':''} (−${ERR_PEN}) · ${hintCount()} indice${hintCount()>1?'s':''} (−${HINT_PEN})`)),
-    h('p',null,"On ne sait toujours pas pourquoi le processus industriel piloté par l'asservissement ne fonctionne pas. Nous avions fait l'hypothèse au cours de l'aventure que la cause pourrait provenir d'un correcteur mal réglé... Les deux prochains cours d'automatique aborderont le sujet des correcteurs et de leur réglage."),
-    h('button',{class:'btn',onclick:()=>{closeTop();if(has('m5open'))briefing(5);else m5Gate();}},'Suivant'));
+    h('p',{class:'end-note'},'Ton score : ',h('b',null,gameScore()+' pts'),h('br'),h('small',null,`Départ ${SCORE0} pts · ${S.f.goods||0} bonne${(S.f.goods||0)>1?'s':''} réponse${(S.f.goods||0)>1?'s':''} (+${GOOD_PTS}) · ${S.f.errs||0} mauvaise${(S.f.errs||0)>1?'s':''} réponse${(S.f.errs||0)>1?'s':''} (−${ERR_PEN}) · ${hintCount()} indice${hintCount()>1?'s':''} (−${HINT_PEN})`)),
+    h('p',null,"Ce premier niveau te faisait réviser les bases de l'automatique vues en première année. Mais l'aventure ne s'arrête pas là : on ne sait toujours pas pourquoi le processus asservi s'est emballé..."),
+    h('p',null,h('b',null,"Place au niveau 2 !"),' Tu vas y découvrir des notions nouvelles du programme de deuxième année, les systèmes particuliers puis les correcteurs, pour démasquer la cause de la panne et remettre le processus en marche.'),
+    h('button',{class:'btn',onclick:()=>{closeTop();if(has('m5open'))briefing(5);else m5Gate();}},'Passer au niveau 2 →'));
   layer(c,{dim:false,closable:false});
 }
 function showSurvey(){
@@ -2274,9 +2276,9 @@ function m5Gate(){
   const inp=h('input',{class:'field',id:'code-m5',placeholder:'Code de la mission 5',autocomplete:'off'});const fb=h('div',{class:'fb'});
   const go=()=>{if(codeOk('m5',inp.value)){sfx('ok');fb.className='fb good';fb.textContent='Mission 5 déverrouillée';flag('m5open');setTimeout(()=>{closeAll();briefing(5);},700);}else{sfx('ko');fb.className='fb bad';fb.textContent='Code incorrect';}};
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
-  const c=h('div',{class:'end'},h('h2',null,'La suite de l’enquête'),
-    h('p',null,'Le processus est à l’arrêt, mais la cause de la panne reste inconnue. La mission 5 te permettra de démasquer le coupable.'),
-    h('p',null,h('b',null,'Le code de la mission 5 sera communiqué lors du prochain cours.')),
+  const c=h('div',{class:'end'},h('p',{class:'lvl-badge'},'Niveau 2'),h('h2',null,'Mission 5'),
+    h('p',null,'Pour accéder à la première mission du niveau 2, saisis le code d’accès.'),
+    h('p',null,h('b',null,'Ce code sera communiqué lors du prochain cours.')),
     h('div',{class:'formrow'},inp,h('button',{class:'btn',onclick:go},'Valider')),h('div',{class:'center'},fb),
     h('div',{class:'row',style:{marginTop:'10px'}},h('button',{class:'btn ghost',onclick:()=>{closeAll();showTitle();}},'Plus tard')));
   layer(c,{dim:false,closable:false});
