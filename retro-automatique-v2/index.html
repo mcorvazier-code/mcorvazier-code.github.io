@@ -1019,8 +1019,8 @@ function showTitle(){
   addHud(h('div',{class:'hud'},profBtn()));
 }
 function askRestart(){
-  const card=h('div',{class:'card brief'},h('h2',null,'Recommencer depuis le début ?'),h('p',null,'Ta progression enregistrée sur ce navigateur sera effacée.'),
-    h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{S={m:0,scene:null,f:{}};save();closeTop();showLetter();}},'Oui, recommencer'),h('button',{class:'btn ghost',onclick:closeTop},'Annuler')));
+  const card=h('div',{class:'card brief'},h('h2',null,'Recommencer depuis le début ?'),h('p',null,'Ta progression et ton score seront effacés, dans l’escape game comme dans le parcours e-learning.'),
+    h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{S={m:0,scene:null,f:{}};save();resetClassic();closeTop();showLetter();}},'Oui, recommencer'),h('button',{class:'btn ghost',onclick:closeTop},'Annuler')));
   layer(card);
 }
 function resume(){
@@ -2386,6 +2386,8 @@ function bilanView(){
     h('div',{style:{marginTop:'16px'}},h('button',{class:'btn',onclick:()=>{C.ch=nx.n;csave();renderClassic();}},chDone(nx.n)?'Revoir le chapitre '+nx.n:'Reprendre le chapitre '+nx.n+' ⟶')))];
 }
 
+function resetClassic(){C={ans:{},unl:{},res:{},ch:1,err:{},bad:{},got:{},via:{}};csave();}
+
 /* ===================== MODE PROF ===================== */
 let PROF=null; // mot de passe saisi (sert à déchiffrer le corrigé), uniquement pour cet onglet
 try{PROF=sessionStorage.getItem('retro-prof');}catch(e){}
@@ -2425,7 +2427,7 @@ function profMenu(){
       h('button',{class:'pmis pm5m',onclick:()=>{closeAll();profPrereq(5);briefing(5);}},h('b',null,'Mission 5'),h('span',null,'Démasquer la carte de régulation'))),
     h('div',{class:'row',style:{marginTop:'14px'}},
       h('button',{class:'btn',style:{background:'var(--gold)',color:'#1b1405'},onclick:()=>{closeTop();profKey();}},'Voir le corrigé'),
-      h('button',{class:'btn ghost',onclick:()=>{S={m:0,scene:null,f:{}};save();closeAll();showTitle();updScore(0);toast('Progression et score effacés');}},'Effacer la progression'),
+      h('button',{class:'btn ghost',onclick:()=>{S={m:0,scene:null,f:{}};save();resetClassic();closeAll();showTitle();updScore(0);toast('Progression et score effacés');}},'Effacer la progression'),
       h('button',{class:'btn ghost',onclick:resetMode},'Changer de format'),
       h('button',{class:'btn ghost',onclick:()=>{PROF=null;try{sessionStorage.removeItem('retro-prof');}catch(e){}closeAll();showTitle();}},'Quitter le mode prof')));
   layer(card);
