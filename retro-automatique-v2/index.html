@@ -557,6 +557,13 @@ body.classic-on #ui .hud{display:none}
 .os-qsel{padding:.35em .6em;border-radius:4px;border:1px solid var(--tint2);background:#fff;color:#111;font:600 13px var(--f-ui)}
 #classic .cl-hb .hud-score{display:inline-flex;align-items:center}
 .lvl-badge{display:inline-block;margin:0 0 4px;padding:3px 14px;border:2px solid currentColor;border-radius:999px;font:400 14px var(--f-stamp);letter-spacing:.12em;text-transform:uppercase}
+.card.m5wide{max-width:1180px!important;width:min(100%,1180px)}
+.m5grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px;align-items:start}
+.m5grid .fp{margin:0}
+.m5grid .fp svg{width:min(100%,calc(54vh * 1.49 / var(--uiz,1)));margin:0 auto}
+.m5r .q{margin:.4em 0 .7em}.m5r .opt{flex:1 1 45%;max-width:none;padding:.5em .7em}
+.m5r .sim-t{justify-content:flex-start}.m5r .sim-f{text-align:left}
+@media (max-width:820px){.m5grid{grid-template-columns:1fr}}
 
 </style>
 
@@ -1014,7 +1021,7 @@ function showTitle(){
   const t=h('div',{class:'title'},h('div',{class:'ban'},h('h1',null,'Mission : Rétro-automatique'),h('div',{class:'sub'},'Le mystère du laboratoire abandonné...')),acts);
   $stage.append(t);
   if(S.m>0){
-    acts.append(h('button',{class:'btn',onclick:resume},'Continuer (mission '+Math.min(S.m,5)+')'));
+    acts.append(h('button',{class:'btn',onclick:resume},(S.m>=5&&!has('m5open')?'Saisir le code de la mission 5':'Continuer (mission '+Math.min(S.m,5)+')')));
     acts.append(h('button',{class:'btn',onclick:askRestart},'Recommencer'));
   } else acts.append(h('button',{class:'btn',onclick:showLetter},'Start'));
   addHud(h('div',{class:'hud'},profBtn()));
@@ -1025,7 +1032,7 @@ function askRestart(){
   layer(card);
 }
 function resume(){
-  if(S.m>=5&&!has('m5open'))return showEnd();
+  if(S.m>=5&&!has('m5open')){document.body.dataset.m='end';baseScene('a/machines.webp',{title:false});return m5Gate();}
   if(has('m5done'))return m5Fin();
   if(S.scene&&SCENES[S.scene]&&SCENES[S.scene].m===S.m){document.body.dataset.m=String(S.m);goScene(S.scene);}
   else briefing(S.m);
@@ -1234,7 +1241,7 @@ function oscarGoal(){
     return{k:'m4z',g:"Saisir le code d'arrêt d'urgence",h:["Chaque relevé validé t'a donné des chiffres du code.","Ils sont rassemblés dans ton carnet.","Saisis le code complet sur l'ordinateur de l'ingénieur en chef."]};
   }
   if(m===5){
-    if(!has('m5open'))return{k:'m5g',g:"Débloquer la mission 5",h:["Le code de la mission 5 est communiqué lors du prochain cours.","Saisis-le sur l'écran qui suit les félicitations (bouton « Continuer » de l'accueil).","En attendant, révise les systèmes particuliers : intégrateur, dérivateur, premier ordre généralisé."]};
+    if(!has('m5open'))return{k:'m5g',g:"Débloquer la mission 5",h:["Le code de la mission 5 est communiqué lors du prochain cours.","Saisis-le depuis l'écran d'accueil : bouton « Saisir le code de la mission 5 ».","En attendant, révise les systèmes particuliers : intégrateur, dérivateur, premier ordre généralisé."]};
     if(!has('m5note'))return{k:'m5a',g:"Fouiller le bureau de l'ingénieur en chef",h:["Un objet nouveau est apparu sur le bureau, près de l'ordinateur.","Les ingénieurs notent souvent leurs modifications à la main…","Clique sur la feuille posée à côté du clavier."]};
     if(!has('m5drawer'))return{k:'m5b',g:"Trouver les cartes de rechange",h:["Après la lecture de la note, un nouveau bouton est apparu dans le bureau.","Cherche du côté de l'armoire à tiroirs, au centre de la pièce.","Le bouton clignote : clique dessus."]};
     const nx=(S.f.m5cur&&!m5CardDone(S.f.m5cur))?m5Card(S.f.m5cur):M5_CARDS.find(c=>!m5CardDone(c.id));
@@ -2047,11 +2054,11 @@ const fw5=w=>{if(w>=.01&&w<1000)return w.toLocaleString('fr-FR',{maximumSignific
 const f1=v=>(Math.abs(v)<.05?0:v).toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1});
 
 /* ----- tracé Bode / Black interactif, généré à partir d'une fonction de transfert ----- */
-function freqPlot(fn,{w=[1e-3,1e3],init}={}){
-  const lw0=Math.log10(w[0]),lw1=Math.log10(w[1]);let tab='bode',cur=init||Math.sqrt(w[0]*w[1]);
+function freqPlot(fn,{w=[1e-3,1e3],init,tab:tab0,onTab}={}){
+  const lw0=Math.log10(w[0]),lw1=Math.log10(w[1]);let tab=tab0||'bode',cur=init||Math.sqrt(w[0]*w[1]);
   const box=h('div',{class:'freq fp'}),plot=h('div',{class:'fp-plot'}),ro=h('div',{class:'readout fp-ro','aria-live':'polite'});
   const tabs=h('div',{class:'tabs',role:'group','aria-label':'Diagramme'});
-  const tb=[['bode','Bode'],['black','Black']].map(([k,t])=>h('button',{type:'button','aria-pressed':String(k===tab),onclick:()=>{tab=k;tb.forEach(b=>b.setAttribute('aria-pressed',String(b.textContent===t)));draw();}},t));tabs.append(...tb);
+  const tb=[['bode','Bode'],['black','Black']].map(([k,t])=>h('button',{type:'button','aria-pressed':String(k===tab),onclick:()=>{tab=k;if(onTab)onTab(k);tb.forEach(b=>b.setAttribute('aria-pressed',String(b.textContent===t)));draw();}},t));tabs.append(...tb);
   const sl=h('input',{type:'range',min:Math.round(lw0*100),max:Math.round(lw1*100),value:Math.round(Math.log10(cur)*100),'aria-label':'Pulsation ω du curseur'});
   sl.addEventListener('input',()=>{cur=10**(sl.value/100);mark();});
   box.append(tabs,plot,h('label',{class:'hint fp-l'},'Pulsation ω du curseur (ou glisse sur le diagramme)'),sl,ro);
@@ -2178,8 +2185,8 @@ function m5Drawer(selected){
 function m5Bench(id){
   const c=m5Card(id);S.f.m5cur=id;save();
   panel('Banc de test · carte '+id,card=>{
-    card.append(h('p',{class:'center hint'},'La carte est branchée : l’ordinateur trace sa réponse fréquentielle. Lis les diagrammes avec le curseur.'),freqPlot(c.f,{w:c.w}));
-    const zone=h('div',{class:'m5q'});card.append(zone);
+    card.classList.add('m5wide');const zone=h('div',{class:'m5q'});
+    card.append(h('div',{class:'m5grid'},h('div',{class:'m5l'},freqPlot(c.f,{w:c.w})),h('div',{class:'m5r'},h('p',{class:'hint'},'La carte est branchée : l’ordinateur trace sa réponse fréquentielle. Lis les diagrammes avec le curseur.'),zone)));
     const fill=()=>{zone.innerHTML='';
       if(!has('c'+id+'t')){zone.append(h('p',{class:'q center'},h('b',null,'Question 1 : '),'De quel type de système s’agit-il ?'),
         mcq(M5_TYPES,c.type,()=>{flag('c'+id+'t');fill();},{wrongMsg:M5_TYPES.map(()=>'Ce n’est pas ça : observe les pentes du gain et les valeurs extrêmes de la phase.')}));return;}
@@ -2207,8 +2214,8 @@ const M5_SVC_Q=[
 function m5Service(){
   if(!m5AllCards()){pop({img:'a/office.webp',pos:'19.2% 50.6% 3.4x',title:'Carte en service',parts:[h('p',null,`Avant d’analyser la carte en service, identifie d’abord les six cartes du tiroir : tu sauras ainsi reconnaître ses composants. (${m5Count()} / 6 identifiées)`)]});return;}
   panel('Carte de régulation en service',card=>{
-    card.append(h('p',{class:'center hint'},'L’ordinateur lit la carte installée dans l’armoire de régulation, sans la débrancher.'),freqPlot(M5_SVC,{w:[1e-5,1e1],init:M5_WC}));
-    const zone=h('div',{class:'m5q'});card.append(zone);
+    card.classList.add('m5wide');const zone=h('div',{class:'m5q'});
+    card.append(h('div',{class:'m5grid'},h('div',{class:'m5l'},freqPlot(M5_SVC,{w:[1e-5,1e1],init:M5_WC})),h('div',{class:'m5r'},h('p',{class:'hint'},'L’ordinateur lit la carte installée dans l’armoire de régulation, sans la débrancher.'),zone)));
     const fill=()=>{zone.innerHTML='';const i=S.f.svc||0;
       if(i>=M5_SVC_Q.length){zone.append(nextBtn('Conclusions de l’enquête',()=>{closeTop();flag('m5done');m5Fin();}));return;}
       const q=M5_SVC_Q[i];const next=()=>{S.f.svc=i+1;save();fill();};
@@ -2247,18 +2254,19 @@ const SIM_T=[
  {t:'Montage dérivateur',f:'K.(1 + τ.p)',p:['K','tau'],fn:(P,w)=>({db:db(P.K*Math.hypot(1,P.tau*w)),ph:Math.atan(P.tau*w)*R2D})},
  {t:'1er ordre généralisé',f:'(1 + τ.p) / (1 + a.τ.p)',p:['tau','a'],fn:(P,w)=>({db:db(Math.hypot(1,P.tau*w)/Math.hypot(1,P.a*P.tau*w)),ph:(Math.atan(P.tau*w)-Math.atan(P.a*P.tau*w))*R2D})}];
 function m5Sim(){
-  const P={K:1,tau:1,a:.1};let k=4;
+  const P={K:1,tau:1,a:.1};let k=4,simTab='bode';
   freqCard('Simulateur · systèmes particuliers',card=>{
+    card.classList.add('m5wide');card.style.maxWidth='';
     const sel=h('div',{class:'tabs sim-t',role:'group','aria-label':'Type de système'});
     const btns=SIM_T.map((s,i)=>h('button',{type:'button','aria-pressed':String(i===k),onclick:()=>{k=i;btns.forEach((b,j)=>b.setAttribute('aria-pressed',String(j===k)));build();}},s.t));sel.append(...btns);
     const fx=h('p',{class:'center sim-f'}),ctr=h('div',{class:'sim-c'}),pl=h('div');
     const nm={K:'K',tau:'τ (s)',a:'a'},rg={K:[-2,2],tau:[-2,2],a:[-2,2]};
     const fmt=v=>v.toLocaleString('fr-FR',{maximumSignificantDigits:3});
-    const plotNow=()=>{pl.innerHTML='';pl.append(freqPlot(w=>SIM_T[k].fn(P,w),{w:[1e-3,1e3]}));fx.textContent='H(p) = '+SIM_T[k].f+'   ·   '+SIM_T[k].p.map(q=>nm[q].split(' ')[0]+' = '+fmt(P[q])).join('   ·   ');};
+    const plotNow=()=>{pl.innerHTML='';pl.append(freqPlot(w=>SIM_T[k].fn(P,w),{w:[1e-3,1e3],tab:simTab,onTab:t=>simTab=t}));fx.textContent='H(p) = '+SIM_T[k].f+'   ·   '+SIM_T[k].p.map(q=>nm[q].split(' ')[0]+' = '+fmt(P[q])).join('   ·   ');};
     function build(){ctr.innerHTML='';SIM_T[k].p.forEach(q=>{const out=h('output',null,fmt(P[q]));const r=h('input',{type:'range',id:'sim-'+q,min:rg[q][0]*100,max:rg[q][1]*100,value:Math.round(Math.log10(P[q])*100)});
       r.addEventListener('input',()=>{let lv=r.value/100;const n=Math.round(lv);if(Math.abs(lv-n)<.04)lv=n;P[q]=10**lv;out.textContent=fmt(P[q]);plotNow();});
       ctr.append(h('label',{for:'sim-'+q},nm[q]),r,out);});plotNow();}
-    card.append(h('p',{class:'center hint'},'Choisis un type de système, puis fais varier ses paramètres pour observer leur effet sur les diagrammes de Bode et de Black.'),sel,fx,ctr,pl);build();
+    card.append(h('div',{class:'m5grid'},h('div',{class:'m5l'},pl),h('div',{class:'m5r'},h('p',{class:'hint'},'Choisis un type de système, puis fais varier ses paramètres pour observer leur effet sur les diagrammes de Bode et de Black.'),sel,fx,ctr)));build();
   });
 }
 function chiefPC5(){
