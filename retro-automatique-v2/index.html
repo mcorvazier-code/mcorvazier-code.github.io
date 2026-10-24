@@ -549,6 +549,7 @@ body.classic-on #ui .hud{display:none}
 .sim-c input{accent-color:var(--acc)}
 .menu button.m5vid{grid-column:1/-1;background:color-mix(in srgb,var(--on) 18%,transparent)}
 .m5wrap{position:relative}
+.btn.sgn{min-width:2.6em;font-size:18px;padding:.35em .8em;border-color:currentColor}
 
 </style>
 
@@ -920,14 +921,15 @@ function mcq(opts,correct,onOK,{wrongMsg,feedback}={}){
     if(o instanceof Node)b.append(o);else b.textContent=o;return b;})),fb);
   return box;
 }
-function numInput(key,ph,onOK,{check,bad}={}){
+function numInput(key,ph,onOK,{check,bad,signed}={}){
   const inp=h('input',{class:'field',id:'num-'+key,placeholder:ph,inputmode:'decimal',autocomplete:'off'});
   const fb=h('div',{class:'fb'});
   const go=()=>{const ok=check?check(inp.value):numOk(key,inp.value);
     if(ok){sfx('ok');gameGood();fb.className='fb good';fb.textContent='Valeur validée';inp.disabled=true;setTimeout(onOK,700);}
     else{sfx('ko');if(isFinite(parseNum(inp.value)))gameErr();fb.className='fb bad';fb.textContent=isFinite(parseNum(inp.value))||check?(bad||'Valeur incorrecte, vérifie ta lecture.'):'Saisis une valeur numérique (ex. 0,108 ou 4,12.10-4).';}};
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
-  return h('div',null,h('div',{class:'formrow'},inp,h('button',{class:'btn',onclick:go},'Valider')),h('div',{class:'center'},fb));
+  const sg=signed?h('button',{class:'btn ghost sgn',type:'button','aria-label':'Changer le signe (plus ou moins)',title:'Changer le signe',onclick:()=>{const v=inp.value.trim();inp.value=/^[-−]/.test(v)?v.replace(/^[-−]\s*/,''):'-'+v;inp.focus();}},'±'):null;
+  return h('div',null,h('div',{class:'formrow'},sg,inp,h('button',{class:'btn',onclick:go},'Valider')),h('div',{class:'center'},fb));
 }
 function nextBtn(label,fn){return h('div',{class:'center',style:{marginTop:'14px'}},h('button',{class:'btn',onclick:fn},label||'Suivant'));}
 function pdfLink(href,label='PDF'){return h('a',{class:'pdf',href,target:'_blank',rel:'noopener'},h('span',{html:'<svg width="14" height="16" viewBox="0 0 14 16"><path d="M1 1h8l4 4v10H1z" fill="#fff" stroke="#c62828" stroke-width="1.5"/><rect x="0" y="9" width="11" height="5" fill="#c62828"/></svg>'}),label);}
@@ -1231,7 +1233,7 @@ function oscarGoal(){
       return{k:'m5p'+nx.id,g:`Lire le paramètre de la carte ${nx.id}`,h:nx.hint};}
     if(!has('m5done')){const i=S.f.svc||0;const HS=[["Avant la cassure, la carte se comporte comme un intégrateur : pente −20 dB/déc, phase −90°.","Après la cassure, le gain devient constant et la phase remonte vers 0° : c'est le comportement d'une autre carte du tiroir.","Compare avec les cartes A et C."],
       ["La cassure se situe là où la phase vaut −45°.","Lis cette pulsation avec le curseur.","τd = 1/ω(cassure)."],
-      ["La classe est le nombre d'intégrateurs purs dans la FTBO.","Le four n'en contient aucun.","Compte ceux de la carte."],
+      ["La classe est le nombre d'intégrateurs purs dans la FTBO.","Le processus commandé n'en contient aucun.","Compte ceux de la carte."],
       ["Revois la précision : l'écart statique dépend de la classe et du type d'entrée.","Pour un échelon, il faut au moins un intégrateur.","C'était justement l'objectif noté par l'ingénieur."],
       ["Place le curseur sur ω = 1,07.10⁻³ rad/s.","Lis la phase de la carte à cette pulsation.","Attention au signe : la carte retire de la phase."],
       ["Compare la phase lue à 0°.","La marge de phase se mesure justement à ωc.","Une phase négative à ωc rapproche le système du point critique."]][Math.min(i,5)];
@@ -2174,11 +2176,11 @@ const M5_SVC_Q=[
  {q:'Cette carte se comporte comme deux cartes du tiroir branchées en série. Lesquelles ?',o:['Un intégrateur pur et un montage dérivateur','Un intégrateur pur et un montage intégrateur','Un dérivateur pur et un montage intégrateur','Un 1er ordre généralisé (a < 1) seul'],a:0,
   w:'Observe les deux zones : la pente du gain en basses fréquences, puis le palier en hautes fréquences, et la phase qui remonte de −90° vers 0°.'},
  {q:'Que vaut la constante de temps τd du montage dérivateur (en s) ?',num:100,tol:.06,ph:'τd en s',w:'La cassure se lit là où la phase vaut −45° : τd est l’inverse de cette pulsation.'},
- {q:'Le four (non asservi) a pour fonction de transfert 0,01 / (1 + 8732.p). Quelle est la classe de la FTBO avec cette carte ?',o:['Classe 0','Classe 1','Classe 2','Classe 3'],a:1,
+ {q:'Dans le système asservi, le processus commandé a pour fonction de transfert 0,01 / (1 + 8732.p). Quelle est la classe de la FTBO avec cette carte ?',o:['Classe 0','Classe 1','Classe 2','Classe 3'],a:1,
   w:'La classe est le nombre d’intégrateurs purs dans la FTBO.'},
  {q:'D’après ton cours, que garantit cette classe pour une consigne en échelon ?',o:['Un écart statique nul','Un temps de réponse plus court','Une marge de phase plus grande','Un écart statique infini'],a:0,
   w:'Relis la partie sur la précision : écart statique en fonction de la classe et du type d’entrée.'},
- {q:`La pulsation de coupure de la boucle vaut ωc ≈ 1,07.10⁻³ rad/s (mission 4). Que vaut la phase de la carte à cette pulsation (en degrés, arrondie à l’unité) ?`,num:-84,tol:.04,ph:'Phase en °',w:'Place le curseur sur ωc = 1,07.10⁻³ rad/s et lis la phase. Attention au signe.'},
+ {q:`La pulsation de coupure de la boucle vaut ωc ≈ 1,07.10⁻³ rad/s (mission 4). Que vaut la phase de la carte à cette pulsation (en degrés, arrondie à l’unité) ? Utilise le bouton ± pour le signe.`,num:-84,tol:.04,ph:'Phase en °',signed:true,w:'Place le curseur sur ωc = 1,07.10⁻³ rad/s et lis la phase. Attention au signe.'},
  {q:'Conclusion : à la pulsation ωc, où se joue la stabilité, cette carte…',o:['retire près de 90° de phase et dégrade la marge de phase','apporte de l’avance de phase','n’a aucun effet sur la phase','augmente la marge de gain'],a:0,
   w:'Compare la phase lue à la question précédente avec 0° : la carte ajoute-t-elle ou retire-t-elle de la phase ?'}];
 function m5Service(){
@@ -2190,7 +2192,7 @@ function m5Service(){
       if(i>=M5_SVC_Q.length){zone.append(nextBtn('Conclusions de l’enquête',()=>{closeTop();flag('m5done');m5Fin();}));return;}
       const q=M5_SVC_Q[i];const next=()=>{S.f.svc=i+1;save();fill();};
       zone.append(h('p',{class:'q center'},h('b',null,`Question ${i+1} / ${M5_SVC_Q.length} : `),q.q));
-      if(q.num!=null)zone.append(numInput('m5s'+i,q.ph,next,{check:v=>m5ok(v,q.num,q.tol),bad:q.w}));
+      if(q.num!=null)zone.append(numInput('m5s'+i,q.ph,next,{check:v=>m5ok(v,q.num,q.tol),bad:q.w,signed:q.signed}));
       else zone.append(mcq(q.o,q.a,next,{wrongMsg:q.o.map(()=>q.w)}));};
     fill();
   });
@@ -2204,7 +2206,7 @@ function m5Fin(){
     h('ul',{class:'q'},
       h('li',null,'La carte de régulation associe un ',h('b',null,'intégrateur pur'),' et un ',h('b',null,'montage dérivateur'),' (τd = 100 s).'),
       h('li',null,"L'intégrateur a bien annulé l'écart statique : c'était l'objectif de la note de l'ingénieur."),
-      h('li',null,'Mais la cassure du montage dérivateur (1/τd = 10⁻² rad/s) se trouve ',h('b',null,'au-dessus'),' de la pulsation de coupure ωc ≈ 1,07.10⁻³ rad/s. À ωc, la carte retire environ 84° de phase : d’où la marge de phase de 12° et les fortes oscillations du four.'),
+      h('li',null,'Mais la cassure du montage dérivateur (1/τd = 10⁻² rad/s) se trouve ',h('b',null,'au-dessus'),' de la pulsation de coupure ωc ≈ 1,07.10⁻³ rad/s. À ωc, la carte retire environ 84° de phase : d’où la marge de phase de 12° et les fortes oscillations du système asservi.'),
       h('li',null,"Ce type de carte porte un nom. Tu le découvriras au prochain cours, avant d'apprendre à la régler en mission 6.")),
     h('p',{class:'q center'},'Le code de la mission 6 sera communiqué en cours.'),
     h('div',{class:'formrow'},inp,h('button',{class:'btn',onclick:go},'Valider')),h('div',{class:'center'},fb),
