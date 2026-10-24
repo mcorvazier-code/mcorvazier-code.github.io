@@ -551,6 +551,7 @@ body.classic-on #ui .hud{display:none}
 .m5wrap{position:relative}
 .btn.sgn{min-width:2.6em;font-size:18px;padding:.35em .8em;border-color:currentColor}
 #classic .btn.sgn{color:#1d2124;border-color:#9a978a}
+@media (max-width:640px){.cl-head{flex-wrap:wrap;padding:8px 12px}.cl-head h1{font-size:19px}.cl-hb{flex-wrap:wrap;gap:6px;width:100%}.cl-hb button{padding:4px 10px;white-space:nowrap}}
 
 </style>
 
@@ -709,6 +710,7 @@ function hud(){
       S.m>=1&&(S.m<=4||(S.m===5&&has('m5open')))?h('button',{role:'menuitem',onclick:()=>{closeAll();briefing(S.m);},title:'Revoir la présentation de la mission en cours'},'🎯 Objectif de mission'):null,
       h('button',{role:'menuitem',onclick:()=>openPapers(),title:'Codes et documents trouvés'},'📒 Carnet'),
       h('button',{role:'menuitem',onclick:()=>{closeAll();showRules();}},'📜 Règles du jeu'),
+      h('button',{role:'menuitem',onclick:resetMode,title:'Passer au parcours e-learning (ta progression est conservée)'},'🔁 Changer de format'),
       h('button',{role:'menuitem',onclick:e=>toggleMute(e.currentTarget),title:'Activer ou couper les sons'},MUTED?'🔇 Son : non':'🔊 Son : oui'),
       fsCtl(),
       profBtn()]));
@@ -992,7 +994,7 @@ function showChoice(){
   let pick=null;
   const opt=(k,ico,t,d)=>h('button',{class:'ch-opt','data-k':k,onclick:e=>{pick=k;wrap.querySelectorAll('.ch-opt').forEach(b=>b.classList.toggle('sel',b.dataset.k===k));conf.hidden=false;requestAnimationFrame(()=>conf.scrollIntoView({block:'nearest',behavior:'smooth'}));cb.textContent=k==='game'?'Je choisis l’escape game':'Je choisis le parcours e-learning';}},h('span',{class:'ch-ico'},ico),h('b',null,t),h('span',null,d));
   const cb=h('button',{class:'btn',onclick:()=>{if(!pick)return;setMode(pick);if(pick==='game')showTitle();else classic();}},'Valider');
-  const conf=h('div',{class:'ch-conf',hidden:true},h('p',null,'⚠ Ce choix est définitif : tu ne pourras plus changer de format ensuite.'),cb);
+  const conf=h('div',{class:'ch-conf',hidden:true},h('p',null,'Tu pourras changer de format à tout moment depuis le menu ; ta progression dans chaque format est conservée.'),cb);
   const wrap=h('div',{class:'choice'},h('h1',null,'Automatique linéaire'),h('p',{class:'ch-sub'},'Choisis comment tu veux travailler. Les deux formats abordent exactement les mêmes notions.'),
     h('div',{class:'ch-opts'},opt('game','🕹️','Escape game',"Une enquête dans un laboratoire abandonné : explore les salles, résous les énigmes et stoppe le processus avant la catastrophe."),
       opt('classic','📘','Parcours e-learning',"Un parcours classique en 5 chapitres : ressources, questions et bilan avec une note par chapitre.")),conf);
@@ -1064,7 +1066,8 @@ function showRules(next){
           row(h('span',{class:'ru-ic ru-e'},'📒'),"Carnet : tes notes, les codes trouvés et les documents récupérés (cours, rapports, fiches…)."),
           row(h('span',{class:'ru-ic ru-e'},'🔊'),'Son : activer ou couper les sons.'),
           row(h('span',{class:'ru-ic ru-e'},'🔠'),'Texte : agrandir ou réduire la taille du texte.'),
-          row(h('span',{class:'ru-ic ru-e'},'📜'),'Règles du jeu : revoir cette page.'))),
+          row(h('span',{class:'ru-ic ru-e'},'📜'),'Règles du jeu : revoir cette page.'),
+          row(h('span',{class:'ru-ic ru-e'},'🔁'),'Changer de format : passer au parcours e-learning, et revenir quand tu veux.'))),
       h('section',{class:'ru-bot'},h('span',{class:'ru-av',html:ROBOT_SVG}),h('div',null,h('h3',null,'🤖 ICAM_BOT 2.0, ton assistant'),
         h('p',null,"Le robot en bas à droite de l'écran peut t'aider à tout moment :"),
         h('ul',null,h('li',null,h('b',null,'Indices'),' : trois indices progressifs sur ton objectif du moment (chacun coûte des points).'),
@@ -1474,7 +1477,7 @@ function renderClassic(){
   if(cur==='bilan')main.append(...bilanView());else{let ch=CH().find(c=>c.n===cur);if(!ch){ch=CH()[0];C.ch=ch.n;csave();}main.append(...(chOpen(ch)?chapterView(ch):lockView(ch)));}
   $cl.innerHTML='';
   $cl.append(h('header',{class:'cl-head'},h('div',null,h('h1',null,'Rétro-automatique'),h('p',null,'Parcours e-learning — Automatique linéaire')),
-    h('div',{class:'cl-hb'},h('button',{class:'cl-fs',onclick:()=>setFS(-1),'aria-label':'Réduire le texte',title:'Réduire le texte'},'A−'),h('button',{class:'cl-fs',onclick:()=>setFS(1),'aria-label':'Agrandir le texte',title:'Agrandir le texte'},'A+'),h('button',{onclick:e=>toggleMute(e.currentTarget)},MUTED?'🔇 Son : non':'🔊 Son : oui'),profBtn())),
+    h('div',{class:'cl-hb'},h('button',{onclick:resetMode,title:'Passer à l’escape game (ta progression est conservée)'},'🔁 Escape game'),h('button',{class:'cl-fs',onclick:()=>setFS(-1),'aria-label':'Réduire le texte',title:'Réduire le texte'},'A−'),h('button',{class:'cl-fs',onclick:()=>setFS(1),'aria-label':'Agrandir le texte',title:'Agrandir le texte'},'A+'),h('button',{onclick:e=>toggleMute(e.currentTarget)},MUTED?'🔇 Son : non':'🔊 Son : oui'),profBtn())),
     h('div',{class:'cl-body'},nav,main),oscarBtn(),fullBtn());
   const ob=$cl.querySelector('.oscbtn');ob.style.position='fixed';ob.style.right='18px';ob.style.bottom='18px';ob.hidden=cur==='bilan';
   main.scrollTop=0;
