@@ -556,6 +556,11 @@ body.classic-on #ui .hud{display:none}
 .botask .rb{width:30px;height:30px;display:block;flex:none}
 .botask .rb svg{width:100%;height:100%}
 #classic .btn.sgn{color:#1d2124;border-color:#9a978a}
+.simrow{display:flex;justify-content:center;margin:2px 0 10px}
+.simbtn{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:.45em 1.1em;font:600 13px var(--f-ui);cursor:pointer;background:rgba(0,0,0,.3);color:var(--on);border:1.5px solid color-mix(in srgb,var(--on) 55%,transparent)}
+.simbtn:hover,.simbtn:focus-visible{background:rgba(0,0,0,.5)}
+#classic .simbtn{background:#f1f0ea;color:#1d2124;border-color:var(--acc)}
+#classic .simbtn:hover{background:color-mix(in srgb,var(--acc) 18%,#fff)}
 
 </style>
 
@@ -1507,6 +1512,7 @@ function qCard(ch,q,i,show){
   const rbtn=rl.length?h('button',{class:'cl-rbtn','aria-expanded':'false',onclick:()=>{rbox.hidden=!rbox.hidden;rbtn.setAttribute('aria-expanded',String(!rbox.hidden));rbtn.classList.toggle('on',!rbox.hidden);}},'📚 Ressources'):null;
   const card=h('section',{class:'cl-card cl-q'},h('div',{class:'cl-qh'},h('span',{class:'cl-qn'},'Q'+(i+1)),h('p',null,q.q),rbtn,mark),rbox);
   if(q.pre)card.append(q.pre());
+  if(q.sim)card.append(simBtn());
   if(q.t==='mcq'){const box=h('div',{class:'cl-opts'+(q.o.some(o=>o.length>45)?' col':'')});if(!box.classList.contains('col'))box.style.setProperty('--cols',q.o.length<=4?q.o.length:Math.ceil(q.o.length/2));
     q.o.forEach((o,j)=>{const b=h('button',{class:'opt'+(C.ans[q.id]===j?' sel':''),'aria-pressed':String(C.ans[q.id]===j),onclick:()=>{box.querySelectorAll('.opt').forEach(x=>{x.classList.remove('sel');x.setAttribute('aria-pressed','false');});b.classList.add('sel');b.setAttribute('aria-pressed','true');save(j);}},o);box.append(b);});card.append(box);}
   if(q.t==='pick'){const d=h('div',{class:'diagram fit cl-pick',html:q.svg});const sel=()=>d.querySelectorAll('.blk').forEach(g=>g.classList.toggle('sel',C.ans[q.id]===+g.dataset.k));
@@ -2094,6 +2100,7 @@ function freqPlot(fn,{w=[1e-3,1e3],init}={}){
 }
 
 /* ----- la note manuscrite ----- */
+function simBtn(){return h('div',{class:'simrow'},h('button',{class:'simbtn',type:'button',onclick:()=>m5Sim(),title:'Ouvre le simulateur dans une nouvelle fenêtre ; ferme-la pour revenir à la question'},'🧪 Ouvrir le simulateur des systèmes particuliers'));}
 function m5Note(){
   const first=!has('m5note');flag('m5note');sfx('page');
   const card=h('div',{class:'postit-wrap m5wrap'},h('div',{class:'postit m5note'},
@@ -2164,7 +2171,7 @@ function m5Drawer(selected){
 function m5Bench(id){
   const c=m5Card(id);S.f.m5cur=id;save();
   panel('Banc de test · carte '+id,card=>{
-    card.append(h('p',{class:'center hint'},'La carte est branchée : l’ordinateur trace sa réponse fréquentielle. Lis les diagrammes avec le curseur.'),freqPlot(c.f,{w:c.w}));
+    card.append(h('p',{class:'center hint'},'La carte est branchée : l’ordinateur trace sa réponse fréquentielle. Lis les diagrammes avec le curseur.'),freqPlot(c.f,{w:c.w}),simBtn());
     const zone=h('div',{class:'m5q'});card.append(zone);
     const fill=()=>{zone.innerHTML='';
       if(!has('c'+id+'t')){zone.append(h('p',{class:'q center'},h('b',null,'Question 1 : '),'De quel type de système s’agit-il ?'),
@@ -2193,7 +2200,7 @@ const M5_SVC_Q=[
 function m5Service(){
   if(!m5AllCards()){pop({img:'a/office.webp',pos:'19.2% 50.6% 3.4x',title:'Carte en service',parts:[h('p',null,`Avant d’analyser la carte en service, identifie d’abord les six cartes du tiroir : tu sauras ainsi reconnaître ses composants. (${m5Count()} / 6 identifiées)`)]});return;}
   panel('Carte de régulation en service',card=>{
-    card.append(h('p',{class:'center hint'},'L’ordinateur lit la carte installée dans l’armoire de régulation, sans la débrancher.'),freqPlot(M5_SVC,{w:[1e-5,1e1],init:M5_WC}));
+    card.append(h('p',{class:'center hint'},'L’ordinateur lit la carte installée dans l’armoire de régulation, sans la débrancher.'),freqPlot(M5_SVC,{w:[1e-5,1e1],init:M5_WC}),simBtn());
     const zone=h('div',{class:'m5q'});card.append(zone);
     const fill=()=>{zone.innerHTML='';const i=S.f.svc||0;
       if(i>=M5_SVC_Q.length){zone.append(nextBtn('Conclusions de l’enquête',()=>{closeTop();flag('m5done');m5Fin();}));return;}
@@ -2282,12 +2289,12 @@ const M5_CL_SVC=[
 function M5_CHAPTER(){
   const q=[];
   M5_CARDS.forEach(c=>{
-    q.push({id:'k'+c.id+'t',t:'mcq',q:`Voici les diagrammes de Bode et de Black du système ${c.id}. De quel type de système s’agit-il ?`,pre:()=>freqPlot(c.f,{w:c.w}),o:M5_TYPES,a:c.type});
-    q.push({id:'k'+c.id+'p',t:'num',q:`Sur les diagrammes du système ${c.id} (question précédente) : ${c.q.replace('cette carte','ce système')}`,ph:c.ph,chk:v=>m5ok(v,c.ans,c.tol)});
+    q.push({id:'k'+c.id+'t',sim:true,t:'mcq',q:`Voici les diagrammes de Bode et de Black du système ${c.id}. De quel type de système s’agit-il ?`,pre:()=>freqPlot(c.f,{w:c.w}),o:M5_TYPES,a:c.type});
+    q.push({id:'k'+c.id+'p',sim:true,t:'num',q:`Sur les diagrammes du système ${c.id} (question précédente) : ${c.q.replace('cette carte','ce système')}`,ph:c.ph,chk:v=>m5ok(v,c.ans,c.tol)});
     QRES['k'+c.id+'t']=QRES['k'+c.id+'p']=()=>[RS5.vid(),RS5.sim()];});
   M5_SVC_Q.forEach((s,i)=>{
     const pre=i===0?()=>freqPlot(M5_SVC,{w:[1e-5,1e1]}):i===4?()=>freqPlot(M5_SVC,{w:[1e-5,1e1],init:M5_WC}):null;
-    q.push(s.num!=null?{id:'ks'+i,t:'num',q:M5_CL_SVC[i],pre,ph:s.ph,chk:v=>m5ok(v,s.num,s.tol),signed:s.signed}:{id:'ks'+i,t:'mcq',q:M5_CL_SVC[i],pre,o:s.o,a:s.a});
+    q.push(s.num!=null?{id:'ks'+i,t:'num',q:M5_CL_SVC[i],pre,ph:s.ph,chk:v=>m5ok(v,s.num,s.tol),signed:s.signed,sim:i===1}:{id:'ks'+i,t:'mcq',q:M5_CL_SVC[i],pre,o:s.o,a:s.a,sim:i===0});
     QRES['ks'+i]=()=>[RS5.vid(),RS5.sim()];});
   return {n:5,t:'Identifier les systèmes particuliers',m:'Mission 5',lock:'m5',
     intro:"Ce chapitre porte sur les systèmes particuliers : intégrateur et dérivateur purs, montages intégrateur et dérivateur, premier ordre généralisé. Tu identifies six systèmes à partir de leurs diagrammes de Bode et de Black, puis tu analyses le correcteur de la régulation étudiée aux chapitres précédents. Commence par la vidéo ressource ; le simulateur te permet d’observer l’effet de chaque paramètre. Sur les diagrammes, déplace le curseur ω pour lire les valeurs.",
@@ -2389,7 +2396,7 @@ const SCENES={
     {x:45.6,y:62.9,icon:'pin',label:'Étagère',act:shelf},
     {x:80.2,y:52.8,icon:'pin',label:'Document',act:cdcDoc}]},
   office5:{m:5,img:'a/office.webp',onEnter:()=>{$stage.append(h('div',{class:'m5paper','aria-hidden':'true'}));},spots:()=>[
-    {x:13.7,y:58.1,icon:'gear',label:"Ordinateur de l'ingénieur en chef",act:chiefPC5},
+    {x:13.7,y:58.1,icon:'gear',label:"Ordinateur de l'ingénieur en chef",get cls(){return has('m5pc')?'':'fresh';},cond:()=>has('m5note'),act:()=>{flag('m5pc');chiefPC5();}},
     {x:29.6,y:61.4,icon:'pin',label:'Note manuscrite',get cls(){return has('m5note')?'':'fresh';},act:()=>{document.querySelector('.spot.fresh')?.classList.remove('fresh');m5Note();}},
     {x:40.2,y:57.5,icon:'gear',label:'Tiroir de l’armoire',get cls(){return has('m5drawer')?'':'fresh';},cond:()=>has('m5note'),act:()=>m5Drawer()},
     {x:45.6,y:62.9,icon:'pin',label:'Étagère',act:shelf},
