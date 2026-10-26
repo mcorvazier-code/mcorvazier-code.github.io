@@ -593,6 +593,15 @@ body:has(.hmenu.open) .nb-toast{display:none}
 @keyframes lgBrush{to{stroke-dashoffset:0}}
 @keyframes lgDot{0%{opacity:0;transform:scale(0)}60%{opacity:1}100%{opacity:1;transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.splash .lg-let,.splash .lg-dot{animation:none;opacity:1;transform:none}.splash .lg-wipe{animation:none;transform:none}.splash .lg-brush{animation:none;stroke-dashoffset:0}}
+/* sous-menu Paramètres */
+.hm-sett{display:flex;flex-direction:column;gap:4px}
+.hm-set{display:flex!important;align-items:center;gap:6px}
+.hm-gear{display:inline-grid;place-items:center;transition:transform .4s}
+.hm-sett.open .hm-gear{transform:rotate(90deg)}
+.hm-car{margin-left:auto;transition:transform .2s;opacity:.8}
+.hm-sett.open .hm-car{transform:rotate(90deg)}
+.hm-sub{display:none;flex-direction:column;gap:4px;padding-left:12px;border-left:2px solid rgba(255,255,255,.35);margin-left:8px}
+.hm-sett.open .hm-sub{display:flex}
 
 </style>
 
@@ -739,7 +748,7 @@ function hudMenu(items){
   const list=h('div',{class:'hm-list',role:'menu'},...items);
   const wrap=h('div',{class:'hmenu'});
   const tg=h('button',{class:'hm-tg','aria-haspopup':'true','aria-expanded':'false',onclick:e=>{e.stopPropagation();const o=!wrap.classList.contains('open');wrap.classList.toggle('open',o);tg.setAttribute('aria-expanded',String(o));}},'☰ Menu');
-  list.addEventListener('click',e=>{if(e.target.closest('button')&&!/Son :/.test(e.target.textContent)){wrap.classList.remove('open');tg.setAttribute('aria-expanded','false');}});
+  list.addEventListener('click',e=>{if(e.target.closest('button')&&!e.target.closest('.hm-set')&&!/Son :/.test(e.target.textContent)){wrap.querySelectorAll('.hm-sett.open').forEach(x=>{x.classList.remove('open');x.querySelector('.hm-set').setAttribute('aria-expanded','false');});wrap.classList.remove('open');tg.setAttribute('aria-expanded','false');}});
   document.addEventListener('click',e=>{if(!wrap.contains(e.target)){wrap.classList.remove('open');tg.setAttribute('aria-expanded','false');}});
   wrap.append(tg,list);return wrap;
 }
@@ -747,14 +756,14 @@ function hud(){
   return h('div',{class:'hud'},
     S.m>=1?h('span',{class:'hud-score',title:`Départ : ${SCORE0} pts · bonne réponse +${GOOD_PTS} · mauvaise réponse −${ERR_PEN} · indice −${HINT_PEN}`,'aria-live':'polite'},'Score : '+gameScore()+' pts'):null,
     hudMenu([
-      h('button',{role:'menuitem',onclick:()=>{closeAll();showTitle();}},'🏠 Accueil'),
       S.m>=1&&(S.m<=4||(S.m===5&&has('m5open')))?h('button',{role:'menuitem',onclick:()=>{closeAll();briefing(S.m);},title:'Revoir la présentation de la mission en cours'},'🎯 Objectif de mission'):null,
       h('button',{role:'menuitem',class:'nb-mi',onclick:()=>openPapers(),title:'Codes et documents trouvés'},'📒 Carnet'),
-      h('button',{role:'menuitem',onclick:()=>{closeAll();showRules();}},'📜 Règles du jeu'),
       h('button',{role:'menuitem',onclick:resetMode,title:'Passer au parcours e-learning (ta progression est conservée)'},'🔁 Changer de format'),
-      h('button',{role:'menuitem',onclick:e=>toggleMute(e.currentTarget),title:'Activer ou couper les sons'},MUTED?'🔇 Son : non':'🔊 Son : oui'),
-      fsCtl(),
-      profBtn()]));
+      settingsMenu([
+        h('button',{role:'menuitem',onclick:()=>{closeAll();showRules();}},'📜 Règles du jeu'),
+        h('button',{role:'menuitem',onclick:e=>toggleMute(e.currentTarget),title:'Activer ou couper les sons'},MUTED?'🔇 Son : non':'🔊 Son : oui'),
+        fsCtl(),
+        profBtn()])]));
 }
 function baseScene(img,{title=true}={}){
   clearStage();
@@ -1109,13 +1118,10 @@ function showRules(next){
           row(h('span',{class:'ru-ic ru-q'},'↔'),'Sur téléphone tenu à la verticale, fais glisser la salle pour la parcourir.'))),
       h('section',null,h('h3',null,'☰ Le menu'),
         h('ul',{class:'ru-list'},
-          row(h('span',{class:'ru-ic ru-e'},'🏠'),"Accueil : revenir à l'écran d'accueil (ta progression est conservée)."),
           row(h('span',{class:'ru-ic ru-e'},'🎯'),"Objectif de mission : relire l'énoncé de la mission en cours."),
           row(h('span',{class:'ru-ic ru-e'},'📒'),"Carnet : tes notes, les codes trouvés et les documents récupérés (cours, rapports, fiches…)."),
-          row(h('span',{class:'ru-ic ru-e'},'🔊'),'Son : activer ou couper les sons.'),
-          row(h('span',{class:'ru-ic ru-e'},'🔠'),'Texte : agrandir ou réduire la taille du texte.'),
-          row(h('span',{class:'ru-ic ru-e'},'📜'),'Règles du jeu : revoir cette page.'),
-          row(h('span',{class:'ru-ic ru-e'},'🔁'),'Changer de format : passer au parcours e-learning, et revenir quand tu veux.'))),
+          row(h('span',{class:'ru-ic ru-e'},'🔁'),'Changer de format : passer au parcours e-learning, et revenir quand tu veux.'),
+          row(h('span',{class:'ru-ic ru-e'},'⚙️'),'Paramètres : revoir les règles du jeu, activer ou couper le son, régler la taille du texte, mode prof.'))),
       h('section',{class:'ru-bot'},h('span',{class:'ru-av',html:ROBOT_SVG}),h('div',null,h('h3',null,'🤖 ICAM_BOT 2.0, ton assistant'),
         h('p',null,"Le robot en bas à droite de l'écran peut t'aider à tout moment :"),
         h('ul',null,h('li',null,h('b',null,'Indices'),' : trois indices progressifs sur ton objectif du moment (chacun coûte des points).'),
@@ -2470,6 +2476,16 @@ function carnetNotify(list){
       h('small',{class:'nb-how'},'Clique ici, ou ☰ Menu › 📒 Carnet')));
   $ui.append(t);sfx('page');
   setTimeout(()=>t.classList.add('out'),7000);setTimeout(()=>t.remove(),7500);
+}
+
+/* ----- sous-menu « Paramètres » ----- */
+function settingsMenu(items){
+  const sub=h('div',{class:'hm-sub',role:'menu'},...items.filter(Boolean));
+  const w=h('div',{class:'hm-sett'});
+  const b=h('button',{role:'menuitem',class:'hm-set','aria-haspopup':'true','aria-expanded':'false',title:'Règles du jeu, son, taille du texte, mode prof',onclick:e=>{e.stopPropagation();const o=!w.classList.contains('open');w.classList.toggle('open',o);b.setAttribute('aria-expanded',String(o));}},
+    h('span',{class:'hm-gear','aria-hidden':'true',html:'<svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.4-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4L10.6 6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.4 2.5-1c.5.4 1.1.7 1.7 1l.4 2.7h4l.4-2.7c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>'}),
+    ' Paramètres',h('span',{class:'hm-car','aria-hidden':'true'},'▸'));
+  w.append(b,sub);return w;
 }
 
 /* ===================== MODE PROF ===================== */
