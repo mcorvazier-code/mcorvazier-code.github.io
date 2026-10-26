@@ -564,6 +564,19 @@ body.classic-on #ui .hud{display:none}
 .m5r .q{margin:.4em 0 .7em}.m5r .opt{flex:1 1 45%;max-width:none;padding:.5em .7em}
 .m5r .sim-t{justify-content:flex-start}.m5r .sim-f{text-align:left}
 @media (max-width:820px){.m5grid{grid-template-columns:1fr}}
+/* notification du carnet */
+.nb-toast{position:absolute;right:12px;top:calc(var(--hudb,46px) + 8px);z-index:45;pointer-events:auto;display:flex;gap:10px;align-items:flex-start;max-width:min(340px,calc(100% - 24px));text-align:left;background:#fdf6e3;color:#2b2416;border:2px solid var(--gold,#d4a72c);border-radius:10px;padding:10px 14px;box-shadow:0 8px 26px rgba(0,0,0,.45);font:14px/1.35 var(--f-ui);cursor:pointer;animation:nbIn .45s cubic-bezier(.2,1.4,.4,1)}
+.nb-toast.out{opacity:0;transform:translateX(30px);transition:.45s}
+.nb-toast .nb-ic{font-size:26px;line-height:1}
+.nb-toast b{display:block;margin-bottom:2px}
+.nb-toast ul{margin:2px 0 4px;padding-left:18px}
+.nb-toast small{display:block;color:#6b5a32}
+.nb-toast .nb-how{margin-top:3px;font-style:italic}
+@keyframes nbIn{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:none}}
+.hm-tg,.nb-mi{position:relative}
+body.nb-new .hm-tg::after,body.nb-new .nb-mi::after{content:'';position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;background:#e53935;box-shadow:0 0 0 2px #111;animation:nbPulse 1.6s infinite}
+@keyframes nbPulse{50%{transform:scale(1.35)}}
+body:has(.hmenu.open) .nb-toast{display:none}
 
 </style>
 
@@ -627,7 +640,7 @@ const $stage=document.getElementById('stage');const $ui=document.getElementById(
 const SAVE_KEY='retro-auto-v2-dev';
 let S={m:0,scene:null,f:{}};
 function load(){try{const r=localStorage.getItem(SAVE_KEY);if(r){const o=JSON.parse(r);if(o&&typeof o==='object')S=Object.assign({m:0,scene:null,f:{}},o);}}catch(e){}}
-function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
+function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}carnetCheck();}
 function flag(k,v=true){S.f[k]=v;save();}
 function has(k){return !!S.f[k];}
 function setMission(m){S.m=m;document.body.dataset.m=String(m);save();}
@@ -720,7 +733,7 @@ function hud(){
     hudMenu([
       h('button',{role:'menuitem',onclick:()=>{closeAll();showTitle();}},'🏠 Accueil'),
       S.m>=1&&(S.m<=4||(S.m===5&&has('m5open')))?h('button',{role:'menuitem',onclick:()=>{closeAll();briefing(S.m);},title:'Revoir la présentation de la mission en cours'},'🎯 Objectif de mission'):null,
-      h('button',{role:'menuitem',onclick:()=>openPapers(),title:'Codes et documents trouvés'},'📒 Carnet'),
+      h('button',{role:'menuitem',class:'nb-mi',onclick:()=>openPapers(),title:'Codes et documents trouvés'},'📒 Carnet'),
       h('button',{role:'menuitem',onclick:()=>{closeAll();showRules();}},'📜 Règles du jeu'),
       h('button',{role:'menuitem',onclick:resetMode,title:'Passer au parcours e-learning (ta progression est conservée)'},'🔁 Changer de format'),
       h('button',{role:'menuitem',onclick:e=>toggleMute(e.currentTarget),title:'Activer ou couper les sons'},MUTED?'🔇 Son : non':'🔊 Son : oui'),
@@ -856,7 +869,7 @@ function codeBox({img,pos,title,text,ph="Entre le code d'accès",key,check,onOK,
   return pop({img,pos,title,cls,parts:[text?h('p',{style:{fontWeight:'600'}},text):null,h('div',{class:'formrow',style:{marginTop:'10px'}},inp,h('button',{class:'btn danger',onclick:go},'Valider')),h('div',{class:'center'},fb)]});
 }
 function videosPop(img,title,text,list=LINKS.vids,pos='center'){
-  pop({img,pos,title,parts:[h('p',null,text),h('div',{class:'vids'},list.map(v=>h('a',{href:v.href,target:'_blank',rel:'noopener',title:v.t,onclick:()=>{const seen=S.f.vids||[];if(!seen.includes(v.href)){seen.push(v.href);S.f.vids=seen;save();toast('Vidéo ajoutée à ton carnet');}}},h('img',{src:v.img,alt:v.t}))))]});
+  pop({img,pos,title,parts:[h('p',null,text),h('div',{class:'vids'},list.map(v=>h('a',{href:v.href,target:'_blank',rel:'noopener',title:v.t,onclick:()=>{const seen=S.f.vids||[];if(!seen.includes(v.href)){seen.push(v.href);S.f.vids=seen;save();}}},h('img',{src:v.img,alt:v.t}))))]});
 }
 
 /* ----- Visionneuse du cours (55 pages) : sommaire, recherche, navigation page à page ----- */
@@ -951,7 +964,7 @@ function pdfLink(href,label='PDF'){return h('a',{class:'pdf',href,target:'_blank
 function M(tex){return h('span',{html:tex});}
 
 /* ---------- carnet ---------- */
-function openPapers(){
+function carnetParts(){
   const items=[];
   const add=(k,t)=>{if(has(k))items.push(h('li',null,t));};
   add('echelon',"Signal de consigne : échelon de 180 °C");
@@ -977,6 +990,13 @@ function openPapers(){
   tl('doc_fiches','Fiche de synthèse : stabilité',()=>docView('stab'));
   tl('doc_fiches','Fiche de synthèse : précision',()=>docView('prec'));
   tl('doc_cdc','Extrait du cahier des charges',()=>docView('cdc'));
+  tl('m5note',"Note manuscrite de l'ingénieur en chef",m5Note);
+  if(LINKS.vidM5&&seen.includes(LINKS.vidM5))docs.push(h('a',{class:'docitem',href:LINKS.vidM5,target:'_blank',rel:'noopener'},'▶ Vidéo : ','Les systèmes particuliers'));
+  tl('m5pc','Simulateur · systèmes particuliers',m5Sim);
+  return {items,docs};
+}
+function openPapers(){
+  carnetOpened();const {items,docs}=carnetParts();
   const card=h('div',{class:'notebook'},h('div',{class:'nb-rings','aria-hidden':'true'}),
     h('div',{class:'nb-page'},
       h('h2',null,'Carnet de l’apprenti ingénieur'),
@@ -999,7 +1019,7 @@ function showSplash(){
 const MKEY='retro-mode-v2-dev';
 function getMode(){try{return localStorage.getItem(MKEY);}catch(e){return null;}}
 function setMode(m){try{localStorage.setItem(MKEY,m);}catch(e){}}
-function startByMode(){syncProgress();const m=getMode();if(m==='classic')classic();else if(m==='game')showTitle();else showChoice();}
+function startByMode(){syncProgress();carnetCheck();const m=getMode();if(m==='classic')classic();else if(m==='game')showTitle();else showChoice();}
 function showChoice(){
   document.body.dataset.m='1';clearStage();
   $stage.append(h('div',{class:'bg',style:{backgroundImage:'url(a/hall.webp)',filter:'blur(4px) brightness(.45)'}}));
@@ -2397,6 +2417,42 @@ function bilanView(){
 }
 
 function resetClassic(){C={ans:{},unl:{},res:{},ch:1,err:{},bad:{},got:{},via:{}};csave();}
+
+/* ----- carnet : notifier la première apparition de chaque élément ----- */
+var _cnT=null;
+function carnetEntries(){
+  const {items,docs}=carnetParts();
+  const txt=e=>e.textContent.replace(/\s+/g,' ').trim();
+  return items.map(e=>{const k=txt(e).split(/\s[:=≈]\s|\s:/)[0].trim();return {k:'n:'+k,label:k};})
+    .concat(docs.map(e=>{const t=txt(e).replace(/^[^\wÀ-ÿ]+/,'');return {k:'d:'+t,label:t};}));
+}
+function carnetDot(){document.body.classList.toggle('nb-new',!!(S.f&&S.f.nbNew));}
+function carnetCheck(){clearTimeout(_cnT);_cnT=setTimeout(carnetDiff,300);}
+function carnetDiff(){
+  carnetDot();
+  if(document.body.classList.contains('classic-on')||!S||S.m<1)return;
+  let cur;try{cur=carnetEntries();}catch(e){return;}
+  const store=()=>{try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}};
+  if(!Array.isArray(S.nbSeen)){S.nbSeen=cur.map(x=>x.k);store();return;}
+  const fresh=cur.filter(x=>!S.nbSeen.includes(x.k));
+  if(!fresh.length)return;
+  S.nbSeen=S.nbSeen.concat(fresh.map(x=>x.k));S.f.nbNew=true;store();carnetDot();
+  carnetNotify(fresh);
+}
+function carnetOpened(){if(S.f.nbNew){S.f.nbNew=false;save();}carnetDot();document.querySelectorAll('.nb-toast').forEach(e=>e.remove());}
+function carnetNotify(list){
+  document.querySelectorAll('.nb-toast').forEach(e=>e.remove());
+  const n=list.length;
+  const t=h('button',{class:'nb-toast',role:'status','aria-live':'polite',title:'Ouvrir le carnet',onclick:()=>{t.remove();openPapers();}},
+    h('span',{class:'nb-ic','aria-hidden':'true'},'📒'),
+    h('span',{class:'nb-tx'},
+      h('b',null,n>1?n+' nouveaux éléments dans ton carnet':'Nouveau dans ton carnet'),
+      h('ul',null,list.slice(0,3).map(x=>h('li',null,x.label))),
+      n>3?h('small',null,'… et '+(n-3)+' autre'+(n>4?'s':'')):null,
+      h('small',{class:'nb-how'},'Clique ici, ou ☰ Menu › 📒 Carnet')));
+  $ui.append(t);sfx('page');
+  setTimeout(()=>t.classList.add('out'),7000);setTimeout(()=>t.remove(),7500);
+}
 
 /* ===================== MODE PROF ===================== */
 let PROF=null; // mot de passe saisi (sert à déchiffrer le corrigé), uniquement pour cet onglet
