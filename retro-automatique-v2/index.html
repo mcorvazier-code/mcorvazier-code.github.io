@@ -642,6 +642,25 @@ body:has(.hmenu.open) .nb-toast{display:none}
 @keyframes hzSpark{0%,5%{opacity:0;transform:none}6%{opacity:1;transform:none}22%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.4)}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.haz-sign,.hz-w,.hz-bolt,.haz-sign::before,.haz-steam span,.haz-zap span{animation:none!important}.haz-steam,.haz-zap{display:none}}
 .haz-elec .haz-k{font-size:clamp(18px,2cqw,22px);letter-spacing:.18em;opacity:.9;transform:rotate(-3deg)}
+/* fenêtre de fin de niveau : s'adapte à l'écran comme les fenêtres d'objectif */
+.end{width:min(100%,620px);box-sizing:border-box;max-height:100%;overflow:auto;position:relative}
+.end .lvl-badge{white-space:normal}
+@media (max-width:600px),(max-height:520px){
+  .end{padding:14px 16px;border-width:4px;font-size:14px;line-height:1.4}
+  .end>div:first-child svg{width:38px;height:38px}
+  .end h2{font-size:clamp(22px,6vw,28px)}
+  .end p{margin:.45em 0}
+  .end .lvl-badge{font-size:12px;padding:2px 10px}
+  .end .end-note small{display:block;font-size:11.5px;line-height:1.35;margin-top:2px}
+  .end .btn{margin-top:4px}
+}
+@media (max-height:520px) and (min-width:601px){
+  .end{width:min(100%,780px);max-width:780px;font-size:13px;line-height:1.32;padding:10px 18px}
+  .end>div:first-child{display:none}
+  .end h2{font-size:22px;margin:.1em 0}
+  .end p{margin:.3em 0}
+  .end .btn{margin-top:2px;padding:6px 18px}
+}
 
 </style>
 
