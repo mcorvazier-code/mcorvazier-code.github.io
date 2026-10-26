@@ -2692,7 +2692,7 @@ const M6_NB=[
   q:'Pour ce système, l’écart statique vaut ε = 1 / (1 + 0,01.Kp). Quelle valeur minimale de Kp respecte un écart statique de 2 % ?',num:4900,tol:.01,ph:'Kp',
   w:'Résous 1 / (1 + 0,01.Kp) = 0,02.',hint:["L'écart statique doit valoir au plus 2 %, soit 0,02.","Écris 1 / (1 + 0,01.Kp) = 0,02, donc 1 + 0,01.Kp = 50.","Isole Kp."]},
  {page:'Essai 1 bis — Kp = 4900',lines:['La vanne de chauffe sature dès le démarrage…','Mesure très bruitée → ABANDONNÉ'],strike:true,
-  q:'Pourquoi un gain aussi élevé pose-t-il problème en pratique ?',o:['Il demande une commande énorme : l’actionneur sature et le bruit de mesure est amplifié','Il rend instable un système du 1er ordre','Il augmente l’écart statique','Il ralentit la réponse du système'],a:0,
+  q:'Pourquoi un gain aussi élevé pose-t-il problème en pratique ?',o:['Il produit une commande énorme : l’actionneur sature et le bruit de mesure est amplifié','Il rend instable un système du 1er ordre','Il augmente l’écart statique','Il ralentit la réponse du système'],a:0,
   w:'Pense à ce que reçoit l’actionneur quand l’erreur est grande et que Kp vaut plusieurs milliers.',hint:["Le correcteur multiplie l'erreur par Kp avant de l'envoyer à l'actionneur.","Au démarrage, l'erreur vaut toute la consigne : 162 °C.","Un actionneur réel a une puissance limitée, et le bruit du capteur est lui aussi multiplié par Kp."]},
  {page:'Essai 2 — ajout d’un intégrateur sur la carte',lines:['Écart statique NUL !!'],
   q:'Pourquoi l’écart statique est-il maintenant nul pour une consigne en échelon ?',o:['La FTBO est devenue de classe 1','Le gain statique de la FTBO a diminué','La marge de phase a augmenté','Le système est devenu plus rapide'],a:0,
