@@ -1570,7 +1570,7 @@ function renderClassic(){
   if(cur==='bilan')main.append(...bilanView());else{let ch=CH().find(c=>c.n===cur);if(!ch){ch=CH()[0];C.ch=ch.n;csave();}main.append(...(chOpen(ch)?chapterView(ch):lockView(ch)));}
   $cl.innerHTML='';
   $cl.append(h('header',{class:'cl-head'},h('div',null,h('h1',null,'Rétro-automatique'),h('p',null,'Parcours e-learning — Automatique linéaire')),
-    h('div',{class:'cl-hb'},h('span',{class:'hud-score'},'Score : '+gameScore()+' pts'),h('button',{onclick:resetMode,title:'Passer à l’escape game (ta progression est conservée)'},'🔁 Escape game'),h('button',{class:'cl-fs',onclick:()=>setFS(-1),'aria-label':'Réduire le texte',title:'Réduire le texte'},'A−'),h('button',{class:'cl-fs',onclick:()=>setFS(1),'aria-label':'Agrandir le texte',title:'Agrandir le texte'},'A+'),h('button',{onclick:e=>toggleMute(e.currentTarget)},MUTED?'🔇 Son : non':'🔊 Son : oui'),profBtn())),
+    h('div',{class:'cl-hb'},h('span',{class:'hud-score'},'Score : '+gameScore()+' pts'),h('button',{onclick:resetMode,title:'Passer à l’escape game (ta progression est conservée)'},'🔁 Changer de format'),h('button',{class:'cl-fs',onclick:()=>setFS(-1),'aria-label':'Réduire le texte',title:'Réduire le texte'},'A−'),h('button',{class:'cl-fs',onclick:()=>setFS(1),'aria-label':'Agrandir le texte',title:'Agrandir le texte'},'A+'),h('button',{onclick:e=>toggleMute(e.currentTarget)},MUTED?'🔇 Son : non':'🔊 Son : oui'),profBtn())),
     h('div',{class:'cl-body'},nav,main),oscarBtn(),fullBtn());
   const ob=$cl.querySelector('.oscbtn');ob.style.position='fixed';ob.style.right='18px';ob.style.bottom='18px';ob.hidden=cur==='bilan';
   main.scrollTop=0;
