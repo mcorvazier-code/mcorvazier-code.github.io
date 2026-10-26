@@ -661,6 +661,11 @@ body:has(.hmenu.open) .nb-toast{display:none}
   .end p{margin:.3em 0}
   .end .btn{margin-top:2px;padding:6px 18px}
 }
+/* vignettes vidéo : téléphone en paysage, une seule rangée pour tout voir */
+@media (max-height:520px) and (orientation:landscape){
+  .pop .vids{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}
+  .pop .vids a{box-shadow:0 2px 6px rgba(0,0,0,.35)}
+}
 
 </style>
 
