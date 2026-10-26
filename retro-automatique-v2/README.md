@@ -17,7 +17,7 @@ La version en ligne du jeu (`retro-automatique/` sur la branche `main`) n'est pa
 ## Mission 6 : Reprogrammer la carte de régulation
 - Déblocage à la fin de la mission 5 avec le code donné en cours (provisoire : `CORRECTEUR`).
 - Salle de maintenance : cahier de laboratoire de l'ingénieur (5 essais à expliquer : P et écart statique, saturation, classe 1, phase de l'intégrateur, avance de phase), puis message d'ICAM_BOT.
-- Ordinateur de maintenance : vidéo ressource (lien à renseigner dans `LINKS.vidM6`), simulateur de correcteurs (P, PI, PD, PID, avance, retard), banc de synthèse du PI (4 questions : défaut de la carte d'origine, τi = 8732 s par compensation de pôle, Mφ = 90°, Kp ≥ 728), puis réglage libre avec les voyants du cahier des charges (Mφ ≥ 45°, MG ≥ 12 dB, tr5% ≤ 3600 s, ε ≤ 2 %).
+- Ordinateur de maintenance : vidéo ressource (lien à renseigner dans `LINKS.vidM6`), simulateur de correcteurs (P, PI, PD, PID, avance, retard), banc de synthèse du PI (4 questions : défaut de la carte d'origine, τi = 8372 s par compensation de pôle, Mφ = 90°, Kp ≥ 698), puis réglage libre avec les voyants du cahier des charges (Mφ ≥ 45°, MG ≥ 12 dB, tr5% ≤ 3600 s, ε ≤ 2 %).
 - Armoire de régulation : essai en service (réponse indicielle comparée à la carte d'origine), puis écran « Niveau 2 terminé » et sondage.
 
 ## Parcours e-learning : chapitre 6 « Choisir et régler un correcteur »
@@ -36,5 +36,5 @@ La version en ligne du jeu (`retro-automatique/` sur la branche `main`) n'est pa
 
 ## À faire
 - Codes définitifs des missions 5 et 6, liens des vidéos ressources (missions 5 et 6).
-- Harmoniser la constante de temps : 8372 s (R.m.c, mission 1) contre 8732 s (modèle des missions 2 à 6).
+- Constante de temps du processus harmonisée à 8372 s (= R.m.c) dans toute la V2 ; « four » remplacé par « processus asservi ».
 - Identifiants des nouvelles questions à ajouter au tableau de bord Moodle.
