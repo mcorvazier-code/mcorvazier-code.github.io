@@ -2573,6 +2573,7 @@ function profMenu(){
         h('button',{class:'pmis pm5',onclick:()=>{closeAll();C.ch='bilan';csave();renderClassic();}},h('b',null,'Bilan'),h('span',null,'Notes par chapitre'))),
       h('div',{class:'row',style:{marginTop:'14px'}},
         h('button',{class:'btn',style:{background:'var(--gold)',color:'#1b1405'},onclick:()=>{closeTop();profKey();}},'Voir le corrigé'),
+        h('button',{class:'btn ghost',onclick:()=>{S={m:0,scene:null,f:{}};save();resetClassic();closeAll();renderClassic();toast('Progression et score effacés');}},'Effacer la progression'),
         h('button',{class:'btn ghost',onclick:resetMode},'Changer de format'),
         h('button',{class:'btn ghost',onclick:()=>{PROF=null;try{sessionStorage.removeItem('retro-prof');}catch(e){}closeAll();renderClassic();}},'Quitter le mode prof')));
     layer(card);return;}
