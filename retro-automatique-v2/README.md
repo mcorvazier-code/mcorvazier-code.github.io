@@ -16,8 +16,8 @@ La version en ligne du jeu (`retro-automatique/` sur la branche `main`) n'est pa
 
 ## Mission 6 : Reprogrammer la carte de régulation
 - Déblocage à la fin de la mission 5 avec le code donné en cours (provisoire : `CORRECTEUR`).
-- Salle de maintenance : cahier de laboratoire de l'ingénieur (5 essais à expliquer : P et écart statique, saturation, classe 1, phase de l'intégrateur, avance de phase), puis message d'ICAM_BOT.
-- Ordinateur de maintenance : vidéo ressource (lien à renseigner dans `LINKS.vidM6`), simulateur de correcteurs (P, PI, PD, PID, avance, retard), banc de synthèse du PI (4 questions : défaut de la carte d'origine, τi = 8372 s par compensation de pôle, Mφ = 90°, Kp ≥ 698), puis réglage libre avec les voyants du cahier des charges (Mφ ≥ 45°, MG ≥ 12 dB, tr5% ≤ 3600 s, ε ≤ 2 %).
+- Atelier d'électronique (image `a6/atelier.webp`) : cahier de laboratoire de l'ingénieur (5 essais à expliquer : P et écart statique, saturation, classe 1, phase de l'intégrateur, avance de phase), puis message d'ICAM_BOT.
+- Ordinateur de l'atelier : vidéo ressource (lien à renseigner dans `LINKS.vidM6`), simulateur de correcteurs (P, PI, PD, PID, avance, retard), banc de synthèse du PI (4 questions : défaut de la carte d'origine, τi = 8372 s par compensation de pôle, Mφ = 90°, Kp ≥ 698), puis réglage libre avec les voyants du cahier des charges (Mφ ≥ 45°, MG ≥ 12 dB, tr5% ≤ 3600 s, ε ≤ 2 %).
 - Armoire de régulation : essai en service (réponse indicielle comparée à la carte d'origine), puis écran « Niveau 2 terminé » et sondage.
 
 ## Parcours e-learning : chapitre 6 « Choisir et régler un correcteur »

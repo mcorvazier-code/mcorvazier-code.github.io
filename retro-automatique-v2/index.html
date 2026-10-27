@@ -669,7 +669,7 @@ body:has(.hmenu.open) .nb-toast{display:none}
   .pop .vids a{box-shadow:0 2px 6px rgba(0,0,0,.35)}
 }
 /* ===== mission 6 ===== */
-.m6paper{position:absolute;left:63.5%;top:60.5%;width:4.2%;height:4.4%;background:linear-gradient(90deg,#5b3a1d 0 12%,#f1e6c8 12%);border-radius:2px;transform:rotate(-8deg) skewX(14deg);box-shadow:0 2px 4px rgba(0,0,0,.7);z-index:1;pointer-events:none}
+.m6paper{position:absolute;left:66.2%;top:76.5%;width:4.4%;height:4.2%;background:linear-gradient(90deg,#5b3a1d 0 12%,#f1e6c8 12%);border-radius:2px;transform:rotate(-8deg) skewX(14deg);box-shadow:0 2px 4px rgba(0,0,0,.7);z-index:1;pointer-events:none}
 .m6nbcard{max-width:880px}
 .m6book{max-height:min(34vh,300px);overflow:auto;display:flex;flex-direction:column;gap:10px;padding:12px;background:#3a2a1a;border-radius:6px;box-shadow:inset 0 0 18px rgba(0,0,0,.6)}
 .m6page{background:#f6f0dc;background-image:repeating-linear-gradient(180deg,transparent 0 27px,rgba(70,120,190,.28) 27px 28px);color:#1d2b55;padding:8px 16px 10px 34px;border-radius:3px;position:relative;font-family:Caveat,'Segoe Print',cursive;font-size:22px;line-height:28px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
@@ -1233,7 +1233,7 @@ const BRIEF={
  3:{img:'a/maint.webp',title:'Mission 3 : Etudier le comportement fréquentiel',p:["La situation devient critique dans la salle des machines !!! Les fortes variations de température au sein du processus asservi commencent à endommager sérieusement l'installation, il faut interrompre au plus vite le processus !!!","En parcourant l'ordinateur du poste de maintenance tu as dû voir que la <b>simulation du comportement fréquentiel du système</b> à partir de son modèle est verrouillée. Cette fonctionnalité avancée n'est en effet accessible qu'aux utilisateurs expérimentés.","<b>Ta mission : déverrouiller la fonctionnalité de simulation, puis relever les caractéristiques de la réponse fréquentielle</b> en déterminant la <b>pulsation de résonance</b> du système et sa <b>bande passante à 0 dB</b> à l'aide des outils d'analyse harmonique mis en œuvre lors de la simulation."],scene:'maint3'},
  4:{img:'a/office.webp',title:'Mission 4 : Identifier les performances du système asservi et stopper le processus',p:["Te voici dans le bureau de l'ingénieur en chef responsable du développement de ce mystérieux processus asservi. Tu pourras, depuis son ordinateur, saisir un code d'urgence qui interrompra ce processus infernal. Pour obtenir ce code, il te faut d'abord connaître quelles étaient les performances attendues du système, puis renseigner dans l'ordinateur les performances réelles du système.","Si besoin, le bureau contient des ressources documentaires sur le thème des « performances », n'hésite pas à y jeter un œil, cela pourra t'aider...","<b>Ta mission : trouver les performances attendues du système, relever les performances réelles et les saisir dans l'ordinateur de l'ingénieur en chef, puis saisir le code qui interrompra le processus.</b>"],scene:'office'},
  5:{img:'a/office.webp',title:'Mission 5 : Démasquer la carte de régulation',p:["Le processus est à l'arrêt, mais la panne reste inexpliquée. Tout porte à croire que le correcteur est en cause...","De retour dans le bureau de l'ingénieur en chef, fouille son poste de travail pour comprendre ce qu'il a modifié sur la régulation.","<b>Ta mission : identifier les cartes électroniques de l'ingénieur, puis analyser la carte de régulation en service.</b>","Une vidéo ressource sur les systèmes particuliers est disponible sur son ordinateur : <b>regarde-la avant de commencer</b>, elle te sera très utile."],scene:'office5'},
- 6:{img:'a/maint.webp',title:'Mission 6 : Reprogrammer la carte de régulation',p:["Tu sais maintenant pourquoi le processus s'est emballé : l'intégrateur ajouté par l'ingénieur annule bien l'écart statique, mais il a ruiné la marge de phase.","L'ancienne carte a été retirée de l'armoire de régulation. Direction la salle de maintenance : l'ingénieur y a laissé le cahier où il notait ses essais de réglage.","<b>Ta mission : comprendre pourquoi ses essais ont échoué, puis régler un nouveau correcteur qui respecte tout le cahier des charges.</b>","Une vidéo ressource sur les correcteurs est disponible sur l'ordinateur de maintenance : <b>regarde-la avant de commencer</b>."],scene:'maint6'}
+ 6:{img:'../retro-automatique-v2/a6/atelier.webp',title:'Mission 6 : Reprogrammer la carte de régulation',p:["Tu sais maintenant pourquoi le processus s'est emballé : l'intégrateur ajouté par l'ingénieur annule bien l'écart statique, mais il a ruiné la marge de phase.","L'ancienne carte a été retirée de l'armoire de régulation. Direction l'atelier d'électronique du laboratoire : l'ingénieur y a laissé le cahier où il notait ses essais de réglage.","<b>Ta mission : comprendre pourquoi ses essais ont échoué, puis régler un nouveau correcteur qui respecte tout le cahier des charges.</b>","Une vidéo ressource sur les correcteurs est disponible sur l'ordinateur de l'atelier : <b>regarde-la avant de commencer</b>."],scene:'maint6'}
 };
 function briefing(m){
   setMission(m);const b=BRIEF[m];
@@ -1396,12 +1396,12 @@ function oscarGoal(){
     return{k:'m5z',g:"Débloquer la mission 6",h:["Le code de la mission 6 est communiqué en cours.","Tu peux le saisir sur l'écran « Fin de mission 5 ».","Révise les cartes du tiroir : elles serviront à corriger le système."]};
   }
   if(m===6){
-    if(!has('m6cahier'))return{k:'m6a',g:"Trouver les notes de l'ingénieur en chef",h:["L'ingénieur a dû garder une trace de ses essais de réglage.","Regarde du côté de l'établi, au centre de la salle de maintenance.","Clique sur le cahier posé sur l'établi."]};
+    if(!has('m6cahier'))return{k:'m6a',g:"Trouver les notes de l'ingénieur en chef",h:["L'ingénieur a dû garder une trace de ses essais de réglage.","Regarde du côté de l'établi de droite, au premier plan de l'atelier.","Clique sur le cahier posé sur l'établi."]};
     if(!has('m6nbdone')){const i=Math.min(S.f.nb6||0,M6_NB.length-1);return{k:'m6n'+i,g:`Cahier de laboratoire : page ${i+1} sur ${M6_NB.length}`,h:M6_NB[i].hint};}
     if((S.f.b6||0)<M6_BQ.length){const i=S.f.b6||0;return{k:'m6b'+i,g:`Banc de synthèse (ordinateur) : question ${i+1} sur ${M6_BQ.length}`,h:M6_BQ[i].hint};}
     if(!has('m6set'))return{k:'m6s',g:"Régler Kp et τi pour respecter le cahier des charges",h:["Commence par τi : la compensation de pôle donne τi = 8372 s. Tu peux taper la valeur dans la case.","Avec ce τi, la marge de phase vaut 90° : il ne reste qu'à régler Kp pour la rapidité.","Kp doit valoir au moins 698 pour que tr5% ≤ 3600 s."]};
-    if(!has('m6done'))return{k:'m6i',g:"Installer la nouvelle carte",h:["La carte est programmée : il faut maintenant l'installer.","Elle se branche dans l'armoire de régulation.","L'armoire est au fond à droite de la salle de maintenance."]};
-    return{k:'m6z',g:"Mission accomplie !",h:["Tu as remis le processus en service.","Tu peux revoir le cahier, le simulateur et le banc depuis la salle de maintenance.","N'oublie pas de donner ton avis sur l'activité !"]};
+    if(!has('m6done'))return{k:'m6i',g:"Installer la nouvelle carte",h:["La carte est programmée : il faut maintenant l'installer.","Elle se branche dans l'armoire de régulation.","C'est la grande armoire beige, au fond de l'atelier, à droite de la fenêtre."]};
+    return{k:'m6z',g:"Mission accomplie !",h:["Tu as remis le processus en service.","Tu peux revoir le cahier, le simulateur et le banc depuis l'atelier.","N'oublie pas de donner ton avis sur l'activité !"]};
   }
   return{k:'end',g:"Mission accomplie !",h:["Tu as stoppé le processus. Bravo !","Les prochains cours porteront sur les correcteurs.","Tu peux revoir les documents depuis le carnet."]};
 }
@@ -2627,6 +2627,7 @@ function hazCard(kind,T){
       h('div',{class:'haz-txt'},...T.text()),
       h('div',{class:'haz-stripes bot','aria-hidden':'true'})));
 }
+const IMG6='../retro-automatique-v2/a6/atelier.webp';
 
 /* ===================== MISSION 6 (V2) : REPROGRAMMER LA CARTE DE RÉGULATION ===================== */
 /* Processus : 0,01/(1 + 8372.p) ; correcteur PI : C(p) = Kp.(1 + τi.p)/(τi.p) ; carte d'origine : Kp = 100, τi = 100 s */
@@ -2713,7 +2714,7 @@ function m6Notebook(){
     pages.forEach((p,j)=>book.append(h('div',{class:'m6page'+(j<i?' done':'')},h('p',{class:'m6ph'},p.page),...p.lines.map(t=>h('p',{class:'m6pl'+(p.strike&&j<i?' strk':'')},t)))));
     if(i>=M6_NB.length){book.append(h('div',{class:'m6page last'},h('p',{class:'m6ph'},'Dernière idée (pas eu le temps de tester…)'),h('p',{class:'m6pl'},'Garder le PI, mais régler τi correctement :'),h('p',{class:'m6pl'},'compenser le pôle du processus asservi ??')));
       zone.append(h('p',{class:'center'},h('span',{class:'fb good'},'Tu as analysé tous les essais de l’ingénieur.')),
-        h('p',{class:'center hint'},'Sur l’ordinateur de maintenance, le banc de synthèse te permet maintenant de régler un nouveau correcteur PI.'),
+        h('p',{class:'center hint'},'Sur l’ordinateur de l’atelier, le banc de synthèse te permet maintenant de régler un nouveau correcteur PI.'),
         nextBtn('Fermer le cahier',()=>{closeTop();}));
       requestAnimationFrame(()=>book.scrollTop=book.scrollHeight);return;}
     const q=M6_NB[i];const next=()=>{S.f.nb6=i+1;if(i+1>=M6_NB.length)flag('m6nbdone');save();fill();};
@@ -2730,7 +2731,7 @@ function m6Bot(){
   const card=h('div',{class:'card oscar'},
     h('div',{class:'os-head'},h('span',{class:'os-av',html:ROBOT_SVG}),h('div',null,h('h2',null,'ICAM_BOT 2.0'),h('p',null,'Message du robot assistant du laboratoire'))),
     h('p',{class:'os-hint'},"Le cahier de l'ingénieur ! Ses essais nous montrent ce qu'il ne faut pas refaire… Le choix d'un correcteur est toujours un compromis entre précision, rapidité et stabilité."),
-    h('p',{class:'os-hint'},h('b',null,'L’ordinateur de maintenance vient de se rallumer : '),"une vidéo sur les correcteurs y est disponible. Regarde-la, elle t'aidera à comprendre les essais du cahier."),
+    h('p',{class:'os-hint'},h('b',null,'L’ordinateur de l’atelier vient de se rallumer : '),"une vidéo sur les correcteurs y est disponible. Regarde-la, elle t'aidera à comprendre les essais du cahier."),
     nextBtn('Compris !',()=>{closeTop();goScene('maint6');}));
   layer(card,{closable:false});
 }
@@ -2772,7 +2773,7 @@ const M6_BQ=[
  {q:'La boucle fermée est alors un 1er ordre de constante de temps τBF = 8372 / (0,01.Kp), avec tr5% = 3.τBF. Quelle valeur minimale de Kp respecte tr5% ≤ 3600 s (arrondie à l’entier supérieur) ?',num:698,tol:.012,ph:'Kp',
   w:'Écris 3 × 8372 / (0,01.Kp) ≤ 3600 et isole Kp.',hint:["tr5% = 3.τBF = 3 × 8372 / (0,01.Kp).","Écris que cette valeur doit rester inférieure ou égale à 3600 s.","Kp ≥ 3 × 8372 / (0,01 × 3600)."]}];
 function m6Bench({free=false}={}){
-  if(!free&&!has('m6nbdone')){pop({img:'a/maint.webp',pos:'17% 57% 3x',title:'Banc de synthèse',parts:[h('p',null,'Avant de régler un nouveau correcteur, analyse les essais du cahier de laboratoire de l’ingénieur, posé sur l’établi.')]});return;}
+  if(!free&&!has('m6nbdone')){pop({img:IMG6,pos:'13% 64% 3x',title:'Banc de synthèse',parts:[h('p',null,'Avant de régler un nouveau correcteur, analyse les essais du cahier de laboratoire de l’ingénieur, posé sur l’établi de droite.')]});return;}
   let kp=S.f.kp6||M6_OLD.kp,ti=S.f.ti6||M6_OLD.ti,tab='step';
   panel('Banc de synthèse · correcteur PI',card=>{
     card.classList.add('m5wide');
@@ -2805,22 +2806,22 @@ function m6Bench({free=false}={}){
   });
 }
 function m6Programmed(){
-  pop({img:'a/maint.webp',pos:'17% 57% 3x',title:'Carte programmée',parts:[h('p',null,`La nouvelle carte est programmée : Kp = ${f6n(S.f.kp6)}, τi = ${f6n(S.f.ti6)} s.`),h('p',null,h('b',null,'Installe-la maintenant dans l’armoire de régulation'),' pour remettre le processus en service.')]});
+  pop({img:IMG6,pos:'13% 64% 3x',title:'Carte programmée',parts:[h('p',null,`La nouvelle carte est programmée : Kp = ${f6n(S.f.kp6)}, τi = ${f6n(S.f.ti6)} s.`),h('p',null,h('b',null,'Installe-la maintenant dans l’armoire de régulation'),' pour remettre le processus en service.')]});
 }
 function m6Video(){
-  if(LINKS.vidM6){videosPop('a/maint.webp','Vidéo ressource','Les correcteurs : P, PI, PD, PID, avance et retard de phase. Regarde-la avant d’étudier le cahier de l’ingénieur !',[{href:LINKS.vidM6,img:'a/v4.webp',t:'Les correcteurs'}],'17% 57% 3x');return;}
-  pop({img:'a/maint.webp',pos:'17% 57% 3x',title:'Vidéo ressource',parts:[h('p',null,'Les correcteurs : P, PI, PD, PID, avance et retard de phase.'),h('p',{class:'hint'},'La vidéo sera disponible ici prochainement.')]});
+  if(LINKS.vidM6){videosPop(IMG6,'Vidéo ressource','Les correcteurs : P, PI, PD, PID, avance et retard de phase. Regarde-la avant d’étudier le cahier de l’ingénieur !',[{href:LINKS.vidM6,img:'a/v4.webp',t:'Les correcteurs'}],'13% 64% 3x');return;}
+  pop({img:IMG6,pos:'13% 64% 3x',title:'Vidéo ressource',parts:[h('p',null,'Les correcteurs : P, PI, PD, PID, avance et retard de phase.'),h('p',{class:'hint'},'La vidéo sera disponible ici prochainement.')]});
 }
 function maintPC6(){
   const menu=h('div',{class:'menu'},
     h('button',{class:'m5vid',onclick:sub(maintPC6,m6Video)},'▶ Vidéo ressource : les correcteurs (vivement conseillée)'),
     h('button',{onclick:sub(maintPC6,m6Sim)},'Simulateur : correcteurs'),
     h('button',{onclick:()=>{closeTop();m6Bench();}},'Banc de synthèse : régler le correcteur PI',has('m6set')?h('span',{class:'done'},'✓'):null));
-  pop({img:'a/maint.webp',pos:'17% 57% 3x',title:'Ordinateur de maintenance',parts:[h('p',null,'Depuis cet ordinateur, tu peux :'),menu]});
+  pop({img:IMG6,pos:'13% 64% 3x',title:'Ordinateur de l’atelier',parts:[h('p',null,'Depuis cet ordinateur, tu peux :'),menu]});
 }
 /* ----- armoire de régulation : essai en service et fin du jeu ----- */
 function m6Cabinet(){
-  if(!has('m6set')){pop({img:'a/maint.webp',pos:'92% 42% 3x',title:'Armoire de régulation',parts:[h('p',null,'L’emplacement de la carte de régulation est vide : l’ancienne carte a été retirée.'),h('p',{class:'hint'},'Programme d’abord une nouvelle carte sur le banc de synthèse de l’ordinateur de maintenance.')]});return;}
+  if(!has('m6set')){pop({img:IMG6,pos:'64.5% 57% 3x',title:'Armoire de régulation',parts:[h('p',null,'L’emplacement de la carte de régulation est vide : l’ancienne carte a été retirée.'),h('p',{class:'hint'},'Programme d’abord une nouvelle carte sur le banc de synthèse de l’ordinateur de l’atelier.')]});return;}
   const kp=S.f.kp6,ti=S.f.ti6,P=m6Perf(kp,ti);
   panel('Essai en service',card=>{
     card.classList.add('m5wide');
@@ -2956,10 +2957,10 @@ const SCENES={
     {x:40.2,y:57.5,icon:'gear',label:'Tiroir de l’armoire',get cls(){return has('m5drawer')?'':'fresh';},cond:()=>has('m5note'),act:()=>m5Drawer()},
     {x:45.6,y:62.9,icon:'pin',label:'Étagère',act:shelf},
     {x:80.2,y:52.8,icon:'pin',label:'Document',act:cdcDoc}]},
-  maint6:{m:6,img:'a/maint.webp',onEnter:()=>{$stage.append(h('div',{class:'m6paper','aria-hidden':'true'}));},spots:()=>[
-    {x:17.5,y:52,icon:'gear',label:'Ordinateur de maintenance',get cls(){return has('m6pc')?'':'fresh';},cond:()=>has('m6cahier'),act:()=>{flag('m6pc');maintPC6();}},
-    {x:65.5,y:61,icon:'pin',label:'Cahier de laboratoire',get cls(){return has('m6cahier')?'':'fresh';},act:()=>{document.querySelector('.spot.fresh')?.classList.remove('fresh');m6Notebook();}},
-    {x:92,y:44,icon:'gear',label:'Armoire de régulation',get cls(){return has('m6set')&&!has('m6done')?'fresh':'';},cond:()=>has('m6cahier'),act:m6Cabinet}]}
+  maint6:{m:6,img:'../retro-automatique-v2/a6/atelier.webp',onEnter:()=>{$stage.append(h('div',{class:'m6paper','aria-hidden':'true'}));},spots:()=>[
+    {x:13,y:63,icon:'gear',label:'Ordinateur de l’atelier',get cls(){return has('m6pc')?'':'fresh';},cond:()=>has('m6cahier'),act:()=>{flag('m6pc');maintPC6();}},
+    {x:68,y:77,icon:'pin',label:'Cahier de laboratoire',get cls(){return has('m6cahier')?'':'fresh';},act:()=>{document.querySelector('.spot.fresh')?.classList.remove('fresh');m6Notebook();}},
+    {x:64.5,y:56,icon:'gear',label:'Armoire de régulation',get cls(){return has('m6set')&&!has('m6done')?'fresh':'';},cond:()=>has('m6cahier'),act:m6Cabinet}]}
 };
 
 /* ===================== DÉMARRAGE ===================== */
