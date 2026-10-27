@@ -692,6 +692,11 @@ body:has(.hmenu.open) .nb-toast{display:none}
 .m6sum{margin:.4em 0;padding-left:1.2em}
 .m5grid .m6step svg{width:min(100%,calc(54vh * 1.94 / var(--uiz,1)));margin:0 auto}
 @media (max-width:820px){.m6lights{grid-template-columns:1fr 1fr}}
+.fp-leg{margin:.3em 0 0;text-align:center;font-size:12px}
+.fp-k{display:inline-block;width:24px;height:0;border-top:3px solid #4fc3f7;vertical-align:middle}
+.m6bench .m5grid .fp svg,.m6bench .m5grid .m6step svg{width:min(100%,calc(46vh * 1.49 / var(--uiz,1)))}
+.m6bench .fp-ro{font-size:12px;line-height:1.45}
+.m6bench .fp-l{margin-top:2px}
 
 </style>
 
@@ -2216,7 +2221,7 @@ const fw5=w=>{if(w>=.01&&w<1000)return w.toLocaleString('fr-FR',{maximumSignific
 const f1=v=>(Math.abs(v)<.05?0:v).toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1});
 
 /* ----- tracé Bode / Black interactif, généré à partir d'une fonction de transfert ----- */
-function freqPlot(fn,{w=[1e-3,1e3],init,tab:tab0,onTab}={}){
+function freqPlot(fn,{w=[1e-3,1e3],init,tab:tab0,onTab,lab,extra=[]}={}){
   const lw0=Math.log10(w[0]),lw1=Math.log10(w[1]);let tab=tab0||'bode',cur=init||Math.sqrt(w[0]*w[1]);
   const box=h('div',{class:'freq fp'}),plot=h('div',{class:'fp-plot'}),ro=h('div',{class:'readout fp-ro','aria-live':'polite'});
   const tabs=h('div',{class:'tabs',role:'group','aria-label':'Diagramme'});
@@ -2227,10 +2232,11 @@ function freqPlot(fn,{w=[1e-3,1e3],init,tab:tab0,onTab}={}){
   const W=640,LM=52,RM=14,xOf=lw=>LM+(lw-lw0)*(W-LM-RM)/(lw1-lw0),lwOf=x=>lw0+(x-LM)*(lw1-lw0)/(W-LM-RM);
   let svg,curG,geo={};
   const N=500,S5=[];for(let i=0;i<=N;i++){const lw=lw0+(lw1-lw0)*i/N;S5.push([lw,fn(10**lw)]);}
-  let gmin=Math.min(...S5.map(s=>s[1].db)),gmax=Math.max(...S5.map(s=>s[1].db));
+  const EX=extra.map(e=>Object.assign({},e,{pts:S5.map(([lw])=>[lw,e.fn(10**lw)])}));const ALL=S5.concat(...EX.map(e=>e.pts));
+  let gmin=Math.min(...ALL.map(s=>s[1].db)),gmax=Math.max(...ALL.map(s=>s[1].db));
   let g0=Math.floor((Math.min(gmin,0)-5)/10)*10,g1=Math.ceil((Math.max(gmax,0)+5)/10)*10;if(g1-g0<40){g0-=10;g1+=10;}const gs=g1-g0>100?20:10;
-  let pmin=Math.min(...S5.map(s=>s[1].ph)),pmax=Math.max(...S5.map(s=>s[1].ph));
-  let p0=Math.min(-90,Math.floor(pmin/45)*45),p1=Math.max(90,Math.ceil(pmax/45)*45);if(pmax<=0.5)p1=Math.max(0,Math.ceil(pmax/45)*45)+45;if(pmin>=-0.5)p0=Math.min(0,Math.floor(pmin/45)*45)-45;
+  let pmin=Math.min(...ALL.map(s=>s[1].ph)),pmax=Math.max(...ALL.map(s=>s[1].ph));
+  let p0=Math.min(-90,Math.floor(pmin/45)*45),p1=Math.max(90,Math.ceil(pmax/45)*45);if(pmax<=0.5)p1=Math.max(0,Math.ceil(pmax/45)*45)+45;if(pmin>=-0.5)p0=Math.min(0,Math.floor(pmin/45)*45)-45;if(pmin-p0<3)p0-=45;if(p1-pmax<3)p1+=45;
   const sup=e=>String(e).replace('-','⁻').replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);
   function draw(){
     plot.innerHTML='';
@@ -2246,6 +2252,7 @@ function freqPlot(fn,{w=[1e-3,1e3],init,tab:tab0,onTab}={}){
       for(let v=g0;v<=g1;v+=gs)t(LM-6,yG(v)+4,v);for(let v=p0;v<=p1;v+=45)t(LM-6,yP(v)+4,(v>0?'+':'')+v+'°');
       for(let e=Math.ceil(lw0);e<=lw1;e++)t(xOf(e),T2+H2+16,'10'+sup(e),'middle');
       t(LM,T1-5,'Gain (dB)','start','#4fc3f7');t(LM,T2-6,'Phase (°)','start','#ffb74d');t(W-RM,T2+H2+28,'ω (rad/s)','end');svg.append(lab);
+      EX.forEach(e=>{let eg='',ep='';e.pts.forEach(([lw,r],i)=>{const x=xOf(lw).toFixed(1);eg+=(i?'L':'M')+x+' '+yG(r.db).toFixed(1);ep+=(i?'L':'M')+x+' '+yP(r.ph).toFixed(1);});svg.append(svgEl('path',{d:eg,fill:'none',stroke:e.col,'stroke-width':2,'stroke-dasharray':e.dash||'6 4'}),svgEl('path',{d:ep,fill:'none',stroke:e.col,'stroke-width':2,'stroke-dasharray':e.dash||'6 4'}));});
       let dg='',dp='';S5.forEach(([lw,r],i)=>{const x=xOf(lw).toFixed(1);dg+=(i?'L':'M')+x+' '+yG(r.db).toFixed(1);dp+=(i?'L':'M')+x+' '+yP(r.ph).toFixed(1);});
       svg.append(svgEl('path',{d:dg,fill:'none',stroke:'#4fc3f7','stroke-width':2.6}),svgEl('path',{d:dp,fill:'none',stroke:'#ffb74d','stroke-width':2.6}));
       const pick=e=>{const r=svg.getBoundingClientRect();const lw=Math.max(lw0,Math.min(lw1,lwOf((e.clientX-r.left)*W/r.width)));cur=10**lw;sl.value=Math.round(lw*100);mark();};
@@ -2272,7 +2279,10 @@ function freqPlot(fn,{w=[1e-3,1e3],init,tab:tab0,onTab}={}){
   function mark(){if(!curG)return;curG.innerHTML='';const r=fn(cur);
     if(tab==='bode'){const x=xOf(Math.log10(cur));curG.append(svgEl('line',{x1:x,x2:x,y1:geo.T1,y2:geo.T2+geo.H2,stroke:'#fff','stroke-width':1.2,'stroke-dasharray':'4 3'}),svgEl('circle',{cx:x,cy:geo.yG(r.db),r:5.5,fill:'#4fc3f7',stroke:'#0f1416','stroke-width':2}),svgEl('circle',{cx:x,cy:geo.yP(r.ph),r:5.5,fill:'#ffb74d',stroke:'#0f1416','stroke-width':2}));}
     else curG.append(svgEl('circle',{cx:geo.xP(r.ph),cy:geo.yG(r.db),r:7,fill:'#fff',stroke:'var(--acc)','stroke-width':3}));
-    ro.textContent=`ω = ${fw5(cur)} rad/s   |   Gain = ${f1(r.db)} dB   |   Phase = ${r.ph>=.05?'+':''}${f1(r.ph)}°`;}
+    const fmt=q=>`Gain = ${f1(q.db)} dB   |   Phase = ${q.ph>=.05?'+':''}${f1(q.ph)}°`;
+    ro.textContent=`ω = ${fw5(cur)} rad/s   |   `+(EX.length&&tab==='bode'?(lab||'')+' : ':'')+fmt(r);
+    if(EX.length&&tab==='bode')EX.forEach(e=>{ro.append(h('br'),h('span',{style:{color:e.col}},e.lab+' : '+fmt(e.fn(cur))));});}
+  if(EX.length){const lg=h('p',{class:'hint fp-leg'},h('span',{class:'fp-k'}),' '+(lab||''),...EX.map(e=>h('span',null,'   ',h('span',{class:'fp-k',style:{borderTopColor:e.col,borderTopStyle:'dashed'}}),' '+e.lab)));box.insertBefore(lg,box.children[2]);const sync=()=>{lg.hidden=tab!=='bode';};tb.forEach(b=>b.addEventListener('click',sync));sync();}
   draw();return box;
 }
 
@@ -2776,11 +2786,11 @@ function m6Bench({free=false}={}){
   if(!free&&!has('m6nbdone')){pop({img:IMG6,pos:'13% 64% 3x',title:'Banc de synthèse',parts:[h('p',null,'Avant de régler un nouveau correcteur, analyse les essais du cahier de laboratoire de l’ingénieur, posé sur l’établi de droite.')]});return;}
   let kp=S.f.kp6||M6_OLD.kp,ti=S.f.ti6||M6_OLD.ti,tab='step';
   panel('Banc de synthèse · correcteur PI',card=>{
-    card.classList.add('m5wide');
+    card.classList.add('m5wide','m6bench');
     const pl=h('div'),zone=h('div',{class:'m5q'}),lights=h('div',{class:'m6lights'}),ctr=h('div',{class:'sim-c m6ctr'});
     const tabs=h('div',{class:'tabs',role:'group','aria-label':'Tracé'});
-    const tb=[['step','Réponse indicielle'],['bode','Bode FTBO'],['black','Black FTBO']].map(([kk,t])=>h('button',{type:'button','aria-pressed':String(kk===tab),onclick:()=>{tab=kk;tb.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===tab)));plot();},'data-k':kk},t));tabs.append(...tb);
-    const plot=()=>{pl.innerHTML='';if(tab==='step')pl.append(m6StepPlot(kp,ti));else{const f=freqPlot(m6L(kp,ti),{w:[1e-6,1e-1],init:m6Margin(kp,ti).wc,tab});f.querySelector('.tabs').hidden=true;pl.append(f);}};
+    const tb=[['step','Réponse indicielle'],['bode','Bode'],['black','Black FTBO']].map(([kk,t])=>h('button',{type:'button','aria-pressed':String(kk===tab),onclick:()=>{tab=kk;tb.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===tab)));plot();},'data-k':kk},t));tabs.append(...tb);
+    const plot=()=>{pl.innerHTML='';if(tab==='step')pl.append(m6StepPlot(kp,ti));else{const f=freqPlot(m6L(kp,ti),{w:[1e-6,1e-1],init:m6Margin(kp,ti).wc,tab,lab:'FTBO corrigée',extra:tab==='bode'?[{fn:w=>({db:db(M6_K/Math.hypot(1,M6_T*w)),ph:-Math.atan(M6_T*w)*R2D}),lab:'FTBO non corrigée',col:'#9fb0b5',dash:'8 5'},{fn:w=>({db:db(kp*Math.hypot(1,ti*w)/(ti*w)),ph:-90+Math.atan(ti*w)*R2D}),lab:'Correcteur C(p)',col:'#d29bff',dash:'3 3'}]:[]});f.querySelector('.tabs').style.display='none';pl.append(f);}};
     const light=(lbl,val,ok,req)=>h('div',{class:'m6li '+(ok?'ok':'ko')},h('span',{class:'m6led','aria-hidden':'true'}),h('b',null,lbl),h('span',null,val),h('small',null,req));
     const prog=h('button',{class:'btn',onclick:()=>{S.f.kp6=kp;S.f.ti6=ti;flag('m6set');sfx('win');closeTop();m6Programmed();}},'💾 Programmer la carte avec ces réglages');
     const upd=()=>{const P=m6Perf(kp,ti);lights.innerHTML='';
@@ -2801,7 +2811,7 @@ function m6Bench({free=false}={}){
         else zone.append(mcq(q.o,q.a,next,{wrongMsg:q.o.map(()=>q.w)}));return;}
       zone.append(h('p',{class:'q center'},free?'Règle librement Kp et τi et observe l’effet sur les critères du cahier des charges.':'Règle maintenant les potentiomètres Kp et τi : tous les voyants du cahier des charges doivent passer au vert.'));
       if(!free)zone.append(h('div',{class:'center'},prog));};
-    card.append(h('div',{class:'m5grid'},h('div',{class:'m5l'},tabs,pl),h('div',{class:'m5r'},h('p',{class:'hint'},'Processus : 0,01 / (1 + 8372.p). Correcteur : C(p) = Kp.(1 + τi.p) / (τi.p). La courbe en pointillés rouges correspond à la carte d’origine.'),lights,ctr,zone)));
+    card.append(h('div',{class:'m5grid'},h('div',{class:'m5l'},tabs,pl),h('div',{class:'m5r'},h('p',{class:'hint'},'Processus : 0,01 / (1 + 8372.p). Correcteur : C(p) = Kp.(1 + τi.p) / (τi.p). Réponse indicielle : la carte d’origine est en pointillés rouges. Bode : la FTBO non corrigée et le correcteur sont superposés en pointillés à la FTBO corrigée.'),lights,ctr,zone)));
     fill();upd();
   });
 }
