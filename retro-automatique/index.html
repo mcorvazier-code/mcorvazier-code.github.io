@@ -696,6 +696,12 @@ body:has(.hmenu.open) .nb-toast{display:none}
 .m6bench .m5grid .fp svg,.m6bench .m5grid .m6step svg{width:min(100%,calc(46vh * 1.49 / var(--uiz,1)))}
 .m6bench .fp-ro{font-size:12px;line-height:1.45}
 .m6bench .fp-l{margin-top:2px}
+/* auto-positionnement */
+.autoeval{max-width:560px;text-align:center}
+.au-stars{display:flex;justify-content:center;gap:6px;margin:10px 0 4px}
+.au-st{font-size:clamp(34px,6cqw,46px);line-height:1;background:none!important;border:0!important;color:rgba(255,255,255,.35);cursor:pointer;padding:2px 4px!important;transition:transform .12s,color .12s;text-shadow:0 2px 4px rgba(0,0,0,.35)}
+.au-st:hover{transform:scale(1.15)}.au-st.on{color:#ffc928}
+.au-lab{margin:2px 0 8px;font-weight:600;min-height:1.4em}
 
 </style>
 
@@ -760,7 +766,7 @@ const $stage=document.getElementById('stage');const $ui=document.getElementById(
 const SAVE_KEY='retro-auto-v1';
 let S={m:0,scene:null,f:{}};
 function load(){try{const r=localStorage.getItem(SAVE_KEY);if(r){const o=JSON.parse(r);if(o&&typeof o==='object')S=Object.assign({m:0,scene:null,f:{}},o);}}catch(e){}}
-function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}carnetCheck();}
+function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}carnetCheck();try{autoCheck();}catch(e){}}
 function flag(k,v=true){S.f[k]=v;save();}
 function has(k){return !!S.f[k];}
 function setMission(m){S.m=m;document.body.dataset.m=String(m);save();}
@@ -2866,6 +2872,38 @@ function M6_CHAPTER(){
   return {n:6,t:'Choisir et régler un correcteur',m:'Mission 6',lock:'m6',
     intro:"Ce chapitre porte sur les correcteurs : P, PI, PD, PID, avance et retard de phase. Tu analyses d’abord les essais de l’ingénieur pour comprendre les propriétés de chaque correcteur, puis tu règles un correcteur PI par compensation de pôle pour respecter le cahier des charges (Mφ ≥ 45°, MG ≥ 12 dB, tr5% ≤ 3600 s, écart statique ≤ 2 %). Commence par la vidéo ressource ; le simulateur et le banc de synthèse te permettent de vérifier tes réglages.",
     res:()=>[RS6.vid(),RS6.sim(),RS6.bench()],q};
+}
+
+/* ===================== AUTO-POSITIONNEMENT EN FIN DE MISSION ===================== */
+/* une question d'auto-positionnement (1 à 5 étoiles) dès que la mission est terminée, avant le code de la mission suivante ;
+   réponse gardée dans S.f.auto[n] (commune aux deux formats) et remontée dans le SCORM (M{n}_AUTO) */
+const AUTO_Q=n=>n<=3?'Comment évalues-tu ton niveau de maîtrise des notions de première année revues durant cette mission ?':'Comment évalues-tu ton niveau de compréhension des notions découvertes dans cette mission ?';
+const AUTO_L=['','Très faible','Faible','Moyen','Bon','Très bon'];
+function missionDoneNow(n){
+  if(document.body.classList.contains('classic-on')){try{return chDone(n);}catch(e){return false;}}
+  return n===1?has('m1quizdone'):n===2?(has('m2done')||(S.f.m2s||0)>=10):n===3?has('m3done'):n===4?['rap','phi','gm','pre'].every(k=>has(k+'_ok')):n===5?has('m5done'):has('m6done');
+}
+var _autoPend={},_autoInit=false;
+function autoCheck(){
+  if(!S||!S.f||PROF)return;
+  S.f.auto=S.f.auto||{};
+  if(!_autoInit){_autoInit=true;
+    /* première ouverture avec cette fonction : on ne redemande pas les missions déjà terminées auparavant */
+    if(!S.f.autoInit){S.f.autoInit=1;for(let n=1;n<=6;n++){let d=false;try{d=n===1?has('m1quizdone'):n===2?has('m2done'):n===3?has('m3done'):n===4?S.m>=5:n===5?has('m5done'):has('m6done');}catch(e){}if(!d)try{d=chDone(n);}catch(e){}if(d&&S.f.auto[n]==null)S.f.auto[n]='-';}
+      try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}}
+  for(let n=1;n<=6;n++){if(S.f.auto[n]!=null||_autoPend[n])continue;if(!missionDoneNow(n))continue;
+    _autoPend[n]=1;setTimeout(()=>autoAsk(n),1300);break;}
+}
+function autoAsk(n){
+  if(S.f.auto&&S.f.auto[n]!=null){_autoPend[n]=0;return;}
+  let val=0;const stars=[1,2,3,4,5].map(k=>h('button',{type:'button',class:'au-st','aria-label':k+' étoile'+(k>1?'s':'')+' : '+AUTO_L[k],onclick:()=>{val=k;paint();}},'★'));
+  const lab=h('p',{class:'au-lab'},'Choisis de 1 à 5 étoiles');
+  const ok=h('button',{class:'btn',disabled:true,onclick:()=>{S.f.auto=S.f.auto||{};S.f.auto[n]=val;_autoPend[n]=0;save();sfx('ok');closeTop();}},'Valider');
+  const paint=()=>{stars.forEach((s,i)=>{s.classList.toggle('on',i<val);s.setAttribute('aria-pressed',String(i<val));});lab.textContent=val?val+' / 5 · '+AUTO_L[val]:'Choisis de 1 à 5 étoiles';ok.disabled=!val;};
+  const card=h('div',{class:'card quiz autoeval'},h('h2',{class:'stamp'},document.body.classList.contains('classic-on')?'Chapitre '+n+' terminé':'Mission '+n+' terminée'),
+    h('p',{class:'q center'},AUTO_Q(n)),h('div',{class:'au-stars',role:'group','aria-label':'Auto-positionnement de 1 à 5 étoiles'},...stars),lab,
+    h('p',{class:'center hint'},'Réponds sincèrement : ta réponse n’est pas notée, elle aide ton enseignant à adapter le prochain cours.'),h('div',{class:'center'},ok));
+  layer(card,{closable:false});
 }
 
 /* ===================== MODE PROF ===================== */
