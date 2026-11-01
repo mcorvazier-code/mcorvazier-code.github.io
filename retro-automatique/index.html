@@ -1001,11 +1001,12 @@ function videosPop(img,title,text,list=LINKS.vids,pos='center'){
 /* ----- Visionneuse du cours (55 pages) : sommaire, recherche, navigation page à page ----- */
 const COURS_N=55,COURS_TOC=[
  [1,'Page de garde',0],
- [2,'Partie 1 – La modélisation par schéma bloc',0],[2,'I – Introduction à la modélisation comportementale',1],[3,'II – La notion de bloc',1],[4,'III – Structures de schéma bloc',1],[9,'IV – Algèbre de blocs',1],[11,'V – Simplifier ce schéma bloc',1],
- [12,'Partie 2 – Les équations différentielles',0],[12,'I – Équations du domaine électrique',1],[14,'II – Équations du domaine mécanique',1],[16,'III – Le moteur à courant continu',1],[18,'IV – Les réducteurs mécaniques',1],[18,'V – Équations du domaine hydraulique',1],[19,'VI – Conclusions',1],
- [20,'Partie 3 – La modélisation des S.L.C.I.',0],[20,'I – Introduction',1],[20,'II – Les signaux canoniques d’entrée',1],[22,'III – La transformée de Laplace',1],[26,'IV – Les systèmes linéaires fondamentaux',1],
- [30,'Partie 4 – Réponses temporelles des S.L.C.I.',0],[30,'I – Les critères de performance',1],[32,'II – Systèmes proportionnel, dérivateur, intégrateur',1],[34,'III – Systèmes du premier ordre',1],[37,'IV – Systèmes du second ordre',1],
- [42,'Partie 5 – Réponse fréquentielle des S.L.C.I.',0],[42,'I – Introduction',1],[43,'II – Réponse des systèmes élémentaires',1],[45,'III – Étude harmonique',1],[47,'IV – Analyse harmonique du premier ordre',1],[49,'V – Analyse harmonique du second ordre',1],[52,'VI – Méthodologie de tracé du diagramme de Bode',1]];
+ [2,'Partie 1 – L’outil schéma bloc',0],[2,'I – Introduction à la modélisation comportementale',1],[4,'II – La notion de bloc',1],[5,'III – Les structures de schéma bloc',1],[10,'IV – Algèbre de blocs',1],
+ [12,'Partie 2 – Les équations différentielles',0],[12,'I – Équations du domaine électrique',1],[14,'II – Équations du domaine mécanique',1],[16,'III – Le moteur à courant continu',1],[18,'IV – Les réducteurs mécaniques',1],[19,'V – Équations du domaine hydraulique',1],[19,'VI – Conclusions',1],
+ [20,'Partie 3 – La modélisation des SLCI',0],[20,'I – Introduction',1],[20,'II – Les signaux canoniques d’entrée',1],[22,'III – La transformée de Laplace',1],[25,'IV – Les systèmes linéaires fondamentaux',1],
+ [29,'Partie 4 – La réponse temporelle des systèmes',0],[29,'I – Les critères de performance',1],[31,'II – Systèmes proportionnel, dérivateur, intégrateur',1],[33,'III – Systèmes du premier ordre',1],[36,'IV – Systèmes du second ordre',1],
+ [42,'Partie 5 – La réponse fréquentielle des systèmes',0],[42,'I – Introduction',1],[43,'II – Réponse des systèmes élémentaires',1],[45,'III – Étude harmonique',1],[47,'IV – Analyse harmonique du premier ordre',1],[49,'V – Analyse harmonique du second ordre',1],[52,'VI – Méthodologie de tracé du diagramme de Bode',1],
+ [55,'Annexe – Formulaire des transformées de Laplace',0]];
 let COURS_TXT=null;
 /* start = numéro imprimé en bas de page (la page de garde est la page 0) */
 function coursView(start){
@@ -1351,12 +1352,12 @@ function oscarGoal(){
       3:["Une boucle d'asservissement : on compare la consigne (adaptée) à la mesure du capteur, puis on corrige et on agit.","Ordre de la chaîne directe : adaptation, comparaison, correction, pré-actionneur, partie opérative.","La chaîne de retour contient l'élément qui mesure la sortie."],
       4:["Avec des conditions initiales nulles, dériver dans le temps revient à multiplier par p dans le domaine de Laplace.","Applique cette règle à chaque terme de l'équation.","Les propriétés de la transformée de Laplace sont résumées dans le cours."],
       5:["Mets l'équation différentielle sous la forme τ.ds/dt + s = K.e.","La constante de temps est le coefficient placé devant la dérivée une fois la sortie seule avec un coefficient 1.","Le premier ordre est détaillé dans le cours, partie 4."]}[q]||[];
-      const ref={1:CP(20,'Signaux canoniques'),2:CP(25,'Systèmes fondamentaux'),3:CP(3,'Structures de schéma bloc'),4:CP(21,'Transformée de Laplace'),5:CP(26,'Constante de temps')}[q];
+      const ref={1:CP(20,'Signaux canoniques'),2:CP(24,'Systèmes fondamentaux'),3:CP(4,'Structures de schéma bloc'),4:CP(21,'Transformée de Laplace'),5:CP(25,'Constante de temps')}[q];
       return{k:'m1q'+q,g:has('accredSeen')?`Accréditation : question ${q} sur 5`:"Obtenir l'accréditation au poste de contrôle",h:has('accredSeen')?QH:["Le poste de contrôle vient de s'activer dans la salle de contrôle.","Clique dessus pour passer les 5 questions d'accréditation.","Le cours trouvé au sol et les vidéos de l'ordinateur central peuvent t'aider."],ref};}
-    return{k:'m1d',g:"Ouvrir la porte de la salle des machines",h:["Le code de la porte est la valeur numérique de la constante de temps τ du processus asservi.","τ = R.m.c : les valeurs de R, m et c sont notées dans ton carnet.","Attention aux unités : le résultat s'exprime en secondes."],ref:CP(26,'Constante de temps')};
+    return{k:'m1d',g:"Ouvrir la porte de la salle des machines",h:["Le code de la porte est la valeur numérique de la constante de temps τ du processus asservi.","τ = R.m.c : les valeurs de R, m et c sont notées dans ton carnet.","Attention aux unités : le résultat s'exprime en secondes."],ref:CP(25,'Constante de temps')};
   }
   if(m===2){
-    if(!has('lcdok'))return{k:'m2a',g:"Interpréter l'afficheur de la salle des machines",h:["Clique sur l'afficheur près de la machine.","La température passe au-dessus de la consigne avant de se stabiliser : comment appelle-t-on ce phénomène ?","Les critères de performance (rapidité, précision, dépassement…) sont dans le cours, partie 4."],ref:CP(29,'Critères de performance')};
+    if(!has('lcdok'))return{k:'m2a',g:"Interpréter l'afficheur de la salle des machines",h:["Clique sur l'afficheur près de la machine.","La température passe au-dessus de la consigne avant de se stabiliser : comment appelle-t-on ce phénomène ?","Les critères de performance (rapidité, précision, dépassement…) sont dans le cours, partie 4."],ref:CP(28,'Critères de performance')};
     if(!has('printed'))return{k:'m2b',g:"Récupérer le rapport d'essai",h:["Va au poste de maintenance.","L'ordinateur de maintenance peut imprimer les données de l'essai en cours.","L'ordinateur t'indique le code à saisir sur l'imprimante."]};
     if(!has('m2done')){const s=S.f.m2s||0;const T={
       1:["En boucle ouverte, le gain statique K relie la valeur finale de la sortie à l'amplitude de l'entrée.","Lis la valeur finale sur la courbe théorique, puis compare-la à l'échelon d'entrée (en W).","K = variation finale de la sortie / amplitude de l'échelon."],
@@ -1368,7 +1369,7 @@ function oscarGoal(){
       7:["L'abaque des dépassements relie le dépassement relatif (en %) au coefficient m.","Dépassement relatif = dépassement / variation totale de la sortie (de 18 à 180 °C).","Place la réglette sur ce pourcentage et lis m en abscisse."],
       8:["La bande à ±5 % se calcule sur la variation totale de la sortie (de 18 à 180 °C).","Place les réglettes de part et d'autre de 180 °C, à ±5 % de cette variation.","tr5% est l'instant à partir duquel la courbe entre dans la bande sans plus en sortir."],
       9:["L'abaque des temps de réponse donne le produit tr5%·ω0 en fonction de m.","Lis tr5%·ω0 pour la valeur de m trouvée.","ω0 = (valeur lue) / tr5%."]}[s];
-      const ref={1:CP(33,'1er ordre'),2:CP(26,'Constante de temps'),3:CP(3,'Schémas bloc'),4:CP(36,'2e ordre'),5:CP(36,'2e ordre'),6:CP(38,'Dépassement'),7:CP(38,'Dépassement'),8:CP(30,'Temps de réponse à 5 %'),9:CP(40,'Abaques du 2e ordre')}[s];
+      const ref={1:CP(32,'1er ordre'),2:CP(25,'Constante de temps'),3:CP(4,'Schémas bloc'),4:CP(35,'2e ordre'),5:CP(35,'2e ordre'),6:CP(37,'Dépassement'),7:CP(37,'Dépassement'),8:CP(29,'Temps de réponse à 5 %'),9:CP(39,'Abaques du 2e ordre')}[s];
       return{k:'m2s'+s,g:T?"Étude du rapport d'essai : "+['','gain statique','constante de temps','bloc du processus','boucle fermée','amortissement','1er dépassement','coefficient m','temps de réponse à 5 %','pulsation propre ω0'][s]:"Étudier le rapport d'essai",h:T||["Clique sur l'imprimante pour reprendre l'étude du rapport.","Lis attentivement chaque étape : les questions s'enchaînent.","Le code de fin de mission est donné à la fin de l'étude."],ref};}
     return{k:'m2e',g:"Débloquer la mission 3",h:["Le code de la mission 3 est communiqué à l'issue du prochain cours.","Pour le saisir, va à l'imprimante du poste de maintenance : bouton « Saisir le code de la mission 3 ».","En attendant, révise l'analyse harmonique (cours, partie 5) : elle sera utile."],ref:CP(41,'Réponse fréquentielle')};
   }
@@ -1437,20 +1438,20 @@ const OSCAR_KB=[
  {k:['echelon','signal canonique','u(t)','entree','reponse indicielle','indicielle'],t:"Échelon",a:"L'échelon est un signal qui passe brutalement de 0 à une valeur A et y reste : e(t) = A.u(t). C'est l'entrée utilisée pour étudier la réponse temporelle (rapidité, dépassement, précision).",r:CP(20,'Signaux canoniques')},
  {k:['rampe','impulsion','dirac'],t:"Rampe et impulsion",a:"La rampe e(t) = a.t.u(t) croît linéairement ; l'impulsion (Dirac) est un signal très bref d'aire unité. Avec l'échelon, ce sont les signaux canoniques d'entrée.",r:CP(20,'Signaux canoniques')},
  {k:['laplace','transformee','domaine symbolique','variable p'],t:"Transformée de Laplace",a:"Elle transforme une équation différentielle en équation algébrique en p. Avec des conditions initiales nulles, dériver revient à multiplier par p, intégrer à diviser par p.",r:CP(21,'Transformée de Laplace')},
- {k:['fonction de transfert','transmittance','h(p)'],t:"Fonction de transfert",a:"C'est le rapport S(p)/E(p) entre la transformée de la sortie et celle de l'entrée, conditions initiales nulles. Elle caractérise le comportement du système, indépendamment de l'entrée.",r:CP(25,'Systèmes fondamentaux')},
- {k:['schema bloc','schema-bloc','bloc','comparateur','sommateur','chaine directe','chaine de retour'],t:"Schéma-bloc",a:"Un schéma-bloc représente un système par des blocs (fonctions de transfert) reliés par des flèches, avec des comparateurs (⊗) qui soustraient la mesure à la consigne. La chaîne directe va de l'entrée à la sortie, la chaîne de retour ramène la mesure.",r:CP(2,'La notion de bloc')},
- {k:['boucle ouverte','fonction de transfert en boucle ouverte','ftbo'],t:"Boucle ouverte",a:"La FTBO est le produit des blocs rencontrés en parcourant toute la boucle (chaîne directe × chaîne de retour). C'est elle qu'on trace en Bode ou Black pour juger la stabilité.",r:CP(8,'Algèbre de blocs')},
- {k:['boucle fermee','ftbf','formule de black','asservi'],t:"Boucle fermée",a:"Pour un retour unitaire : H_BF = H_BO / (1 + H_BO). Plus généralement : chaîne directe / (1 + FTBO).",r:CP(8,'Algèbre de blocs')},
+ {k:['fonction de transfert','transmittance','h(p)'],t:"Fonction de transfert",a:"C'est le rapport S(p)/E(p) entre la transformée de la sortie et celle de l'entrée, conditions initiales nulles. Elle caractérise le comportement du système, indépendamment de l'entrée.",r:CP(24,'Systèmes fondamentaux')},
+ {k:['schema bloc','schema-bloc','bloc','comparateur','sommateur','chaine directe','chaine de retour'],t:"Schéma-bloc",a:"Un schéma-bloc représente un système par des blocs (fonctions de transfert) reliés par des flèches, avec des comparateurs (⊗) qui soustraient la mesure à la consigne. La chaîne directe va de l'entrée à la sortie, la chaîne de retour ramène la mesure.",r:CP(3,'La notion de bloc')},
+ {k:['boucle ouverte','fonction de transfert en boucle ouverte','ftbo'],t:"Boucle ouverte",a:"La FTBO est le produit des blocs rencontrés en parcourant toute la boucle (chaîne directe × chaîne de retour). C'est elle qu'on trace en Bode ou Black pour juger la stabilité.",r:CP(9,'Algèbre de blocs')},
+ {k:['boucle fermee','ftbf','formule de black','asservi'],t:"Boucle fermée",a:"Pour un retour unitaire : H_BF = H_BO / (1 + H_BO). Plus généralement : chaîne directe / (1 + FTBO).",r:CP(9,'Algèbre de blocs')},
  {k:['asservissement','systeme asservi','regulation','consigne','perturbation'],t:"Asservissement",a:"Un système asservi compare en permanence la sortie mesurée à la consigne et agit pour réduire l'écart. Une régulation est un asservissement dont la consigne est constante et qui doit surtout rejeter les perturbations.",r:CP(1,'Introduction')},
- {k:['gain statique','gain','k '],t:"Gain statique",a:"Le gain statique K est le rapport entre la variation finale de la sortie et l'amplitude de l'échelon d'entrée (en régime permanent). Dans H(p), c'est la valeur de H(0).",r:CP(25,'Systèmes fondamentaux')},
- {k:['constante de temps','tau','τ'],t:"Constante de temps",a:"La constante de temps τ caractérise la rapidité d'un système du 1er ordre. Dans l'équation τ.ds/dt + s = K.e, c'est le coefficient placé devant la dérivée (la sortie ayant un coefficient 1). Elle s'exprime en secondes : en réponse à un échelon, la sortie atteint 63 % de sa valeur finale à t = τ.",r:CP(26,'Constante de temps')},
- {k:['premier ordre','1er ordre','63'],t:"Premier ordre",a:"H(p) = K / (1 + τ.p). Réponse à un échelon sans dépassement : à t = τ la sortie atteint 63 % de sa valeur finale, et tr5% ≈ 3τ.",r:CP(33,'1er ordre')},
- {k:['second ordre','2e ordre','2nd ordre','pulsation propre','omega0','w0'],t:"Second ordre",a:"H(p) = K / (1 + 2m.p/ω0 + p²/ω0²). m est le coefficient d'amortissement, ω0 la pulsation propre (rad/s). Si m < 1 la réponse est pseudo-périodique (oscillante, avec dépassement).",r:CP(36,'2e ordre')},
- {k:['amortissement','coefficient m','m <','regime','pseudo','aperiodique','critique'],t:"Coefficient d'amortissement m",a:"m > 1 : régime apériodique (pas de dépassement). m = 1 : critique. m < 1 : pseudo-périodique, avec dépassement d'autant plus grand que m est petit. Le temps de réponse est minimal vers m ≈ 0,7.",r:CP(36,'2e ordre')},
- {k:['depassement','d1','overshoot','premier pic'],t:"Dépassement",a:"Le 1er dépassement D1 est l'écart entre le premier pic et la valeur finale. On l'exprime souvent en % de la variation totale de la sortie ; l'abaque des dépassements donne alors m.",r:CP(38,'Dépassement')},
- {k:['temps de reponse','tr5','tr5%','tr 5','tr5 %','rapidite','5 %','5%','temps de reponse a 5'],t:"Temps de réponse à 5 %",a:"tr5% est l'instant à partir duquel la sortie reste dans une bande de ±5 % de sa variation totale autour de la valeur finale. Plus il est petit, plus le système est rapide.",r:CP(30,'Temps de réponse à 5 %'),d:'rap'},
- {k:['abaque'],t:"Abaques du second ordre",a:"L'abaque des dépassements donne le dépassement relatif en fonction de m ; l'abaque des temps de réponse donne le produit tr5%·ω0 en fonction de m. On s'en sert pour identifier m puis ω0 à partir d'une courbe.",r:CP(40,'Abaques')},
- {k:['precision','ecart statique','erreur statique','erreur permanente','classe'],t:"Précision",a:"L'écart statique est l'écart entre consigne et sortie en régime permanent pour une entrée en échelon. Il est nul si la FTBO contient au moins une intégration (classe ≥ 1).",r:CP(29,'Critères de performance'),d:'prec'},
+ {k:['gain statique','gain','k '],t:"Gain statique",a:"Le gain statique K est le rapport entre la variation finale de la sortie et l'amplitude de l'échelon d'entrée (en régime permanent). Dans H(p), c'est la valeur de H(0).",r:CP(24,'Systèmes fondamentaux')},
+ {k:['constante de temps','tau','τ'],t:"Constante de temps",a:"La constante de temps τ caractérise la rapidité d'un système du 1er ordre. Dans l'équation τ.ds/dt + s = K.e, c'est le coefficient placé devant la dérivée (la sortie ayant un coefficient 1). Elle s'exprime en secondes : en réponse à un échelon, la sortie atteint 63 % de sa valeur finale à t = τ.",r:CP(25,'Constante de temps')},
+ {k:['premier ordre','1er ordre','63'],t:"Premier ordre",a:"H(p) = K / (1 + τ.p). Réponse à un échelon sans dépassement : à t = τ la sortie atteint 63 % de sa valeur finale, et tr5% ≈ 3τ.",r:CP(32,'1er ordre')},
+ {k:['second ordre','2e ordre','2nd ordre','pulsation propre','omega0','w0'],t:"Second ordre",a:"H(p) = K / (1 + 2m.p/ω0 + p²/ω0²). m est le coefficient d'amortissement, ω0 la pulsation propre (rad/s). Si m < 1 la réponse est pseudo-périodique (oscillante, avec dépassement).",r:CP(35,'2e ordre')},
+ {k:['amortissement','coefficient m','m <','regime','pseudo','aperiodique','critique'],t:"Coefficient d'amortissement m",a:"m > 1 : régime apériodique (pas de dépassement). m = 1 : critique. m < 1 : pseudo-périodique, avec dépassement d'autant plus grand que m est petit. Le temps de réponse est minimal vers m ≈ 0,7.",r:CP(35,'2e ordre')},
+ {k:['depassement','d1','overshoot','premier pic'],t:"Dépassement",a:"Le 1er dépassement D1 est l'écart entre le premier pic et la valeur finale. On l'exprime souvent en % de la variation totale de la sortie ; l'abaque des dépassements donne alors m.",r:CP(37,'Dépassement')},
+ {k:['temps de reponse','tr5','tr5%','tr 5','tr5 %','rapidite','5 %','5%','temps de reponse a 5'],t:"Temps de réponse à 5 %",a:"tr5% est l'instant à partir duquel la sortie reste dans une bande de ±5 % de sa variation totale autour de la valeur finale. Plus il est petit, plus le système est rapide.",r:CP(29,'Temps de réponse à 5 %'),d:'rap'},
+ {k:['abaque'],t:"Abaques du second ordre",a:"L'abaque des dépassements donne le dépassement relatif en fonction de m ; l'abaque des temps de réponse donne le produit tr5%·ω0 en fonction de m. On s'en sert pour identifier m puis ω0 à partir d'une courbe.",r:CP(39,'Abaques')},
+ {k:['precision','ecart statique','erreur statique','erreur permanente','classe'],t:"Précision",a:"L'écart statique est l'écart entre consigne et sortie en régime permanent pour une entrée en échelon. Il est nul si la FTBO contient au moins une intégration (classe ≥ 1).",r:CP(28,'Critères de performance'),d:'prec'},
  {k:['stabilite','stable','instable','pole'],t:"Stabilité",a:"Un système est stable si, écarté de son équilibre, il y revient. En boucle fermée : tous les pôles doivent être à partie réelle négative. En pratique on juge la stabilité avec les marges sur la FTBO (Bode ou Black).",r:CP(41,'Réponse fréquentielle'),d:'stab'},
  {k:['marge de phase','mphi','phase margin'],t:"Marge de phase",a:"Mφ = 180° + φ(ωc), où ωc est la pulsation pour laquelle le gain de la FTBO vaut 0 dB. Valeur couramment admise : Mφ > 45°.",r:CP(50,'Marge de phase'),d:'stab'},
  {k:['marge de gain','mg','gain margin'],t:"Marge de gain",a:"MG = −G_dB(ω−180°), lue à la pulsation où la phase de la FTBO vaut −180°. Valeur couramment admise : MG > 12 dB. Si la phase n'atteint jamais −180°, la marge de gain est infinie.",r:CP(44,'Étude harmonique'),d:'stab'},
@@ -1461,9 +1462,9 @@ const OSCAR_KB=[
  {k:['bande passante','0 db','pulsation de coupure','coupure'],t:"Bande passante",a:"La pulsation de coupure à 0 dB est celle où la courbe de gain croise 0 dB. Elle donne une idée de la rapidité : plus elle est grande, plus le système est rapide.",r:CP(44,'Étude harmonique')},
  {k:['pente','decade','-20','-40','asymptote'],t:"Pentes asymptotiques",a:"Chaque pôle ajoute −20 dB/décade au-delà de sa pulsation de cassure : un 1er ordre tend vers −20 dB/déc et −90°, un 2e ordre vers −40 dB/déc et −180°.",r:CP(46,'1er ordre harmonique')},
  {k:['harmonique','frequentiel','reponse frequentielle','sinus','jw','j.w','pulsation'],t:"Analyse harmonique",a:"On étudie la réponse d'un système à une entrée sinusoïdale de pulsation ω. En régime établi la sortie est sinusoïdale de même pulsation, amplifiée de |H(jω)| et déphasée de arg H(jω).",r:CP(41,'Réponse fréquentielle')},
- {k:['correcteur','pid','proportionnel','integral','derive'],t:"Correcteurs",a:"Un correcteur, placé avant le processus, modifie l'écart pour améliorer les performances : P (rapidité), I (précision, au risque de la stabilité), D (stabilité). Ce sera l'objet des prochains cours !",r:CP(3,'Structures de schéma bloc')},
- {k:['capteur','mesure','retour'],t:"Capteur",a:"Le capteur, dans la chaîne de retour, mesure la grandeur de sortie et la convertit en un signal comparable à la consigne adaptée.",r:CP(3,'Structures de schéma bloc')},
- {k:['integrateur','derivateur','1/p'],t:"Intégrateur et dérivateur",a:"Un intégrateur a pour fonction de transfert K/p : en réponse à un échelon, sa sortie croît en rampe. Un dérivateur K.p répond à un échelon par une impulsion.",r:CP(31,'Systèmes élémentaires')}
+ {k:['correcteur','pid','proportionnel','integral','derive'],t:"Correcteurs",a:"Un correcteur, placé avant le processus, modifie l'écart pour améliorer les performances : P (rapidité), I (précision, au risque de la stabilité), D (stabilité). Ce sera l'objet des prochains cours !",r:CP(4,'Structures de schéma bloc')},
+ {k:['capteur','mesure','retour'],t:"Capteur",a:"Le capteur, dans la chaîne de retour, mesure la grandeur de sortie et la convertit en un signal comparable à la consigne adaptée.",r:CP(4,'Structures de schéma bloc')},
+ {k:['integrateur','derivateur','1/p'],t:"Intégrateur et dérivateur",a:"Un intégrateur a pour fonction de transfert K/p : en réponse à un échelon, sa sortie croît en rampe. Un dérivateur K.p répond à un échelon par une impulsion.",r:CP(30,'Systèmes élémentaires')}
 ];
 const OSCAR_SUGG6=['Correcteur PI ?','Compensation de pôle ?','Correcteur PD ?','Correcteur PID ?','Saturation ?','Cahier des charges ?'];
 const OSCAR_SUGG5=['Qu’est-ce qu’un montage intégrateur ?','Premier ordre généralisé ?','Comment lire les coefficients ?','Avance de phase ?','Pulsation de cassure ?','Intégrateur pur ?'];
@@ -1552,20 +1553,20 @@ const RS={
 const QRES={
   c1:()=>[RS.c(20,'signaux canoniques'),RS.v(0)],
   c2:()=>[RS.c(20,'l’échelon'),RS.v(3)],
-  c3:()=>[RS.c(25,'systèmes fondamentaux'),RS.v(1),RS.v(3)],
-  c4:()=>[RS.c(2,'la notion de bloc'),RS.c(3,'structures de schéma bloc'),RS.v(1)],
+  c3:()=>[RS.c(24,'systèmes fondamentaux'),RS.v(1),RS.v(3)],
+  c4:()=>[RS.c(3,'la notion de bloc'),RS.c(4,'structures de schéma bloc'),RS.v(1)],
   c5:()=>[RS.c(21,'transformée de Laplace'),RS.v(2)],
-  c6:()=>[RS.c(33,'systèmes du 1er ordre'),RS.c(21,'transformée de Laplace'),RS.v(2)],
-  d0:()=>[RS.c(29,'critères de performance'),RS.c(38,'dépassement')],
-  d1:()=>[RS.c(25,'gain statique'),RS.c(33,'réponse du 1er ordre')],
-  d2:()=>[RS.c(33,'constante de temps du 1er ordre'),RS.v(3)],
-  d3:()=>[RS.c(3,'structures de schéma bloc'),RS.c(8,'algèbre de blocs')],
-  d4:()=>[RS.c(8,'boucle fermée'),RS.c(36,'systèmes du 2e ordre')],
-  d5:()=>[RS.c(36,'régimes du 2e ordre'),RS.c(38,'régime pseudo-périodique')],
-  d6:()=>[RS.c(38,'dépassement')],
-  d7:()=>[RS.abD(),RS.c(38,'dépassement'),RS.c(40,'abaques du 2e ordre')],
-  d8:()=>[RS.c(29,'temps de réponse à 5 %'),RS.c(40,'abaques du 2e ordre')],
-  d9:()=>[RS.abT(),RS.c(40,'abaques du 2e ordre')],
+  c6:()=>[RS.c(32,'systèmes du 1er ordre'),RS.c(21,'transformée de Laplace'),RS.v(2)],
+  d0:()=>[RS.c(28,'critères de performance'),RS.c(37,'dépassement')],
+  d1:()=>[RS.c(24,'gain statique'),RS.c(32,'réponse du 1er ordre')],
+  d2:()=>[RS.c(32,'constante de temps du 1er ordre'),RS.v(3)],
+  d3:()=>[RS.c(4,'structures de schéma bloc'),RS.c(9,'algèbre de blocs')],
+  d4:()=>[RS.c(6,'boucle fermée'),RS.c(35,'systèmes du 2e ordre')],
+  d5:()=>[RS.c(35,'régimes du 2e ordre'),RS.c(37,'régime pseudo-périodique')],
+  d6:()=>[RS.c(37,'dépassement')],
+  d7:()=>[RS.abD(),RS.c(37,'dépassement'),RS.c(39,'abaques du 2e ordre')],
+  d8:()=>[RS.c(29,'temps de réponse à 5 %'),RS.c(39,'abaques du 2e ordre')],
+  d9:()=>[RS.abT(),RS.c(39,'abaques du 2e ordre')],
   h1:()=>[RS.c(41,'réponse fréquentielle'),RS.c(44,'étude harmonique'),RS.v('h')],
   h2:()=>[RS.c(44,'gain et phase'),RS.v('h')],
   h3:()=>[RS.c(44,'gain en décibels'),RS.v('h')],
@@ -1574,10 +1575,10 @@ const QRES={
   h6:()=>[RS.c(48,'harmonique du 2e ordre'),RS.c(51,'tracé du diagramme de Bode'),RS.v('h')],
   h7:()=>[RS.c(48,'harmonique du 2e ordre'),RS.v('h')],
   h8:()=>[RS.c(51,'diagramme de Bode'),RS.v('h')],
-  e0:()=>[RS.c(33,'réponse du 1er ordre'),RS.c(36,'réponse du 2e ordre'),RS.v(3)],
-  e1:()=>[RS.c(33,'réponse du 1er ordre'),RS.c(36,'réponse du 2e ordre'),RS.v(3)],
-  e2:()=>[RS.c(33,'réponse du 1er ordre'),RS.c(36,'réponse du 2e ordre'),RS.v(3)],
-  e3:()=>[RS.c(33,'réponse du 1er ordre'),RS.c(36,'réponse du 2e ordre'),RS.v(3)],
+  e0:()=>[RS.c(32,'réponse du 1er ordre'),RS.c(35,'réponse du 2e ordre'),RS.v(3)],
+  e1:()=>[RS.c(32,'réponse du 1er ordre'),RS.c(35,'réponse du 2e ordre'),RS.v(3)],
+  e2:()=>[RS.c(32,'réponse du 1er ordre'),RS.c(35,'réponse du 2e ordre'),RS.v(3)],
+  e3:()=>[RS.c(32,'réponse du 1er ordre'),RS.c(35,'réponse du 2e ordre'),RS.v(3)],
   wr:()=>[RS.c(48,'résonance du 2e ordre'),RS.black(),RS.v('h')],
   w0:()=>[RS.c(44,'étude harmonique'),RS.black(),RS.v('h')],
   p1:()=>[RS.f('rap'),RS.c(29,'temps de réponse à 5 %')],
@@ -1586,12 +1587,12 @@ const QRES={
   p2c:()=>[RS.f('cdc'),RS.f('stab')],
   p3:()=>[RS.f('stab'),RS.bode(),RS.black()],
   p3c:()=>[RS.f('cdc'),RS.f('stab')],
-  p4:()=>[RS.f('prec'),RS.c(29,'précision')],
+  p4:()=>[RS.f('prec'),RS.c(28,'précision')],
   p4c:()=>[RS.f('cdc'),RS.f('prec')]};
 let CHAPTERS_=null;
 function CH(){return CHAPTERS_||(CHAPTERS_=[
  {n:1,t:'Modéliser un système asservi',m:'Mission 1',intro:"Ce chapitre porte sur les signaux canoniques d'entrée, les systèmes linéaires fondamentaux, la structure d'une boucle d'asservissement et la transformée de Laplace. Le fil conducteur est un processus asservi dont on régule la température.",
-  res:()=>[['📖 Cours : signaux canoniques (p. 20)',()=>coursView(20)],['📖 Cours : schémas bloc (p. 2)',()=>coursView(2)],['📖 Cours : transformée de Laplace (p. 21)',()=>coursView(21)],['📖 Cours : systèmes fondamentaux (p. 25)',()=>coursView(25)],...ALLVIDS()],
+  res:()=>[['📖 Cours : signaux canoniques (p. 20)',()=>coursView(20)],['📖 Cours : schémas bloc (p. 3)',()=>coursView(3)],['📖 Cours : transformée de Laplace (p. 21)',()=>coursView(21)],['📖 Cours : systèmes fondamentaux (p. 24)',()=>coursView(24)],...ALLVIDS()],
   q:[
    {id:'c1',t:'mcq',q:"On souhaite faire passer brusquement la consigne de température d'un processus asservi de 0 à 180 °C, puis la maintenir. Quel signal canonique modélise cette consigne ?",o:['Dirac','Échelon','Rampe','Sinusoïde'],a:1},
    {id:'c2',t:'mcq',q:"Quelle est l'expression mathématique d'un échelon d'amplitude 180 °C ?",o:['e(t) = 180.u(t)','e(t) = 180','e(t) = 180 + u(t)','e(t) = 180.t.u(t)'],a:0},
@@ -1600,7 +1601,7 @@ function CH(){return CHAPTERS_||(CHAPTERS_=[
    {id:'c5',t:'mcq',q:"On considère la relation d g(t)/dt = f(t). Quelle est sa transformée de Laplace (conditions initiales nulles) ?",o:['d.G(p)/dp = F(p)','p.G(p) = F(p)','G(p)/p = F(p)','G(p) − p = F(p)'],a:1},
    {id:'c6',t:'mcq',q:"Le comportement thermique du processus asservi est décrit par l'équation ci-dessous (m : masse, c : capacité thermique massique, R : résistance thermique, P : puissance de chauffe, T : température). Quelle est la constante de temps de la fonction de transfert H(p) = T(p)/P(p) ?",pre:()=>h('p',{class:'center',html:'<math display="block"><mi>m</mi><mo>.</mo><mi>c</mi><mo>.</mo><mi>p</mi><mo>.</mo><mi>T</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>=</mo><mi>P</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>−</mo><mfrac><mrow><mi>T</mi><mo>(</mo><mi>p</mi><mo>)</mo></mrow><mi>R</mi></mfrac></math>'}),o:['τ = R.m.c','τ = R/(m.c)','τ = m.c/R','τ = R','τ = m.c','τ = R + m.c'],a:0}]},
  {n:2,t:'Identifier un modèle à partir de sa réponse temporelle',m:'Mission 2',after:1,intro:"On étudie la régulation de température du processus asservi à partir de deux courbes : sa réponse théorique en boucle ouverte (entrée : échelon de puissance de 18 000 W) et sa réponse expérimentale en boucle fermée (consigne : échelon de 180 °C). Chaque question affiche la courbe utile et ses outils de mesure (réticule et réglettes).",
-  res:()=>[['📈 Abaque des dépassements',abaqueD],['📈 Abaque des temps de réponse',abaqueTr],['📖 Cours : critères de performance (p. 29)',()=>coursView(29)],['📖 Cours : 1er ordre (p. 33)',()=>coursView(33)],['📖 Cours : 2e ordre (p. 36)',()=>coursView(36)],['📖 Cours : dépassement (p. 38)',()=>coursView(38)],...ALLVIDS()],
+  res:()=>[['📈 Abaque des dépassements',abaqueD],['📈 Abaque des temps de réponse',abaqueTr],['📖 Cours : critères de performance (p. 28)',()=>coursView(28)],['📖 Cours : 1er ordre (p. 32)',()=>coursView(32)],['📖 Cours : 2e ordre (p. 35)',()=>coursView(35)],['📖 Cours : dépassement (p. 37)',()=>coursView(37)],...ALLVIDS()],
   q:[
    {id:'d0',t:'mcq',q:"La consigne du processus asservi est un échelon de 180 °C. On mesure 185 °C et la température continue d'augmenter avant de redescendre et de se stabiliser. Comment nomme-t-on ce phénomène ?",o:["L'erreur statique",'La perturbation',"L'erreur de traînage",'Le dépassement'],a:3},
    {id:'d1',t:'mcq',q:"Sur la réponse théorique en boucle ouverte ci-dessous, que vaut le gain statique de la fonction de transfert ?",pre:THEO,o:['180','18000','100','0,01'],a:3},
@@ -2527,7 +2528,7 @@ function clScoreValidate(ch){C.got=C.got||{};ch.q.forEach(q=>{if(qOk(q)===true&&
 function goalFor(m,f){const s0=S;S={m,scene:null,f:Object.assign({hints:(s0.f&&s0.f.hints)||{}},f)};let g;try{g=oscarGoal();}finally{S=s0;}return g;}
 const CL_HINTS={
  c1:{h:["La consigne passe d'un coup de 0 à 180 °C, puis reste constante.","Parmi les signaux canoniques, lequel modélise un brusque changement de valeur ?","Les signaux canoniques sont présentés dans le cours."],ref:CP(20,'Signaux canoniques')},
- d0:{h:["La température passe au-dessus de la consigne avant de se stabiliser.","Quel critère de performance mesure cet écart au-dessus de la valeur finale ?","Les critères de performance sont présentés dans le cours."],ref:CP(29,'Critères de performance')},
+ d0:{h:["La température passe au-dessus de la consigne avant de se stabiliser.","Quel critère de performance mesure cet écart au-dessus de la valeur finale ?","Les critères de performance sont présentés dans le cours."],ref:CP(28,'Critères de performance')},
  h1:{h:["Les deux outils d'analyse harmonique vus en cours portent le nom de leur inventeur.","L'un d'eux trace le gain en fonction de la phase.","Le premier est le diagramme de Bode… et le second ?"],ref:CP(44,'Étude harmonique')},
  h2:{h:["Le gain s'exprime en décibels.","On passe du module |H(jω)| aux décibels avec un logarithme.","G = 20.log(…) : de quelle grandeur ?"],ref:CP(44,'Étude harmonique')},
  h3:{h:["Le gain est calculé avec 20.log|H(jω)|.","Cette échelle logarithmique a une unité bien connue.","C'est la même unité que pour un niveau sonore."],ref:CP(44,'Étude harmonique')},
@@ -2536,7 +2537,7 @@ const CL_HINTS={
  h6:{h:["En hautes fréquences, chaque pôle ajoute −20 dB/décade.","Un second ordre a deux pôles.","Additionne les pentes."],ref:CP(48,'2e ordre')},
  h7:{h:["Le gain est constant en basses fréquences, puis présente un pic avant de décroître.","Un pic de résonance n'existe que pour un système d'ordre 2 (ou plus) peu amorti.","Regarde aussi la pente finale du gain."],ref:CP(48,'2e ordre')},
  h8:{h:["Gain et phase sont tracés en fonction d'une même grandeur.","Cet axe est gradué en échelle logarithmique, en rad/s.","Quelle grandeur s'exprime en rad/s ?"],ref:CP(51,'Diagramme de Bode')},
- e:{h:["Observe le début de la courbe : la tangente à l'origine est-elle horizontale ou inclinée ?","Un premier ordre démarre avec une pente non nulle et ne dépasse jamais sa valeur finale ; un second ordre démarre avec une tangente horizontale et peut osciller.","Une sortie qui croît sans fin vient d'un intégrateur ; une simple impulsion, d'un dérivateur."],ref:CP(33,'1er ordre')},
+ e:{h:["Observe le début de la courbe : la tangente à l'origine est-elle horizontale ou inclinée ?","Un premier ordre démarre avec une pente non nulle et ne dépasse jamais sa valeur finale ; un second ordre démarre avec une tangente horizontale et peut osciller.","Une sortie qui croît sans fin vient d'un intégrateur ; une simple impulsion, d'un dérivateur."],ref:CP(32,'1er ordre')},
  wr:{h:["La résonance correspond au maximum (pic) de la courbe de gain.","Passe le curseur sur le sommet du pic.","Lis la pulsation ω sous ce pic."],ref:CP(48,'2e ordre : résonance')},
  w0:{h:["Repère l'endroit où la courbe de gain croise l'axe 0 dB.","Au-delà de cette pulsation, le gain devient négatif.","Place le curseur à cet endroit et lis ω."],ref:CP(44,'Étude harmonique')},
  p1:{h:["Place les réglettes à ±5 % de la variation totale de la sortie, autour de la valeur finale.","tr5% est l'instant à partir duquel la courbe reste dans cette bande.","La fiche « rapidité » rappelle la méthode."],doc:'rap'},
