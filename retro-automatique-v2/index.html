@@ -2316,19 +2316,70 @@ function m5Bot(){
 }
 
 /* ----- le tiroir aux cartes ----- */
+/* cartes électroniques réalistes : vernis épargne vert, pistes cuivre, composants traversants, connecteur doré */
+const PCB_DEFS=`<linearGradient id="pcbMask" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#23794a"/><stop offset=".55" stop-color="#1a6339"/><stop offset="1" stop-color="#11482a"/></linearGradient>
+<linearGradient id="pcbGlare" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".06"/></linearGradient>
+<linearGradient id="pcbGold" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a87d22"/><stop offset=".5" stop-color="#f3d77a"/><stop offset="1" stop-color="#b58a2c"/></linearGradient>
+<linearGradient id="pcbIc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34363a"/><stop offset="1" stop-color="#121314"/></linearGradient>
+<radialGradient id="pcbElB" cx=".38" cy=".35" r=".75"><stop offset="0" stop-color="#5d7fc4"/><stop offset=".6" stop-color="#22417f"/><stop offset="1" stop-color="#0f1f40"/></radialGradient>
+<radialGradient id="pcbElK" cx=".38" cy=".35" r=".75"><stop offset="0" stop-color="#6a6a6a"/><stop offset=".6" stop-color="#2a2a2a"/><stop offset="1" stop-color="#0c0c0c"/></radialGradient>
+<radialGradient id="pcbAlu" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#f2f2f0"/><stop offset="1" stop-color="#9a9c9e"/></radialGradient>
+<linearGradient id="pcbRes" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0dfb8"/><stop offset=".5" stop-color="#d8bf8e"/><stop offset="1" stop-color="#a98d5c"/></linearGradient>
+<linearGradient id="pcbResB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fc3e8"/><stop offset=".5" stop-color="#4f93c8"/><stop offset="1" stop-color="#2d628e"/></linearGradient>
+<linearGradient id="pcbTerm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1f8a3e"/><stop offset=".5" stop-color="#36b45a"/><stop offset="1" stop-color="#1a7334"/></linearGradient>
+<radialGradient id="pcbCer" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#f0a75a"/><stop offset="1" stop-color="#a5541b"/></radialGradient>`;
+const PCB_BANDS={0:'#111',1:'#7a4a1e',2:'#d22',3:'#f07a12',4:'#f2d21b',5:'#2a9a3a',6:'#2456c8',7:'#8a3fc2',8:'#888',9:'#f4f4f4'};
+const pcbPad=(x,y,r=2.1)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#cfd4d6" stroke="#8e9496" stroke-width=".5"/><circle cx="${x}" cy="${y}" r="${r*.42}" fill="#2a2a2a"/>`;
+function pcbRes(x,y,code,ref,blue){const [d1,d2,m]=code;return `<g>${pcbPad(x,y,1.8)}${pcbPad(x+26,y,1.8)}<path d="M${x} ${y}h26" stroke="#b9bfc2" stroke-width="1.1"/>
+  <rect x="${x+5}" y="${y-3.3}" width="16" height="6.6" rx="3.2" fill="url(#${blue?'pcbResB':'pcbRes'})" stroke="#000" stroke-opacity=".25" stroke-width=".4"/>
+  ${[[x+8,d1],[x+10.6,d2],[x+13.2,m],[x+17.2,'g']].map(([bx,c])=>`<rect x="${bx}" y="${y-3.3}" width="1.5" height="6.6" fill="${c==='g'?'#c9a43a':PCB_BANDS[c]}"/>`).join('')}
+  <text x="${x+13}" y="${y-5.5}" font-size="4.2" fill="#f2f2ea" text-anchor="middle" font-family="Arial,sans-serif">${ref}</text></g>`;}
+function pcbCer(x,y,ref,lab='104'){return `<g>${pcbPad(x,y+5,1.5)}${pcbPad(x+6,y+5,1.5)}<ellipse cx="${x+3}" cy="${y}" rx="5" ry="3.8" fill="url(#pcbCer)" stroke="#6b3410" stroke-width=".4"/><text x="${x+3}" y="${y+1.3}" font-size="3.4" text-anchor="middle" fill="#3a1a06" font-family="Arial,sans-serif">${lab}</text>
+  <text x="${x+3}" y="${y-5.5}" font-size="4.2" fill="#f2f2ea" text-anchor="middle" font-family="Arial,sans-serif">${ref}</text></g>`;}
+function pcbFilm(x,y,ref,lab){return `<g>${pcbPad(x+2,y+9,1.5)}${pcbPad(x+16,y+9,1.5)}<rect x="${x}" y="${y}" width="18" height="8" rx="1.2" fill="#c8402f" stroke="#7a1d12" stroke-width=".5"/><rect x="${x}" y="${y}" width="18" height="2.4" rx="1.2" fill="#fff" opacity=".18"/>
+  <text x="${x+9}" y="${y+5.8}" font-size="3.8" text-anchor="middle" fill="#fde9d6" font-family="Arial,sans-serif">${lab}</text><text x="${x+9}" y="${y-2}" font-size="4.2" fill="#f2f2ea" text-anchor="middle" font-family="Arial,sans-serif">${ref}</text></g>`;}
+function pcbElec(x,y,r,ref,black){return `<g><circle cx="${x+1.2}" cy="${y+1.6}" r="${r}" fill="#000" opacity=".35"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#${black?'pcbElK':'pcbElB'})" stroke="#0a1224" stroke-width=".6"/>
+  <path d="M${x} ${y-r}A${r} ${r} 0 0 1 ${x+r*.5} ${y-r*.866}L${x} ${y}Z" fill="#d6dbe6" opacity=".55"/><circle cx="${x}" cy="${y}" r="${r*.62}" fill="url(#pcbAlu)"/>
+  <path d="M${x-r*.45} ${y}h${r*.9}M${x} ${y-r*.45}v${r*.9}" stroke="#6c6f72" stroke-width=".7"/><text x="${x}" y="${y+r+5}" font-size="4.2" fill="#f2f2ea" text-anchor="middle" font-family="Arial,sans-serif">${ref}</text></g>`;}
+function pcbDip(x,y,ref,part){const pins=[0,1,2,3].map(i=>`<rect x="${x+2.8+i*6.4}" y="${y-2.4}" width="2.2" height="2.6" fill="#c9cdd0"/><rect x="${x+2.8+i*6.4}" y="${y+14}" width="2.2" height="2.6" fill="#c9cdd0"/>`).join('');
+  return `<g><rect x="${x+1}" y="${y+1.5}" width="28" height="14" rx="1" fill="#000" opacity=".4"/>${pins}<rect x="${x}" y="${y}" width="28" height="14" rx="1.2" fill="url(#pcbIc)" stroke="#000" stroke-width=".4"/>
+  <path d="M${x} ${y+4.6}a2.4 2.4 0 0 1 0 4.8" fill="#0b0b0b"/><circle cx="${x+3.6}" cy="${y+11}" r=".9" fill="#55585b"/><text x="${x+15}" y="${y+6.4}" font-size="3.6" text-anchor="middle" fill="#b9bcbf" font-family="Arial,sans-serif">${part}</text>
+  <text x="${x+15}" y="${y+10.6}" font-size="2.8" text-anchor="middle" fill="#8b8f93" font-family="Arial,sans-serif">2614 · MY</text><text x="${x+14}" y="${y-4.2}" font-size="4.2" fill="#f2f2ea" text-anchor="middle" font-family="Arial,sans-serif">${ref}</text></g>`;}
+function pcbPot(x,y,ref){return `<g><rect x="${x}" y="${y}" width="11" height="11" rx="1" fill="#2b62b4" stroke="#163a72" stroke-width=".5"/><circle cx="${x+5.5}" cy="${y+5.5}" r="3.6" fill="#e9ecef" stroke="#9aa" stroke-width=".4"/>
+  <path d="M${x+3.4} ${y+7.6}l4.2-4.2" stroke="#55606a" stroke-width="1"/><text x="${x+5.5}" y="${y-2}" font-size="4.2" fill="#f2f2ea" text-anchor="middle" font-family="Arial,sans-serif">${ref}</text></g>`;}
+/* une implantation différente par carte : même électronique de base (ampli op, alimentation), réseau R-C propre à chaque carte */
+const PCB_LAYOUT={
+ A:{op:'TL081CP',r:[[40,64,[1,0,4],'R1'],[40,80,[1,0,4],'R2']],film:[[86,62,'C1','1µ']],cer:[[118,64,'C3']],pot:null},
+ B:{op:'TL081CP',r:[[86,66,[1,0,5],'R1'],[40,80,[4,7,3],'R2']],film:[[40,60,'C1','10µ']],cer:[[118,64,'C3']],pot:null},
+ C:{op:'LF356N',r:[[40,62,[2,2,4],'R1'],[40,78,[4,7,4],'R2'],[86,78,[1,0,4],'R3']],film:[[86,58,'C1','4,7µ']],cer:[[118,64,'C3']],pot:[118,76,'P1']},
+ D:{op:'TL081CP',r:[[40,62,[1,0,4],'R1'],[86,62,[5,1,4],'R2'],[40,78,[1,0,3],'R3']],film:[[86,74,'C1','4,7µ']],cer:[[118,64,'C3']],pot:null},
+ E:{op:'LM741CN',r:[[40,60,[1,0,4],'R1'],[40,74,[1,0,5],'R2'],[86,60,[1,0,4],'R3'],[86,74,[1,0,4],'R4']],film:[[40,84,'C1','1µ']],cer:[[118,64,'C3']],pot:[118,76,'P1']},
+ F:{op:'LM741CN',r:[[40,60,[1,0,5],'R1'],[40,74,[1,0,4],'R2'],[86,60,[1,0,4],'R3']],film:[[86,74,'C1','10µ']],cer:[[118,64,'C3'],[66,86,'C4','223']],pot:null}};
 function pcbSVG(id,x,y,rot,done,sel){
-  const lbl=done?M5_TYPES[m5Card(id).type]:'';
-  const chips=[[28,22,40,22],[80,26,26,30],[120,20,34,20]].map(([a,b,w,hh])=>`<rect x="${a}" y="${b}" width="${w}" height="${hh}" rx="2" fill="#1b1b1b"/><g stroke="#c9c9c9" stroke-width="1.4">${Array.from({length:Math.floor(w/7)},(_,i)=>`<path d="M${a+4+i*7} ${b-3}v3M${a+4+i*7} ${b+hh}v3"/>`).join('')}</g>`).join('');
-  const res=[[30,64],[52,64],[74,64]].map(([a,b])=>`<rect x="${a}" y="${b}" width="16" height="6" rx="3" fill="#d8c7a0"/><path d="M${a+4} ${b}v6M${a+8} ${b}v6" stroke="#8a3b1c" stroke-width="1.6"/>`).join('');
-  const caps=`<circle cx="120" cy="68" r="8" fill="#2f5ea8" stroke="#9fb7df" stroke-width="1.2"/><circle cx="142" cy="66" r="6" fill="#b88a2a"/>`;
-  const fingers=Array.from({length:12},(_,i)=>`<rect x="${26+i*10}" y="98" width="6" height="12" fill="#e6c25c"/>`).join('');
-  const traces=`<path d="M20 50h40l10-10h40M60 80h60l12 8M150 40v30" fill="none" stroke="#7fd08a" stroke-opacity=".45" stroke-width="1.6"/>`;
+  const lbl=done?M5_TYPES[m5Card(id).type]:'',L=PCB_LAYOUT[id];
+  const outline='M7 0H173a7 7 0 0 1 7 7V97a7 7 0 0 1-7 7H150V112H30V104H7a7 7 0 0 1-7-7V7a7 7 0 0 1 7-7Z';
+  const traces=`<g fill="none" stroke="#2c9658" stroke-opacity=".75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 30H30l6 6V44H62"/><path d="M14 40H26l4 4"/><path d="M92 38h8l6-6h14"/><path d="M106 44v10l-4 4H66"/><path d="M36 106V96l6-6h24"/><path d="M60 106V98l4-4H92l6-6"/>
+    <path d="M84 106V100l4-4h22l8-8V78"/><path d="M108 106V102l6-6h12"/><path d="M132 106V98l6-6h4"/><path d="M48 22h44l4 4"/><path d="M128 30h18l6 6v14"/></g>
+    <g fill="none" stroke="#2c9658" stroke-opacity=".5" stroke-width="3.2" stroke-linecap="round"><path d="M12 14H120l8 8"/><path d="M14 92H28"/></g>`;
+  const vias=[[30,44],[62,58],[100,32],[118,52],[66,90],[138,92],[150,36],[96,26]].map(([a,b])=>`<circle cx="${a}" cy="${b}" r="1.6" fill="#cfd4d6"/><circle cx="${a}" cy="${b}" r=".7" fill="#1a1a1a"/>`).join('');
+  const holes=[[8,8],[172,8],[8,96],[172,96]].map(([a,b])=>`<circle cx="${a}" cy="${b}" r="4.3" fill="#d9c27a" stroke="#8c7430" stroke-width=".6"/><circle cx="${a}" cy="${b}" r="2.4" fill="#120d08"/>`).join('');
+  const fingers=Array.from({length:13},(_,i)=>`<rect x="${33+i*9}" y="100" width="5.6" height="11.5" rx=".8" fill="url(#pcbGold)"/>`).join('');
+  const term=`<g><rect x="3" y="24" width="12" height="22" rx="1" fill="url(#pcbTerm)" stroke="#0e4a20" stroke-width=".5"/>${[30,40].map(b=>`<circle cx="9" cy="${b}" r="3.4" fill="url(#pcbAlu)" stroke="#555" stroke-width=".4"/><path d="M6.6 ${b}h4.8" stroke="#444" stroke-width="1"/>`).join('')}<text x="9" y="52" font-size="4" fill="#f2f2ea" text-anchor="middle" font-family="Arial,sans-serif">J1</text></g>`;
+  const comps=pcbDip(62,30,'U1',L.op)+pcbElec(140,24,7,'C5')+pcbElec(158,24,7,'C6',true)
+    +L.r.map(([a,b,c,rf])=>pcbRes(a,b,c,rf)).join('')+L.film.map(([a,b,rf,lb])=>pcbFilm(a,b,rf,lb)).join('')+L.cer.map(([a,b,rf,lb])=>pcbCer(a,b,rf,lb)).join('')
+    +(L.pot?pcbPot(...L.pot):'')+pcbRes(100,48,[1,0,2],'R9',true);
+  const silk=`<g fill="none" stroke="#f2f2ea" stroke-opacity=".8" stroke-width=".5"><rect x="58" y="26" width="36" height="22" rx="1"/><path d="M128 30v-12M168 30v-12"/></g>
+    <text x="22" y="10.5" font-size="5.2" fill="#f2f2ea" font-family="Arial,sans-serif" font-weight="700" letter-spacing=".4">REG-ANA  ${id}</text>
+    <text x="22" y="17" font-size="3.6" fill="#f2f2ea" fill-opacity=".85" font-family="Arial,sans-serif">rev 2.3 · 1998</text>
+    <text x="133" y="16" font-size="4" fill="#f2f2ea" font-family="Arial,sans-serif">+15V  −15V</text>`;
   return `<g class="pcb${sel?' sel':''}${done?' done':''}" data-id="${id}" tabindex="0" role="button" aria-label="Carte ${id}${done?' : '+lbl:''}" transform="translate(${x} ${y}) rotate(${rot} 90 55)">
-    <rect x="4" y="6" width="180" height="108" rx="7" fill="#000" opacity=".35"/>
-    <rect class="board" x="0" y="0" width="180" height="104" rx="7" fill="#1f6b3b" stroke="#134526" stroke-width="2"/>
-    ${traces}${chips}${res}${caps}${fingers}
-    <circle cx="10" cy="10" r="4" fill="#0e2f1b" stroke="#c9b37a"/><circle cx="170" cy="10" r="4" fill="#0e2f1b" stroke="#c9b37a"/>
-    <g transform="rotate(-6 158 78)"><rect x="140" y="62" width="36" height="34" rx="2" fill="#f4efdc" stroke="#b9ad86"/><text x="158" y="89" text-anchor="middle" font-family="Caveat, cursive" font-size="30" font-weight="700" fill="#1d2b55">${id}</text></g>
+    <path d="${outline}" transform="translate(4 6)" fill="#000" opacity=".45"/>
+    <path class="board" d="${outline}" fill="url(#pcbMask)" stroke="#0c3a20" stroke-width="2"/>
+    ${traces}${vias}${holes}${fingers}${silk}${term}${comps}
+    <path d="${outline}" fill="url(#pcbGlare)" pointer-events="none"/>
+    <g transform="rotate(-6 158 78)"><rect x="140" y="60" width="36" height="36" rx="1.5" fill="#efe6c8" stroke="#bfb08a" opacity=".97"/><path d="M140 63h36M140 93h36" stroke="#d9cca4" stroke-width=".6"/>
+      <text x="158" y="88" text-anchor="middle" font-family="Caveat, cursive" font-size="30" font-weight="700" fill="#1d2b55">${id}</text></g>
     ${done?`<g><rect x="-2" y="-18" width="${Math.max(120,lbl.length*7.2+16)}" height="20" rx="3" fill="#2f9e44"/><text x="6" y="-4" font-family="Chakra Petch, sans-serif" font-size="12.5" font-weight="700" fill="#fff">✓ ${lbl}</text></g>`:''}
   </g>`;
 }
@@ -2338,7 +2389,7 @@ function m5Drawer(selected){
   const svgTxt=`<svg viewBox="0 0 860 520" class="drawer-svg" role="group" aria-label="Fond du tiroir : six cartes électroniques repérées par des lettres">
     <defs><linearGradient id="dwB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b2c20"/><stop offset="1" stop-color="#22180f"/></linearGradient>
     <pattern id="dwG" width="60" height="520" patternUnits="userSpaceOnUse"><path d="M0 0v520M30 0c6 120-6 260 0 520" stroke="#4a3626" stroke-width="1.2" fill="none" opacity=".6"/></pattern>
-    <linearGradient id="dwS" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#15100b"/><stop offset=".08" stop-color="#2c2117"/><stop offset=".92" stop-color="#2c2117"/><stop offset="1" stop-color="#15100b"/></linearGradient></defs>
+    ${PCB_DEFS}<linearGradient id="dwS" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#15100b"/><stop offset=".08" stop-color="#2c2117"/><stop offset=".92" stop-color="#2c2117"/><stop offset="1" stop-color="#15100b"/></linearGradient></defs>
     <rect width="860" height="520" fill="url(#dwS)"/><rect x="26" y="20" width="808" height="482" rx="6" fill="url(#dwB)"/><rect x="26" y="20" width="808" height="482" rx="6" fill="url(#dwG)"/>
     <rect x="26" y="20" width="808" height="482" rx="6" fill="none" stroke="#0d0906" stroke-width="10"/>
     <g fill="#9a9a96" stroke="#555" stroke-width="1"><circle cx="300" cy="250" r="5"/><circle cx="560" cy="262" r="4"/><circle cx="780" cy="470" r="5"/></g>
