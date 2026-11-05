@@ -702,25 +702,21 @@ body:has(.hmenu.open) .nb-toast{display:none}
 .au-st{font-size:clamp(34px,6cqw,46px);line-height:1;background:none!important;border:0!important;color:rgba(255,255,255,.35);cursor:pointer;padding:2px 4px!important;transition:transform .12s,color .12s;text-shadow:0 2px 4px rgba(0,0,0,.35)}
 .au-st:hover{transform:scale(1.15)}.au-st.on{color:#ffc928}
 .au-lab{margin:2px 0 8px;font-weight:600;min-height:1.4em}
-/* tableau de bord intégré et administration des accès */
-.tdb-ov{position:fixed;inset:0;z-index:9000;display:flex;flex-direction:column;background:#0b0d0c}
-.tdb-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left));background:#161a18;color:#eef0e6;border-bottom:3px solid #e3b02a;font-family:'Chakra Petch',system-ui,sans-serif}
+/* tableau de bord : fenêtre posée sur le jeu, visible en arrière-plan */
+.tdb-ov{position:fixed;inset:0;z-index:9000;display:grid;place-items:center;padding:6vh 5vw;background:rgba(8,10,9,.35);animation:tdbIn .22s ease-out}
+.tdb-ov.out{opacity:0;transition:opacity .2s}
+@keyframes tdbIn{from{opacity:0}to{opacity:1}}
+.tdb-win{width:min(1240px,100%);height:100%;display:flex;flex-direction:column;border-radius:12px;overflow:hidden;background:#0b0d0c;border:1px solid rgba(255,255,255,.14);box-shadow:0 24px 70px rgba(0,0,0,.65),0 0 0 4px rgba(227,176,42,.18);animation:tdbUp .26s cubic-bezier(.2,.8,.3,1)}
+@keyframes tdbUp{from{transform:translateY(18px) scale(.985)}to{transform:none}}
+.tdb-bar{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 16px;background:#161a18;color:#eef0e6;border-bottom:3px solid #e3b02a;font-family:'Chakra Petch',system-ui,sans-serif}
 .tdb-bar b{font-size:15px;letter-spacing:.03em}
 .tdb-who{font-size:12px;color:#a9b0a6;margin-right:auto}
-.tdb-b{appearance:none;border:1px solid #3a423e;background:#232926;color:#eef0e6;border-radius:999px;padding:6px 14px;font:600 13px 'Chakra Petch',system-ui,sans-serif;text-decoration:none;cursor:pointer}
+.tdb-b{border:1px solid #3a423e;background:#232926;color:#eef0e6;border-radius:999px;padding:5px 13px;font:600 13px 'Chakra Petch',system-ui,sans-serif;text-decoration:none}
 .tdb-b:hover{border-color:#e3b02a}
+.tdb-x{width:32px;height:32px;border-radius:50%;border:0;background:#2b312e;color:#eef0e6;font-size:15px;cursor:pointer}
+.tdb-x:hover{background:#e3b02a;color:#1b1405}
 .tdb-fr{flex:1;width:100%;border:0;background:#0b0d0c}
-.card.acl{max-width:620px;text-align:left}
-.card.acl h3{margin:14px 0 4px;font-size:16px}
-.acl-list{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:34vh;overflow:auto}
-.acl-list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.08)}
-.acl-x{border:0;background:none;cursor:pointer;font-size:15px;color:inherit;opacity:.7}
-.acl-x:hover{opacity:1}
-.acl-add{display:flex;gap:8px;margin:6px 0}
-.acl-add input{flex:1;min-width:0;padding:8px 10px;border-radius:8px;border:1px solid rgba(0,0,0,.3);font:inherit}
-.acl-st{font-size:13px;margin:6px 0}
-.acl-st.warn{color:#b0420d;font-weight:600}
-.acl-out{margin-top:8px}
+@media (max-width:640px){.tdb-ov{padding:8px}.tdb-b{display:none}}
 
 </style>
 
@@ -2980,92 +2976,42 @@ function autoAsk(n){
 /* ===================== ACCÈS ENSEIGNANTS ET TABLEAU DE BORD ===================== */
 /* Dans Moodle (paquet SCORM), le jeu connaît le compte connecté (cmi.core.student_id = identifiant,
    cmi.core.student_name = « Nom, Prénom »), mais ni son rôle ni ses groupes.
-   Trois profils :
-   - Administrateur : Maximilien Corvazier seul ; mode prof complet + tableau de bord + administration des accès ;
-   - Prof : comptes de la liste ci-dessous (inscrite dans le paquet) ; mode prof avec le mot de passe prof
-     (changer de mission, corrigé), sans tableau de bord ;
-   - Élève : tous les autres comptes ; aucun bouton enseignant, le jeu dans l'ordre prévu.
-   Hors Moodle (site GitHub, artefact), le jeu ne sait pas qui est connecté : seul le profil Prof existe (mot de passe prof). */
-const PROF_LIST=/*PROFS*/[]/*PROFS*/;
-const ACL_ADMIN=['corvazier maximilien'];
-const aclNorm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9@.]+/g,' ').trim().split(' ').filter(Boolean).sort().join(' ');
+   - Maximilien Corvazier : mode prof (mot de passe prof) + tableau de bord ;
+   - collègues de PROF_LIST (repérés par leur nom) : mode prof classique (mot de passe prof), sans tableau de bord ;
+   - tous les autres comptes : élèves, aucun bouton enseignant.
+   Hors Moodle (site GitHub, artefact), le jeu ne sait pas qui est connecté : mode prof classique avec le mot de passe. */
+const PROF_LIST=['MEGHOUACHE','HAGNERE'];
+const ACL_ADMIN=['CORVAZIER Maximilien'];
+const aclTok=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(Boolean);
 const ACL={on:false,id:'',name:'',admin:false,prof:false,init:false};
 function aclInit(){if(ACL.init)return ACL;ACL.init=true;try{
-  if(typeof TRK==='undefined'||!TRK.on||!TRK.on()||!TRK.who)return;
-  const w=TRK.who();if(!w||(!w.id&&!w.name))return;
+  if(typeof TRK==='undefined'||!TRK.on||!TRK.on()||!TRK.who)return ACL;
+  const w=TRK.who();if(!w||(!w.id&&!w.name))return ACL;
   ACL.on=true;ACL.id=w.id;ACL.name=w.name;
-  const n=aclNorm(w.name),id=String(w.id||'').trim().toLowerCase();
-  const hit=e=>{const x=String(e||'').trim();return !!x&&(aclNorm(x)===n||x.toLowerCase()===id);};
+  const toks=new Set(aclTok(w.name));
+  /* une entrée correspond si tous ses mots figurent dans le nom Moodle (« Nom, Prénom »), quel que soit l'ordre */
+  const hit=e=>{const t=aclTok(e);return t.length>0&&t.every(x=>toks.has(x));};
   ACL.admin=ACL_ADMIN.some(hit);
   ACL.prof=ACL.admin||PROF_LIST.some(hit);
 }catch(e){}return ACL;}
-/* qui voit le bouton enseignant : hors Moodle tout le monde (mot de passe), dans Moodle l'administrateur (mode prof) et les enseignants autorisés (tableau de bord) */
+/* bouton « Mode prof » : hors Moodle pour tous (mot de passe), dans Moodle pour toi et tes collègues seulement */
 const aclProfBtnOk=()=>{aclInit();return !ACL.on||ACL.prof;};
 const aclAdmin=()=>aclInit().admin;
 
-/* ----- tableau de bord intégré (plein écran) ----- */
+/* ----- tableau de bord : fenêtre posée sur le jeu, que l'on devine en arrière-plan ----- */
 function openTDB(){
   if(!aclAdmin())return;
   if(document.querySelector('.tdb-ov'))return;
-  const close=()=>{ov.remove();document.removeEventListener('keydown',esc,true);};
+  const close=()=>{ov.classList.add('out');document.removeEventListener('keydown',esc,true);setTimeout(()=>ov.remove(),220);};
   const esc=e=>{if(e.key==='Escape'&&!e.defaultPrevented){e.stopPropagation();close();}};
-  const ov=h('div',{class:'tdb-ov',role:'dialog','aria-modal':'true','aria-label':'Tableau de bord enseignant'},
-    h('div',{class:'tdb-bar'},h('b',null,'📊 Tableau de bord enseignant'),
-      h('span',{class:'tdb-who'},ACL.on?(ACL.name||ACL.id):''),
+  const win=h('div',{class:'tdb-win',role:'dialog','aria-modal':'true','aria-label':'Tableau de bord'},
+    h('div',{class:'tdb-bar'},h('b',null,'📊 Tableau de bord'),
+      h('span',{class:'tdb-who'},ACL.name||''),
       h('a',{class:'tdb-b',href:'tableau-de-bord.html',target:'_blank',rel:'noopener',title:'Ouvrir le tableau de bord dans un nouvel onglet'},'↗ Nouvel onglet'),
-      h('button',{class:'tdb-b',onclick:close},'✕ Fermer')),
-    h('iframe',{class:'tdb-fr',src:'tableau-de-bord.html',title:'Tableau de bord enseignant'}));
+      h('button',{class:'tdb-x',onclick:close,'aria-label':'Fermer le tableau de bord',title:'Fermer'},'✕')),
+    h('iframe',{class:'tdb-fr',src:'tableau-de-bord.html',title:'Tableau de bord'}));
+  const ov=h('div',{class:'tdb-ov',onclick:e=>{if(e.target===ov)close();}},win);
   document.body.append(ov);document.addEventListener('keydown',esc,true);
-}
-
-/* ----- administration (Moodle, administrateur seulement) : liste des enseignants autorisés ----- */
-const ACL_DRAFT='retro-acl-draft';
-function aclDraft(){try{const j=JSON.parse(localStorage.getItem(ACL_DRAFT)||'null');if(Array.isArray(j))return j;}catch(e){}return PROF_LIST.slice();}
-function aclSaveDraft(L){try{localStorage.setItem(ACL_DRAFT,JSON.stringify(L));}catch(e){}}
-function adminPanel(){
-  aclInit();if(!ACL.admin)return;
-  let L=aclDraft();
-  const list=h('ul',{class:'acl-list'}),inp=h('input',{type:'text',placeholder:'Nom Prénom ou identifiant Moodle','aria-label':'Enseignant à ajouter'}),
-    out=h('div',{class:'acl-out'}),gen=h('button',{class:'btn',onclick:()=>aclBuild(L,out,gen)},'📦 Générer le paquet SCORM avec cette liste');
-  const changed=()=>JSON.stringify(L)!==JSON.stringify(PROF_LIST);
-  const draw=()=>{list.innerHTML='';
-    if(!L.length)list.append(h('li',{class:'hint'},'Aucun autre enseignant pour l’instant.'));
-    L.forEach((e,i)=>list.append(h('li',null,h('span',null,e),h('button',{class:'acl-x','aria-label':'Retirer '+e,onclick:()=>{L.splice(i,1);aclSaveDraft(L);draw();}},'✕'))));
-    st.textContent=changed()?'Liste modifiée : génère le nouveau paquet puis remplace-le dans Moodle pour qu’elle s’applique.':'Cette liste est celle du paquet installé.';
-    st.className='acl-st'+(changed()?' warn':'');};
-  const add=()=>{const v=inp.value.trim();if(!v)return;if(!L.some(x=>aclNorm(x)===aclNorm(v)))L.push(v);inp.value='';aclSaveDraft(L);draw();inp.focus();};
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();add();}});
-  const st=h('p',{class:'acl-st'});
-  const card=h('div',{class:'card quiz acl'},h('h2',{class:'stamp'},'Administration'),
-    h('p',{class:'center hint'},'Connecté en tant que ',h('b',null,ACL.name||ACL.id),ACL.id&&ACL.name?' ('+ACL.id+')':'','. Toi seul vois ce panneau et le tableau de bord.'),
-    h('h3',null,'Enseignants avec le profil Prof'),
-    h('p',{class:'hint'},'Saisis le nom tel qu’il apparaît dans Moodle (l’ordre nom / prénom n’a pas d’importance) ou l’identifiant Moodle. Ces comptes verront le bouton « Mode prof » : avec le mot de passe prof, ils pourront passer d’une mission à l’autre et voir le corrigé, sans accès au tableau de bord ni à ce panneau. Tous les autres comptes sont des élèves.'),
-    list,h('div',{class:'acl-add'},inp,h('button',{class:'btn',onclick:add},'Ajouter')),st,
-    h('p',{class:'hint'},'Moodle ne permet pas au jeu de partager une liste entre comptes : elle est inscrite dans le paquet SCORM. Après une modification, génère le paquet ici, puis dans Moodle : paramètres de l’activité › Paquet › remplace le fichier et enregistre. La progression des élèves est conservée.'),
-    h('div',{class:'row'},gen),out,
-    h('div',{class:'row'},h('button',{class:'btn ghost',onclick:()=>{closeTop();openTDB();}},'📊 Tableau de bord'),h('button',{class:'btn ghost',onclick:closeTop},'Fermer')));
-  draw();layer(card);
-}
-function aclLoadZip(){return window.JSZip?Promise.resolve():new Promise((ok,ko)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=ok;s.onerror=()=>ko(new Error('JSZip introuvable'));document.head.append(s);});}
-async function aclBuild(L,out,btn){
-  btn.disabled=true;out.innerHTML='';const msg=h('p',{class:'hint'},'Préparation…');out.append(msg);
-  try{
-    await aclLoadZip();
-    const files=await (await fetch('scorm-files.json',{cache:'no-store'})).json();
-    const zip=new JSZip();let i=0;
-    for(const f of files){i++;msg.textContent=`Récupération des fichiers du paquet : ${i} / ${files.length}`;
-      const r=await fetch(f,{cache:'no-store'});if(!r.ok)throw new Error(f+' : '+r.status);
-      if(f==='index.html'){let t=await r.text();const a=t.indexOf('/*PROFS*/'),b=t.indexOf('/*PROFS*/',a+9);if(a<0||b<0)throw new Error('liste introuvable dans index.html');
-        t=t.slice(0,a+9)+JSON.stringify(L)+t.slice(b);zip.file(f,t);}
-      else zip.file(f,await r.arrayBuffer());}
-    msg.textContent='Compression…';
-    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}},m=>{msg.textContent=`Compression : ${Math.round(m.percent)} %`;});
-    const url=URL.createObjectURL(blob),name='mission-retro-automatique-scorm.zip';
-    const a=h('a',{href:url,download:name,class:'btn'},'⬇ Télécharger '+name);
-    out.innerHTML='';out.append(h('p',null,`Paquet prêt (${(blob.size/1048576).toFixed(1)} Mo), avec ${L.length} enseignant${L.length>1?'s':''} autorisé${L.length>1?'s':''}.`),h('div',{class:'row'},a));
-    try{a.click();}catch(e){}
-  }catch(e){out.innerHTML='';out.append(h('p',{class:'acl-st warn'},'Génération impossible : '+(e.message||e)+'. Tu peux aussi me demander le paquet à jour.'));}
-  btn.disabled=false;
 }
 
 /* ===================== MODE PROF ===================== */
@@ -3096,7 +3042,7 @@ function profMenu(){
       h('div',{class:'pmiss'},...CH().map(ch=>h('button',{class:'pmis pm'+(ch.n===5?'5m':ch.n),onclick:()=>{closeAll();C.ch=ch.n;csave();renderClassic();}},h('b',null,'Chapitre '+ch.n),h('span',null,ch.t))),
         h('button',{class:'pmis pm5',onclick:()=>{closeAll();C.ch='bilan';csave();renderClassic();}},h('b',null,'Bilan'),h('span',null,'Notes par chapitre'))),
       h('div',{class:'row',style:{marginTop:'14px'}},
-        h('button',{class:'btn',style:{background:'var(--gold)',color:'#1b1405'},onclick:()=>{closeTop();profKey();}},'Voir le corrigé'),aclAdmin()?h('button',{class:'btn',onclick:()=>{closeTop();openTDB();}},'📊 Tableau de bord'):null,aclAdmin()?h('button',{class:'btn',onclick:()=>{closeTop();adminPanel();}},'🛡 Administration'):null,
+        h('button',{class:'btn',style:{background:'var(--gold)',color:'#1b1405'},onclick:()=>{closeTop();profKey();}},'Voir le corrigé'),aclAdmin()?h('button',{class:'btn',onclick:()=>{closeTop();openTDB();}},'📊 Tableau de bord'):null,
         h('button',{class:'btn ghost',onclick:()=>{S={m:0,scene:null,f:{}};save();resetClassic();closeAll();renderClassic();toast('Progression et score effacés');}},'Effacer la progression'),
         h('button',{class:'btn ghost',onclick:resetMode},'Changer de format'),
         h('button',{class:'btn ghost',onclick:()=>{PROF=null;try{sessionStorage.removeItem('retro-prof');}catch(e){}closeAll();renderClassic();}},'Quitter le mode prof')));
@@ -3108,7 +3054,7 @@ function profMenu(){
       h('button',{class:'pmis pm5m',onclick:()=>{closeAll();profPrereq(5);briefing(5);}},h('b',null,'Mission 5'),h('span',null,'Démasquer la carte de régulation')),
       h('button',{class:'pmis pm6',onclick:()=>{closeAll();profPrereq(6);briefing(6);}},h('b',null,'Mission 6'),h('span',null,'Reprogrammer la carte de régulation'))),
     h('div',{class:'row',style:{marginTop:'14px'}},
-      h('button',{class:'btn',style:{background:'var(--gold)',color:'#1b1405'},onclick:()=>{closeTop();profKey();}},'Voir le corrigé'),aclAdmin()?h('button',{class:'btn',onclick:()=>{closeTop();openTDB();}},'📊 Tableau de bord'):null,aclAdmin()?h('button',{class:'btn',onclick:()=>{closeTop();adminPanel();}},'🛡 Administration'):null,
+      h('button',{class:'btn',style:{background:'var(--gold)',color:'#1b1405'},onclick:()=>{closeTop();profKey();}},'Voir le corrigé'),aclAdmin()?h('button',{class:'btn',onclick:()=>{closeTop();openTDB();}},'📊 Tableau de bord'):null,
       h('button',{class:'btn ghost',onclick:()=>{S={m:0,scene:null,f:{}};save();resetClassic();closeAll();showTitle();updScore(0);toast('Progression et score effacés');}},'Effacer la progression'),
       h('button',{class:'btn ghost',onclick:resetMode},'Changer de format'),
       h('button',{class:'btn ghost',onclick:()=>{PROF=null;try{sessionStorage.removeItem('retro-prof');}catch(e){}closeAll();showTitle();}},'Quitter le mode prof')));
