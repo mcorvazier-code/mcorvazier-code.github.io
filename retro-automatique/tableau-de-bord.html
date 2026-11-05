@@ -404,7 +404,7 @@ dl.meta dt{color:var(--fg-3)} dl.meta dd{margin:0}
     </div>
     <div class="gauges" id="gauges" aria-hidden="true"></div>
     <div class="actions">
-      <button class="btn primary" id="btnImport" type="button">Importer un export Moodle</button>
+      <button class="btn primary" id="btnImport" type="button">Importer les données SCORM de Moodle</button>
       <button class="btn" id="btnRoster" type="button">Liste des élèves</button>
       <button class="btn" id="btnSettings" type="button">Paramètres</button>
     </div>
@@ -1009,7 +1009,7 @@ function renderTop(){
 const VIEWS=[["global","Bilan global"],...MISSIONS.map(m=>["m"+m.n,"Mission "+m.n]),["mail","Rapports individuels"],["proj","Débriefing en classe"],["format","Format SCORM"]];
 function renderNav(){
   const sub=ui.view==="mail"||ui.view==="proj"||ui.view==="bank",here=v=>ui.view===v||(sub&&v==="m"+ui.from);
-  $("#nav").innerHTML=VIEWS.filter(([v])=>v!=="mail"&&v!=="proj").map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${here(v)}">${/^m\d$/.test(v)?`<span class="mk">${v[1]}</span>`+l.replace("Mission ","Mission&nbsp;"):l}</button>`).join("");
+  $("#nav").innerHTML=VIEWS.filter(([v])=>v!=="mail"&&v!=="proj"&&v!=="format").map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${here(v)}">${/^m\d$/.test(v)?`<span class="mk">${v[1]}</span>`+l.replace("Mission ","Mission&nbsp;"):l}</button>`).join("");
   $("#nav").querySelectorAll("button").forEach(b=>b.onclick=()=>{ui.view=b.dataset.v;tip.hidden=true;if(document.fullscreenElement)document.exitFullscreen?.();render();window.scrollTo({top:0})});
 }
 function renderFilters(){
