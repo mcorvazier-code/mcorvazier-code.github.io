@@ -575,7 +575,7 @@ const EX0=[
 ["n3lect","Coupure d'un 2nd ordre","H(p) = 4/(1 + 0,5.p + 0,25.p²).\na) Donner K, ω0 et m.\nb) Calculer ωr et le gain maximal en dB.\nc) Déterminer numériquement ω0dB.","a) K = 4 ; ω0 = 2 rad/s ; m = 0,5\nb) ωr ≈ 1,41 rad/s ; ≈ 13,3 dB\nc) ω0dB ≈ 4,2 rad/s"],
 /* ---- Mission 4 ---- */
 ["n4rap","Rapidité d'un 1er ordre","Une régulation se comporte en boucle fermée comme un 1er ordre de constante de temps 1 500 s. Le cahier des charges impose tr5 % ≤ 3 600 s.\na) Calculer tr5 %.\nb) Le critère est-il respecté ?\nc) Quelle constante de temps maximale faudrait-il ?","a) tr5 % ≈ 4 500 s\nb) non\nc) τ ≤ 1 200 s"],
-["n4rap","Rapidité d'un 2nd ordre","La boucle fermée est un 2nd ordre de m = 0,7 et ω0 = 0,002 rad/s.\na) Estimer tr5 % avec l'abaque.\nb) Le critère tr5 % ≤ 3 600 s est-il respecté ?","a) tr5 %.ω0 ≈ 2,9 donc tr5 % ≈ 1 450 s\nb) oui"],
+["n4rap","Rapidité d'un 2nd ordre","La boucle fermée est un 2nd ordre de m = 0,7 et ω0 = 0,002 rad/s.\na) Estimer tr5 % avec l'abaque (figure).\nb) Le critère tr5 % ≤ 3 600 s est-il respecté ?","a) tr5 %.ω0 ≈ 2,9 donc tr5 % ≈ 1 450 s\nb) oui"],
 ["n4marg","Marges d'un système de classe 1","FTBO(p) = 10/(p.(1 + 0,1.p)).\na) Calculer la pulsation de coupure ωc (gain = 0 dB).\nb) En déduire la marge de phase.\nc) Que vaut la marge de gain ?\nd) Comparer au cahier des charges (Mφ ≥ 45°, MG ≥ 12 dB).","a) ωc ≈ 7,9 rad/s\nb) Mφ ≈ 52°\nc) infinie (la phase n'atteint jamais −180°)\nd) respecté"],
 ["n4marg","Trois pôles","FTBO(p) = 4/(1 + p)³.\na) À quelle pulsation la phase vaut-elle −180° ? En déduire la marge de gain.\nb) Calculer ωc et la marge de phase.\nc) Quel gain maximal garantirait MG = 12 dB ?","a) ω = √3 ≈ 1,73 rad/s ; MG ≈ 6 dB\nb) ωc ≈ 1,23 rad/s ; Mφ ≈ 27°\nc) K ≈ 2,0"],
 ["n4marg","Lecture dans Black","Dans le lieu de Black d'une FTBO, la courbe croise 0 dB à la phase −151° et croise la phase −180° à −8 dB (voir la figure).\na) Donner Mφ et MG.\nb) Le cahier des charges est-il respecté ?","a) Mφ ≈ 29° ; MG = 8 dB\nb) non : les deux marges sont insuffisantes"],
@@ -606,7 +606,9 @@ const EX0=[
 ["n6pi","Comparer deux réglages","Processus G(p) = 2/(1 + 100.p), PI avec Kp = 5.\na) Pour τi = 100 s : ωc et marge de phase.\nb) Pour τi = 10 s : ωc ≈ 0,13 rad/s. Phase du PI à ωc et marge de phase.\nc) Quel réglage préférer ?","a) ωc = 0,1 rad/s ; Mφ = 90°\nb) ≈ −38° ; Mφ ≈ 56°\nc) τi = 100 s (compensation de pôle)"]];
 const NIDX=Object.fromEntries(NOTIONS.map(n=>[n.id,n]));
 const Q2N={};NOTIONS.forEach(n=>n.q.forEach(q=>Q2N[q]=n.id));
-const EXB=(()=>{const c={};return EX0.map(([n,t,e,r])=>{c[n]=(c[n]||0)+1;return {id:n+"-"+c[n],n,m:NIDX[n].m,t,e,r}})})();
+/* exercices retirés après relecture (gardés ici pour ne pas décaler les identifiants) */
+const EXDROP=new Set(["n4marg-2"]);
+const EXB=(()=>{const c={};return EX0.map(([n,t,e,r])=>{c[n]=(c[n]||0)+1;return {id:n+"-"+c[n],n,m:NIDX[n].m,t,e,r}}).filter(e=>!EXDROP.has(e.id))})();
 
 /* ---------- Illustrations des exercices (SVG dessiné ici, rasterisé pour le PDF) ----------
    Les courbes sont calculées à partir des données de l'énoncé : elles servent à lire ou à situer l'exercice. */
@@ -691,6 +693,9 @@ const FIGS={
    S.forEach(([n,G,P],i)=>{const X=36+i*165;const f1=frame({x:w,y:[-60,40],box:[X,24,140,100],yt:[-40,0,40],logx:true,title:"Bode "+n,yf:v=>String(v).replace("-","−")}),f2=frame({x:w,y:[-200,0],box:[X,136,140,70],xt:[.01,1,100],yt:[-180,-90,0],logx:true,xf:wfmt,yf:v=>String(v).replace("-","−")});
      g+=f1.g+f2.g+f1.path(ws.map(v=>[v,G(v)]),FK.a,1.8)+f2.path(ws.map(v=>[v,P(v)]),FK.b,1.8)});
    return svgWrap(530,240,g+`<text x="10" y="80" font-size="10" fill="${FK.ink}" ${FF} transform="rotate(-90 10 80)">G (dB)</text><text x="10" y="180" font-size="10" fill="${FK.ink}" ${FF} transform="rotate(-90 10 180)">φ (°)</text><text x="520" y="236" font-size="10.5" text-anchor="end" fill="${FK.ink}" ${FF}>ω (rad/s)</text>`)}},
+ "n4rap-2":{cap:"Abaque des temps de réponse à 5 % du 2nd ordre.",svg:()=>{const L=Math.log10,yT=[1,2,3,5,10,20,50,100],a=frame({x:[.05,10],y:[0,2],box:[52,26,450,250],xt:[.05,.1,.2,.3,.5,.7,1,2,3,5,10],yt:yT.map(L),logx:true,xf:v=>nf(v,2),yf:v=>String(Math.round(10**v)),xl:"coefficient d'amortissement m",yl:"tr5 %.ω0",title:"Abaque des temps de réponse à 5 %"});
+   let gg="";[.06,.07,.08,.09,.4,.6,.8,.9,4,6,7,8,9].forEach(v=>{gg+=`<line x1="${a.sx(v)}" x2="${a.sx(v)}" y1="26" y2="276" stroke="${FK.grid}" stroke-width=".4"/>`});[4,6,7,8,9,30,40,60,70,80,90].forEach(v=>{gg+=`<line x1="52" x2="502" y1="${a.sy(L(v))}" y2="${a.sy(L(v))}" stroke="${FK.grid}" stroke-width=".4"/>`});
+   return svgWrap(520,316,a.g+gg+a.path(ABAQ.map(([m,t])=>[m,L(t)]),FK.b,2))}},
  "n4marg-3":{cap:"Lieu de Black de la FTBO, avec le point critique (−180° ; 0 dB).",svg:()=>{const K=.7962,ws=Array.from({length:241},(_,i)=>.1*(30/.1)**(i/240));
    const pts=ws.map(w=>[-90-2*Math.atan(w)*180/Math.PI,20*Math.log10(K/(w*(1+w*w)))]);const f=frame({x:[-270,-90],y:[-30,20],box:[52,22,450,200],xt:[-270,-240,-210,-180,-150,-120,-90],yt:[-30,-20,-10,0,10,20],xl:"φ (°)",yl:"G (dB)",xf:v=>String(v).replace("-","−"),yf:v=>String(v).replace("-","−")});
    return svgWrap(520,262,f.g+f.hl(0,FK.ink,"0")+f.vl(-180,FK.ink,"0")+f.path(pts,FK.a,2)+`<circle cx="${f.sx(-180)}" cy="${f.sy(0)}" r="4" fill="none" stroke="${FK.mark}" stroke-width="2"/>`+f.dot(-151,0,FK.c)+f.dot(-180,-8,FK.c)+f.txt(-151,0,"−151° ; 0 dB",{dx:6,dy:-7})+f.txt(-180,-8,"−180° ; −8 dB",{dx:-8,dy:14,anchor:"end"})+f.txt(-135,-22,"ω croissant ↙",{col:FK.dim}))}},
