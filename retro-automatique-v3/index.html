@@ -3677,7 +3677,6 @@ function openStudy(n0){
       const mk=h('span',{class:'st-mk','aria-live':'polite'}),sol=h('span',{class:'st-sol'});
       inp.addEventListener('input',()=>{mk.textContent='';mk.className='st-mk';});
       return {p,inp,mk,sol,row:h('label',{class:'st-part'},h('span',{class:'st-l'},p.l),h('span',{class:'st-in'},inp,p.u?h('span',{class:'st-u'},p.u):null,mk),sol)};});
-    const res=h('div',{class:'st-res',hidden:true},h('b',null,'Résultats de la banque'),h('pre',null,e.r));
     const msg=h('p',{class:'st-msg','aria-live':'polite'});
     const chk=h('button',{class:'btn',onclick:()=>{
       const filled=fields.filter(f=>String(f.inp.value).trim()!=='');if(!filled.length){msg.textContent='Saisis au moins un résultat avant de vérifier.';return;}
@@ -3686,7 +3685,7 @@ function openStudy(n0){
       if(o===fields.length){if(!x.d)x.d=1;msg.textContent=x.k===1?'Tout est juste du premier coup !':'Tout est juste !';sfx('ok');}
       else{msg.textContent=o+' / '+fields.length+' juste'+(o>1?'s':'')+'. Corrige ce qui est marqué ✗, ou consulte les résultats.';sfx('ko');}
       rev.disabled=false;save();try{TRK.schedule();}catch(err){}}},'Vérifier');
-    const rev=h('button',{class:'btn ghost',disabled:!x.k&&!x.d,onclick:()=>{res.hidden=false;
+    const rev=h('button',{class:'btn ghost',disabled:!x.k&&!x.d,onclick:()=>{
       fields.forEach(f=>{f.sol.textContent='→ '+(f.p.c?f.p.c[f.p.a]:stFmt(f.p.n)+(f.p.u?' '+f.p.u:''));});
       if(!x.d){x.d=2;save();try{TRK.schedule();}catch(err){}}msg.textContent='Compare tes résultats et reprends ce qui ne va pas.';}},'Voir les résultats');
     const fig=ST_FIG[id];
@@ -3696,7 +3695,7 @@ function openStudy(n0){
       fig?h('figure',{class:'st-fig'},h('div',{html:fig.svg()}),h('figcaption',null,fig.cap)):null,
       h('div',{class:'st-parts'},...fields.map(f=>f.row)),
       h('p',{class:'hint'},'Nombres décimaux avec une virgule ou un point ; les angles en degrés, les gains en dB.'),
-      msg,h('div',{class:'row'},chk,rev),res,
+      msg,h('div',{class:'row'},chk,rev),
       (()=>{const k=d.i.indexOf(id),prev=d.i[k-1],next=d.i[k+1];
         return h('div',{class:'st-nav'},
           h('button',{class:'btn ghost',disabled:!prev,title:prev?stEx(prev).t:'',onclick:()=>{if(prev){drawTabs();exo(prev);}}},'‹ Précédent'),
