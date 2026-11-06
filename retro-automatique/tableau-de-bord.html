@@ -838,7 +838,7 @@ function parseSheet(R,fileName){
     if((!nom||cP<0)&&cF>=0){const sp=splitName(r[cF]);nom=nom||sp.nom;prenom=prenom||sp.prenom}
     else if(cP<0&&nom){const sp=splitName(nom);nom=sp.nom;prenom=sp.prenom}
     if(!nom)return;
-    const items={},tps={},res={},fin={},deb={},mm={},ind={},auto={};let mode=null,gscore=null;
+    const items={},tps={},res={},fin={},deb={},mm={},ind={},auto={},sx={};let mode=null,gscore=null;
     B.forEach(b=>{const id=String(r[b.q]??"").trim();if(!id||id==="-")return;
       const k=qKey(id),rv=r[b.res],resp=b.r!=null?String(r[b.r]??"").trim():"";
       if(QIDX[k]!=null){const p=parseResult(rv);if(p===undefined)return;
@@ -848,6 +848,10 @@ function parseSheet(R,fileName){
       if(k==="mode"){mode=fmtOf(resp||rv);return}
       if((m=k.match(/^m?(\d)[_\-]?(mode|format)$/))){const f=fmtOf(resp||rv);if(f)mm[m[1]]=f;return}
       if((m=k.match(/^m?(\d)[_\-]?(auto|autoeval|autopos(?:itionnement)?)$/))){const v=toNum(resp)??toNum(rv);if(v!=null&&v>=1&&v<=5)auto[m[1]]=v;return}
+      /* salle d'études (jeu V3) : exercices proposés à la fin de la mission, puis chaque exercice terminé */
+      const sxOf=n=>sx[n]=sx[n]||{i:[],a:0,x:{}};
+      if((m=k.match(/^m?(\d)[_\-]?exo$/))){const t=String(resp||"").trim(),o=sxOf(m[1]);o.a=/^a:/i.test(t)?1:0;o.i=t.replace(/^a:/i,"").split(/\s+/).filter(Boolean);return}
+      if((m=k.match(/^m?(\d)[_\-]x[_\-](.+)$/))){sxOf(m[1]).x[m[2]]={d:/reussi/.test(norm(resp))?1:2,p:toNum(rv)};return}
       if((m=k.match(/^m?(\d)[_\-]?(ind|indices?|hints?)$/))){const v=toNum(resp)??toNum(rv);if(v!=null)ind[m[1]]=v;return}
       if(k==="score"||k==="score_jeu"){const v=toNum(resp)??toNum(rv);if(v!=null)gscore=v;return}
       if((m=k.match(/^m?(\d)[_\-]?(tps|temps|time)$/))){const v=toNum(resp)??toNum(rv);if(v!=null)tps[m[1]]=v;return}
@@ -856,7 +860,7 @@ function parseSheet(R,fileName){
       if((m=k.match(/^m?(\d)[_\-]?(fin|end|done)$/))){const v=parseDate(resp);if(v!=null)fin[m[1]]=v;return}
       unknown.add(id)});
     rows.push({nom,prenom,email:cM>=0?String(r[cM]??"").trim():"",group:cG>=0?String(r[cG]??"").trim():"",
-      att:cA>=0?toNum(r[cA]):null,start:cS>=0?parseDate(r[cS]):null,last:cL>=0?parseDate(r[cL]):null,score:cSc>=0?toNum(r[cSc]):null,items,tps,res,fin,deb,mm,ind,auto,gscore,mode});
+      att:cA>=0?toNum(r[cA]):null,start:cS>=0?parseDate(r[cS]):null,last:cL>=0?parseDate(r[cL]):null,score:cSc>=0?toNum(r[cSc]):null,items,tps,res,fin,deb,mm,ind,auto,sx,gscore,mode});
   });
   if(!rows.length)return {err:"aucun élève trouvé sous l'en-tête"};
   /* le format vient des interactions M{n}_MODE envoyées par le paquet ; le nom du fichier ne sert plus à le deviner */
@@ -870,9 +874,9 @@ function rebuild(){
   G.forEach((L,k)=>{
     const withData=L.filter(x=>Object.keys(x.items).length);const pool=withData.length?withData:L;
     let pick;if(D.att==="last")pick=pool.reduce((b,x)=>((x.att??0)-(b.att??0)||(x.start??0)-(b.start??0))>=0?x:b);else if(D.att==="first")pick=pool.reduce((b,x)=>(x.start??0)<=(b.start??0)?x:b);else pick=pool.reduce((b,x)=>ptsSum(x)>=ptsSum(b)?x:b);
-    const mm=Object.assign({},...L.map(x=>x.mm||{}),pick.mm||{}),ind=Object.assign({},...L.map(x=>x.ind||{}),pick.ind||{}),auto=Object.assign({},...L.map(x=>x.auto||{}),pick.auto||{});
+    const mm=Object.assign({},...L.map(x=>x.mm||{}),pick.mm||{}),ind=Object.assign({},...L.map(x=>x.ind||{}),pick.ind||{}),auto=Object.assign({},...L.map(x=>x.auto||{}),pick.auto||{}),sx=Object.assign({},...L.map(x=>x.sx||{}),pick.sx||{});
     const base=pick.mode||L.map(x=>x.mode).find(Boolean)||null,gs=pick.gscore??L.map(x=>x.gscore).find(v=>v!=null)??null;
-    out.push({...pick,key:k,nAtt:withData.length,mm,ind,auto,gscore:gs,mode:summaryMode({...pick,mm,mode:base}),baseMode:base,group:pick.group||L.map(x=>x.group).find(Boolean)||"",email:pick.email||L.map(x=>x.email).find(Boolean)||""})});
+    out.push({...pick,key:k,nAtt:withData.length,mm,ind,auto,sx,gscore:gs,mode:summaryMode({...pick,mm,mode:base}),baseMode:base,group:pick.group||L.map(x=>x.group).find(Boolean)||"",email:pick.email||L.map(x=>x.email).find(Boolean)||""})});
   D.students=out;
 }
 
@@ -898,7 +902,7 @@ function stats(s){
     const pts=Q.reduce((a,q)=>a+(s.items[q.id]?.pts||0),0);
     const allOk=Q.every(q=>s.items[q.id]&&s.items[q.id].pts!=null); // une question enregistrée est une question réussie (on ne passe pas sans la bonne réponse)
     const o={n:m.n,state:done.length===0?"none":allOk?"v":"p",done:done.length,tot:Q.length,note:allOk?20*pts/Q.length:null,partial:done.length?20*pts/Q.length:null,
-      first:done.length?100*done.filter(q=>s.items[q.id].err===0).length/done.length:null,err:done.reduce((a,q)=>a+(s.items[q.id].err||0),0),tps:s.tps?.[m.n]??null,res:s.res?.[m.n]??null,fin:s.fin?.[m.n]??null,ind:s.ind?.[m.n]??null,auto:s.auto?.[m.n]??null,mode:done.length?missionMode(s,m.n):null};
+      first:done.length?100*done.filter(q=>s.items[q.id].err===0).length/done.length:null,err:done.reduce((a,q)=>a+(s.items[q.id].err||0),0),tps:s.tps?.[m.n]??null,res:s.res?.[m.n]??null,fin:s.fin?.[m.n]??null,ind:s.ind?.[m.n]??null,auto:s.auto?.[m.n]??null,sal:salOf(s,m.n),mode:done.length?missionMode(s,m.n):null};
     o.status=mStatus(o,s);return o});
   const vals=Object.values(s.items).filter(it=>it.pts!=null);
   const started=vals.length>0,nv=ms.filter(m=>m.state==="v").length,fini=nv===NM;
@@ -1241,11 +1245,11 @@ const msDots=st=>`<span class="ms">${st.ms.map(x=>{const c=x.state==="v"?"v"+(x.
   return `<i class="${c}" title="Mission ${x.n} : ${MSTATUS[x.status][0].toLowerCase()}${x.fin?" le "+dateFmt(x.fin):""}">${x.n}</i>`}).join("")}</span>`;
 function colsFor(scope){
   if(scope==="global")return [["nom","Nom"],["prenom","Prénom"],["group","Classe"],["mode","Format"],["status","Parcours"],["nv","Missions"],["ontime","Avant le cours",1],["note","Note /20",1],["first","1er essai",1],["errs","Erreurs",1],["ind","Indices",1],["dur","Temps d'activité",1],["nuit","Tard le soir",1]];
-  return [["nom","Nom"],["prenom","Prénom"],["group","Classe"],["mode","Format"],["mstate","Mission"],["mfin","Validée le"],["mnote","Note /20",1],["merr","Erreurs",1],["mind","Indices",1],["mauto","Auto",1],["mq","Questions"],["mtps","Temps d'activité",1]];
+  return [["nom","Nom"],["prenom","Prénom"],["group","Classe"],["mode","Format"],["mstate","Mission"],["mfin","Validée le"],["mnote","Note /20",1],["merr","Erreurs",1],["mind","Indices",1],["mauto","Auto",1],["msal","Salle d'études",1],["mq","Questions"],["mtps","Temps d'activité",1]];
 }
 const MORD={atemps:6,fini:5,retard:4,cours:3,inach:2,nonfait:1,attente:0};
 function sortVal(s,k,scope){const st=stats(s),mi=scope==="global"?0:+scope[1]-1,m=st.ms[mi];
-  switch(k){case "nom":return norm(s.nom);case "prenom":return norm(s.prenom);case "group":return st.group;case "mode":return (scope==="global"?s.mode:m.mode)||"z";case "status":return st.status;case "ind":return st.ind??-1;case "nuit":{const d=deepest(st.night||[]);return d?d.depth:-1}case "mind":return m.ind??-1;case "mauto":return m.auto??-1;
+  switch(k){case "nom":return norm(s.nom);case "prenom":return norm(s.prenom);case "group":return st.group;case "mode":return (scope==="global"?s.mode:m.mode)||"z";case "status":return st.status;case "ind":return st.ind??-1;case "nuit":{const d=deepest(st.night||[]);return d?d.depth:-1}case "mind":return m.ind??-1;case "mauto":return m.auto??-1;case "msal":return m.sal?m.sal.d/m.sal.n:-1;
     case "ontime":return st.due?st.ontime/st.due:-1;case "mstate":return MORD[m.status];case "mfin":return m.fin??Infinity;
     case "mnote":return m.note??-1;case "merr":return m.state==="none"?-1:m.err;case "mtps":return m.tps??-1;case "mq":return m.err;default:return st[k]??-1}}
 function tableRows(R,scope){
@@ -1270,7 +1274,7 @@ function bindStudents(v,scope){
         <td class="r">${st.note==null?"–":`<span class="mini"><span class="track"><span class="fill" style="width:${st.note*5}%;background:${scoreCol(st.note)}"></span></span><span class="num">${fmt(st.note)}</span></span>`}</td>
         <td class="r num">${pc(st.first)}</td><td class="r num">${st.started?st.errs:"–"}</td><td class="r num">${st.ind??"–"}</td><td class="r num">${durFmt(st.dur)}</td><td class="r">${(()=>{const d=deepest(st.night||[]);return d?`<span class="chip ${d.night?"bad":"warn"}" title="${esc(momentsTxt(st.night))}">${d.at}</span>`:"–"})()}</td></tr>`;
       return `<tr class="st" data-open="${esc(s.key)}" tabindex="0">${base}<td>${mChip(m)}</td><td>${m.fin?dateFmt(m.fin):"–"}</td>
-        <td class="r num">${m.note==null?"–":fmt(m.note)}</td><td class="r num">${m.state==="none"?"–":m.err}</td><td class="r num">${m.ind??"–"}</td><td class="r num" title="${m.auto!=null?esc(starsTxt(m.auto)):""}">${m.auto==null?"–":m.auto+" / 5"}</td>
+        <td class="r num">${m.note==null?"–":fmt(m.note)}</td><td class="r num">${m.state==="none"?"–":m.err}</td><td class="r num">${m.ind??"–"}</td><td class="r num" title="${m.auto!=null?esc(starsTxt(m.auto)):""}">${m.auto==null?"–":m.auto+" / 5"}</td><td class="r num" title="${m.sal?esc(m.sal.d+" exercice(s) terminé(s) sur "+m.sal.n+" proposé(s), dont "+m.sal.ok+" réussi(s)"):""}">${salTxt(m.sal)}</td>
         <td><span class="qc">${Q.map(q=>{const it=s.items[q.id],c=ecat(it);return `<i class="${c||""}" title="${esc(q.id+" · "+q.t)}${it&&it.pts!=null?" : "+(it.err===0?"1er essai":it.err+" erreur"+(it.err>1?"s":"")):""}">${c==="c0"?"✓":c?it.err:""}</i>`}).join("")}</span></td>
         <td class="r num">${m.tps==null?"–":durFmt(m.tps/60)}</td></tr>`}).join("")}</tbody></table>`;
     $("#tbl").querySelectorAll("th.sort").forEach(th=>th.onclick=()=>{const k=th.dataset.k;ui.sort={k,dir:ui.sort.k===k?-ui.sort.dir:(C.find(c=>c[0]===k)[2]?-1:1)};draw()});
@@ -1283,8 +1287,8 @@ function bindStudents(v,scope){
   $("#btnNames").onclick=()=>copy(tableRows(R,scope).map(s=>s.nom+" "+s.prenom).join("\n"));
   v.querySelectorAll("circle[data-open]").forEach(el=>el.addEventListener("click",()=>{tip.hidden=true;openStudent(el.dataset.open,[])}));
 }
-function tsv(L){return [["Nom","Prénom","Classe","Format","Parcours","Missions validées",...MISSIONS.map(m=>"Format M"+m.n),...MISSIONS.map(m=>"Indices M"+m.n),...MISSIONS.map(m=>"Auto M"+m.n),"Score du jeu",...MISSIONS.map(m=>"Statut M"+m.n),...MISSIONS.map(m=>"Validée le M"+m.n),...MISSIONS.map(m=>"Note M"+m.n),...MISSIONS.map(m=>"Erreurs M"+m.n),"Note /20","1er essai (%)","Temps d'activité (min)"].join("\t"),
-  ...L.map(s=>{const st=stats(s);return [s.nom,s.prenom,st.group,s.mode?MODES[s.mode]:"",STATUS[st.status][0],st.nv,...st.ms.map(m=>m.mode?MODES[m.mode]:""),...st.ms.map(m=>m.ind??""),...st.ms.map(m=>m.auto??""),s.gscore??"",...st.ms.map(m=>MSTATUS[m.status][0]),...st.ms.map(m=>m.fin?dateFmt(m.fin):""),...st.ms.map(m=>m.note==null?"":fmt(m.note)),...st.ms.map(m=>m.state==="none"?"":m.err),st.note==null?"":fmt(st.note),st.first==null?"":Math.round(st.first),st.dur==null?"":Math.round(st.dur)].join("\t")})].join("\n")}
+function tsv(L){return [["Nom","Prénom","Classe","Format","Parcours","Missions validées",...MISSIONS.map(m=>"Format M"+m.n),...MISSIONS.map(m=>"Indices M"+m.n),...MISSIONS.map(m=>"Auto M"+m.n),...MISSIONS.map(m=>"Salle d'études M"+m.n),"Score du jeu",...MISSIONS.map(m=>"Statut M"+m.n),...MISSIONS.map(m=>"Validée le M"+m.n),...MISSIONS.map(m=>"Note M"+m.n),...MISSIONS.map(m=>"Erreurs M"+m.n),"Note /20","1er essai (%)","Temps d'activité (min)"].join("\t"),
+  ...L.map(s=>{const st=stats(s);return [s.nom,s.prenom,st.group,s.mode?MODES[s.mode]:"",STATUS[st.status][0],st.nv,...st.ms.map(m=>m.mode?MODES[m.mode]:""),...st.ms.map(m=>m.ind??""),...st.ms.map(m=>m.auto??""),...st.ms.map(m=>m.sal?m.sal.d+"/"+m.sal.n:""),s.gscore??"",...st.ms.map(m=>MSTATUS[m.status][0]),...st.ms.map(m=>m.fin?dateFmt(m.fin):""),...st.ms.map(m=>m.note==null?"":fmt(m.note)),...st.ms.map(m=>m.state==="none"?"":m.err),st.note==null?"":fmt(st.note),st.first==null?"":Math.round(st.first),st.dur==null?"":Math.round(st.dur)].join("\t")})].join("\n")}
 
 /* ---------- Fiche élève ---------- */
 function peersOf(s){const all=ROWS.filter(x=>stats(x).started);return D.avg==="group"&&stats(s).group!=="—"?all.filter(x=>stats(x).group===stats(s).group):all}
@@ -1300,7 +1304,7 @@ function openStudent(key,order){
     ${st.started?`<div class="cmp"><h3>Missions <span class="foot" style="font-family:var(--f-body);font-weight:400">· trait : moyenne ${D.avg==="group"?"de la classe":"de la promotion"}</span></h3>${st.ms.map((m,j)=>{const avg=mean(peers.map(x=>stats(x).ms[j].note).filter(v=>v!=null));
       return `<div class="it"><div class="h"><span><span class="mlabel" data-m="${m.n}">M${m.n}</span> ${mChip(m)}</span><b class="num">${m.note==null?"–":fmt(m.note)+" / 20"}</b></div>
       <div class="bar2"><div class="f" style="width:${(m.note||0)*5}%;background:var(--m${m.n})"></div>${avg!=null?`<div class="m" style="left:calc(${avg*5}% - 1px)" title="Moyenne ${fmt(avg)}"></div>`:""}</div>
-      <span class="foot">${[m.mode?MODES[m.mode]:"",m.fin?"validée le "+dateFmt(m.fin):"",dl(m.n)!=null?"cours du "+dayLbl(dl(m.n)):"",m.state==="none"?"":m.err+" erreur"+(m.err>1?"s":""),m.tps!=null?durFmt(m.tps/60):"",m.res!=null?m.res+" ressource"+(m.res>1?"s":"")+" consultée"+(m.res>1?"s":""):"",m.ind?m.ind+" indice"+(m.ind>1?"s":""):"",m.auto!=null?"auto-positionnement "+m.auto+"/5":""].filter(Boolean).join(" · ")}</span>
+      <span class="foot">${[m.mode?MODES[m.mode]:"",m.fin?"validée le "+dateFmt(m.fin):"",dl(m.n)!=null?"cours du "+dayLbl(dl(m.n)):"",m.state==="none"?"":m.err+" erreur"+(m.err>1?"s":""),m.tps!=null?durFmt(m.tps/60):"",m.res!=null?m.res+" ressource"+(m.res>1?"s":"")+" consultée"+(m.res>1?"s":""):"",m.ind?m.ind+" indice"+(m.ind>1?"s":""):"",m.auto!=null?"auto-positionnement "+m.auto+"/5":"",m.sal?"salle d'études "+m.sal.d+"/"+m.sal.n:""].filter(Boolean).join(" · ")}</span>
       ${m.state!=="none"?`<span class="qc">${qOfMission(m.n).map(q=>{const it=s.items[q.id],c=ecat(it);return `<i class="${c||""}" title="${esc(q.id+" · "+q.t)}">${c==="c0"?"✓":c?it.err:""}</i>`}).join("")}</span>`:""}</div>`}).join("")}</div>
       ${(()=>{const W=weakQs(s);return W.length?`<div style="display:flex;flex-direction:column;gap:6px"><h3>Points à retravailler</h3><ul style="margin:0;padding-left:18px">${W.map(q=>`<li>${esc(q.t)} <span class="foot">(M${q.m}, ${s.items[q.id].err} erreurs)</span></li>`).join("")}</ul></div>`:""})()}`
     :`<p class="empty">Cet élève n'a pas encore lancé l'activité.</p>`}
@@ -1391,7 +1395,7 @@ function mailFor(s,sc){
     if(m.state!=="none")P.push(`• Questions réussies du premier coup : ${pc(m.first)}`);
     {const nn=nightNote(s,sc);if(nn)P.push(`• ${nn.txt}`)}
     P.push("",commentOf(s,sc).text,"",T("Le détail question par question est dans le rapport joint.","Le détail question par question est dans le rapport joint."));
-    {const E=sheetEx(s,sc);if(E.length)P.push(T(`Je t'ai aussi préparé une feuille de ${E.length} exercices ciblés sur ${notionsTxt(E)}. Les résultats sont en dernière page : cherche d'abord, puis vérifie.`,`Je vous ai aussi préparé une feuille de ${E.length} exercices ciblés sur ${notionsTxt(E)}. Les résultats sont en dernière page : cherchez d'abord, puis vérifiez.`))}
+    {const E=sheetEx(s,sc),sal=sheetOf(s,sc).src==="salle";if(E.length&&sal)P.push(T(`Tu n'as pas fait ${E.length} des exercices proposés dans l'ancienne salle d'études : je te les envoie en feuille, sur ${notionsTxt(E)}. Les résultats sont en dernière page : cherche d'abord, puis vérifie.`,`Vous n'avez pas fait ${E.length} des exercices proposés dans l'ancienne salle d'études : je vous les envoie en feuille, sur ${notionsTxt(E)}. Les résultats sont en dernière page : cherchez d'abord, puis vérifiez.`));else if(E.length)P.push(T(`Je t'ai aussi préparé une feuille de ${E.length} exercices ciblés sur ${notionsTxt(E)}. Les résultats sont en dernière page : cherche d'abord, puis vérifie.`,`Je vous ai aussi préparé une feuille de ${E.length} exercices ciblés sur ${notionsTxt(E)}. Les résultats sont en dernière page : cherchez d'abord, puis vérifiez.`))}
   }else{
     subject=`Mission Rétro-automatique : ${T("ton","votre")} bilan du parcours`;
     P.push(T(`Voici ton bilan des ${NM} missions de la Mission Rétro-automatique.`,`Voici votre bilan des ${NM} missions de la Mission Rétro-automatique.`),"",`• ${statusLine(s,0)}`);
@@ -1418,6 +1422,7 @@ function paperHTML(s,sc){
       <div class="pt">Questions de la mission</div>
       ${m.ind!=null?`<div style="font-size:11px;color:#5d625f">Indices demandés pendant la mission : <b style="color:#1b1b1b">${m.ind}</b></div>`:""}
       ${m.auto!=null?`<div style="font-size:11px;color:#5d625f">Auto-positionnement : <b style="color:#1b1b1b">${m.auto} / 5</b> <span style="color:#c48a00;letter-spacing:1px">${starsTxt(m.auto)}</span> (${AUTOL[Math.round(m.auto)].toLowerCase()})</div>`:""}
+      ${m.sal?`<div style="font-size:11px;color:#5d625f">Salle d'études : <b style="color:#1b1b1b">${m.sal.d} exercice${m.sal.d>1?"s":""} fait${m.sal.d>1?"s":""} sur ${m.sal.n}</b>${m.sal.a?" (approfondissement facultatif)":""}${m.sal.ok?", dont "+m.sal.ok+" réussi"+(m.sal.ok>1?"s":""):""}</div>`:""}
       <div class="ql">${qOfMission(sc).map(q=>{const it=s.items[q.id],k=ecat(it)||"";return `<span class="qi">${esc(q.id)}</span><span>${esc(q.t)}</span><span class="qr ${k}">${errTxt(it)}</span>`}).join("")}</div>
       ${W.length?`<div class="pt">Points à retravailler</div><ul>${W.map(q=>`<li>${esc(q.t)} (${s.items[q.id].err} erreurs) · réponse attendue : ${esc(q.ans)}</li>`).join("")}</ul>`:""}
       ${foot}</div>`}
@@ -1522,6 +1527,7 @@ function pdfFor(s,sc){
   const sect=t=>{need(16);doc.setFont("courier","bold");doc.setFontSize(11);doc.setTextColor(...ink);const tw=doc.getTextWidth(t);doc.text(t,W/2,y,{align:"center"});doc.setLineWidth(.3);doc.line(W/2-tw/2,y+1,W/2+tw/2,y+1);y+=8};
   if(sc){const m=st.ms[sc-1];if(m.ind!=null){doc.setFont("courier","normal");doc.setFontSize(9);doc.setTextColor(...grey);doc.text(pdfTxt(`Indices demandés pendant la mission : ${m.ind}`),M,y-1);y+=3}
     if(m.auto!=null){doc.setFont("courier","normal");doc.setFontSize(9);doc.setTextColor(...grey);doc.text(pdfTxt(`Auto-positionnement : ${m.auto} / 5 (${AUTOL[Math.round(m.auto)].toLowerCase()})`),M,y-1);y+=3}
+    if(m.sal){doc.setFont("courier","normal");doc.setFontSize(9);doc.setTextColor(...grey);doc.text(pdfTxt(`Salle d'etudes : ${m.sal.d} exercice(s) fait(s) sur ${m.sal.n}${m.sal.a?" (approfondissement)":""}`),M,y-1);y+=3}
     box(M,m.note==null?"-":fmt(m.note)+" / 20",`Note de mission . moy. ${fmt(a.note)}`);
     box(M+bw+4,pc(m.first),`juste du 1er coup . moy. ${pc(a.first)}`);
     box(M+2*bw+8,m.state==="none"?"-":String(m.err),`erreur${m.err>1?"s":""} . moy. ${fmt(a.err)}`);doc.setFont("helvetica","italic");doc.setFontSize(9);doc.setTextColor(...grey);doc.text(pdfTxt("La note est indicative : elle ne compte pas dans la moyenne."),M,y+22.5);y+=32;
@@ -1633,13 +1639,19 @@ function proposeSheet(s,sc){
 function sheetOf(s,sc){
   if(!sc)return {ids:[],src:"none"};const k=ckey(sc,s),c=exoD().sheets[k];
   if(c&&Array.isArray(c.ids))return {ids:c.ids.filter(id=>exById(id)),src:"edit"};
+  const sl=salOf(s,sc);if(sl)return {ids:sl.left.filter(id=>exById(id)),src:"salle"};
   return {ids:proposeSheet(s,sc),src:"auto"};
 }
 const sheetEx=(s,sc)=>sheetOf(s,sc).ids.map(exById).filter(Boolean);
 const sheetName=(s,sc)=>`Exercices_M${sc}_${slug(s.nom).toUpperCase()}_${cap(slug(s.prenom))}.pdf`.replace(/-/g,"_");
 const notionsTxt=E=>[...new Set(E.map(e=>lc(NIDX[e.n].t)))].join(", ");
 function setSheet(s,sc,ids){exoD().sheets[ckey(sc,s)]={ids};save()}
+/* salle d'études (jeu V3) : exercices proposés, faits, et ceux qui restent à envoyer en feuille */
+function salOf(s,n){const o=s.sx?.[n];if(!o||!o.i.length)return null;const done=o.i.filter(id=>o.x[id]);return {n:o.i.length,d:done.length,ok:o.i.filter(id=>o.x[id]&&o.x[id].d===1).length,a:o.a,left:o.a?[]:o.i.filter(id=>!o.x[id])}}
+const salTxt=sl=>sl?`${sl.d}/${sl.n}${sl.a?" (approfondissement)":""}`:"–";
 function sheetIntro(s,sc,E){
+  if(sheetOf(s,sc).src==="salle")return T(`Ces ${E.length} exercices t'avaient été proposés dans l'ancienne salle d'études, à la fin de la mission ${sc}, et tu ne les as pas faits. Ils portent sur : ${notionsTxt(E)}. Cherche-les avant de regarder les résultats, donnés en dernière page.`,
+           `Ces ${E.length} exercices vous avaient été proposés dans l'ancienne salle d'études, à la fin de la mission ${sc}, et vous ne les avez pas faits. Ils portent sur : ${notionsTxt(E)}. Cherchez-les avant de regarder les résultats, donnés en dernière page.`);
   return T(`Ces ${E.length} exercices ont été choisis à partir de tes résultats à la mission ${sc}. Ils portent sur : ${notionsTxt(E)}. Cherche-les avant de regarder les résultats, donnés en dernière page.`,
            `Ces ${E.length} exercices ont été choisis à partir de vos résultats à la mission ${sc}. Ils portent sur : ${notionsTxt(E)}. Cherchez-les avant de regarder les résultats, donnés en dernière page.`);
 }
