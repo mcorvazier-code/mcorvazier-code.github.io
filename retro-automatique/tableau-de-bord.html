@@ -956,7 +956,8 @@ function hardScore(a){return a.err??0}
 const store={db:null,uid:null,timer:null};
 const snapshot=()=>JSON.stringify({...D,students:undefined});
 function save(){
-  if(demo)return;
+  if(demo||RO)return;
+  cloudDirty();
   const json=snapshot();
   try{localStorage.setItem(STORE,json)}catch(e){}
   if(store.db){clearTimeout(store.timer);store.timer=setTimeout(()=>remoteSave(json),800)}
@@ -972,12 +973,101 @@ function loadLocal(){try{const j=localStorage.getItem(STORE);if(j)restore(j)}cat
 async function initStore(){
   try{if(!window.claude||!window.claude.use)return;
     const [user,db]=await Promise.all([window.claude.use("user"),window.claude.use("db")]);if(!user||!db)return;
-    const uid=await user.id();if(!uid)return;store.db=db;store.uid=uid;
+    const uid=await user.id();if(!uid)return;store.db=db;store.uid=uid;if(cloud.cfg)return;
     const col=db.collection("data/users/"+uid);const meta=await col.doc("meta").get();
     if(meta.exists){const n=meta.data().n;let json="";for(let i=0;i<n;i++){const d=await col.doc("p"+i).get();json+=d.exists?d.data().s:""}
       if(json&&json!==snapshot()&&restore(json)){try{localStorage.setItem(STORE,json)}catch(e){}render()}}
     else if(!demo)remoteSave(snapshot());
   }catch(e){}
+}
+
+/* ---------- Partage Google : une feuille Google de l'enseignant, reliée à un petit script ----------
+   Clé d'écriture : tes imports sont publiés automatiquement. Clé de lecture : le tableau affiche la
+   dernière version publiée, sans pouvoir la modifier ni importer. */
+const CLOUD="retro-auto-partage",GPAGE="https://mcorvazier-code.github.io/retro-automatique/tableau-de-bord.html";
+const cloud={cfg:null,role:null,at:0,state:"off",err:"",timer:null,gen:0,busy:false};
+let RO=false;
+function cloudLoadCfg(){try{const v=JSON.parse(localStorage.getItem(CLOUD)||"null");if(v&&v.u&&v.k)cloud.cfg={u:v.u,k:v.k}}catch(e){}}
+function cloudSetCfg(v){cloud.cfg=v;try{if(v)localStorage.setItem(CLOUD,JSON.stringify(v));else{localStorage.removeItem(CLOUD);localStorage.removeItem(CLOUD+"-etat")}}catch(e){}}
+const cMeta=()=>{try{return JSON.parse(localStorage.getItem(CLOUD+"-etat")||"{}")||{}}catch(e){return{}}};
+const cMetaSet=o=>{try{localStorage.setItem(CLOUD+"-etat",JSON.stringify({...cMeta(),...o}))}catch(e){}};
+const cDate=t=>t?new Date(t).toLocaleString("fr-FR",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"–";
+const CERR={cle:"clé refusée",lecture_seule:"cette clé ne permet que la lecture",non_initialise:"exécute d'abord initialiser() dans le script",occupe:"le script est occupé, réessaie dans un instant",json:"données invalides",action:"action inconnue"};
+async function cloudCall(body){
+  let r;try{r=await fetch(cloud.cfg.u,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({...body,cle:cloud.cfg.k}),redirect:"follow",credentials:"omit"})}
+  catch(e){throw new Error("Google injoignable depuis cette page")}
+  const t=await r.text();let o;try{o=JSON.parse(t)}catch(e){throw new Error(r.ok?"réponse inattendue : vérifie que le script est déployé en application Web avec l'accès « Tout le monde »":"erreur "+r.status)}
+  if(!o||!o.ok)throw new Error(CERR[o&&o.err]||String(o&&o.err||"erreur"));
+  return o;
+}
+const cErr=e=>(e&&e.message)||"erreur";
+function cloudKeep(json,at){restore(json);try{localStorage.setItem(STORE,json)}catch(e){}cMetaSet({base:at,dirty:false})}
+async function cloudPull(){
+  if(!cloud.cfg)return;cloud.state="sync";renderTop();
+  try{const o=await cloudCall({action:"lire"}),m=cMeta();cloud.role=o.role;cloud.at=o.at;RO=o.role!=="admin";cloud.state="ok";
+    if(RO){if(o.json&&restore(o.json)){}else{D=makeDemo();rebuild();demo=true}}
+    else if(m.dirty&&!demo&&o.json&&o.at!==(m.base||0)){cloud.state="conflit";cloudConflict(o)}
+    else if(m.dirty&&!demo){await cloudPush()}
+    else if(o.json&&o.at!==(m.base||0))cloudKeep(o.json,o.at);
+    else if(!o.json&&!demo)await cloudPush();
+  }catch(e){cloud.state="err";cloud.err=cErr(e)}
+  render();
+}
+async function cloudPush(force){
+  if(!cloud.cfg||cloud.role!=="admin"||(demo&&!force)||cloud.state==="conflit")return;
+  if(cloud.busy){clearTimeout(cloud.timer);cloud.timer=setTimeout(cloudPush,1500);return}
+  clearTimeout(cloud.timer);cloud.busy=true;cloud.state="sync";renderTop();
+  const g=cloud.gen,json=demo?"":snapshot();
+  try{const o=await cloudCall({action:"ecrire",json});cloud.at=o.at;cMetaSet({base:o.at,dirty:g!==cloud.gen});cloud.state="ok"}
+  catch(e){cloud.state="err";cloud.err=cErr(e)}
+  cloud.busy=false;renderTop();
+}
+function cloudDirty(){
+  if(!cloud.cfg)return;cloud.gen++;cMetaSet({dirty:true});
+  if(cloud.role==="admin"&&cloud.state!=="conflit"){clearTimeout(cloud.timer);cloud.timer=setTimeout(cloudPush,2500)}
+}
+function cloudConflict(o){
+  const d=msg(`<span>Ta feuille Google contient une version publiée le <b>${esc(cDate(o.at))}</b>, mais cet ordinateur garde des modifications qui n'ont pas été publiées. Laquelle garder ?</span><button class="btn" type="button" data-k="g">La version publiée</button><button class="btn" type="button" data-k="l">Celle de cet ordinateur (je la publie)</button>`,"ask",true);
+  d.querySelectorAll("[data-k]").forEach(b=>b.onclick=async()=>{d.remove();cloud.state="ok";
+    if(b.dataset.k==="g"){cloudKeep(o.json,o.at);render()}else await cloudPush()});
+}
+function cloudPill(){
+  if(!cloud.cfg)return"";
+  const st=cloud.state,w=s=>`<span class="pill clock">${s}</span>`;
+  if(st==="sync")return w("☁️ Synchronisation…");
+  if(st==="err")return `<span class="pill" style="background:var(--bad-soft);color:var(--bad)" title="${esc(cloud.err)}">⚠️ Partage Google : ${esc(cloud.err)}</span>`;
+  if(st==="conflit")return w("⚠️ Choisis la version à garder");
+  if(RO)return w("👁 Lecture seule · publié le "+esc(cDate(cloud.at)));
+  if(cloud.role==="admin")return w(cMeta().dirty?"☁️ Publication en attente":cloud.at?"☁️ Publié le "+esc(cDate(cloud.at)):"☁️ Relié à Google · rien de publié");
+  return "";
+}
+function cloudSection(){
+  if(!cloud.cfg)return `<div class="field">Partage Google<span class="help">Colle l'adresse de ton script Google (elle finit par /exec) et une clé. Avec la clé d'écriture, tes imports sont publiés automatiquement dans ta feuille ; avec la clé de lecture, le tableau affiche la dernière version publiée, sans pouvoir la modifier.</span>
+      <input id="gU" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"><input id="gK" type="password" placeholder="Clé" autocomplete="off">
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" id="gGo">Se connecter</button></div></div>`;
+  const role=cloud.role==="admin"?"administrateur (publication automatique)":cloud.role==="lecteur"?"lecture seule":"vérification en cours";
+  return `<div class="field">Partage Google<span class="help">Ce poste est relié à la feuille Google : ${role}.${cloud.at?" Dernière publication : "+esc(cDate(cloud.at))+".":""}${cloud.state==="err"?" Erreur : "+esc(cloud.err)+".":""}</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${cloud.role==="admin"?`<button class="btn primary" type="button" id="gPush">Publier maintenant</button><button class="btn" type="button" id="gLink">Copier le lien pour un collègue</button>`:""}<button class="btn" type="button" id="gSync">Recharger</button><button class="btn" type="button" id="gOff">Déconnecter ce poste</button></div>
+      ${cloud.role==="admin"?`<span class="help">Le lien donne accès en lecture aux résultats nominatifs des élèves : ne l'envoie qu'à tes collègues, par ta messagerie Icam.</span>`:""}</div>`;
+}
+function cloudBind(ov,close){
+  const q=s=>ov.querySelector(s);
+  if(q("#gGo"))q("#gGo").onclick=()=>{const u=q("#gU").value.trim(),k=q("#gK").value.trim();
+    if(!/^https:\/\/script\.google(usercontent)?\.com\/.+/.test(u)){toast("L'adresse doit commencer par https://script.google.com/");return}
+    if(k.length<16){toast("Clé trop courte");return}
+    cloudSetCfg({u,k});try{localStorage.removeItem(CLOUD+"-etat")}catch(e){}if(!demo)cMetaSet({dirty:true,base:0});close();cloudPull()};
+  if(q("#gPush"))q("#gPush").onclick=async()=>{close();await cloudPush(true);toast(cloud.state==="ok"?"Données publiées":"Échec : "+cloud.err)};
+  if(q("#gSync"))q("#gSync").onclick=()=>{close();cloudPull()};
+  if(q("#gLink"))q("#gLink").onclick=async()=>{try{const o=await cloudCall({action:"etat"});
+      const b=btoa(JSON.stringify({u:cloud.cfg.u,k:o.lecture})).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+      copy(GPAGE+"#partage="+b)}catch(e){toast("Lien impossible : "+cErr(e))}};
+  if(q("#gOff"))q("#gOff").onclick=()=>{const wasRO=RO;cloudSetCfg(null);RO=false;cloud.role=null;cloud.state="off";cloud.at=0;
+    if(wasRO){D=makeDemo();rebuild();demo=true;loadLocal()}close();toast("Ce poste n'est plus relié à la feuille Google")};
+}
+function cloudFromHash(){
+  const m=location.hash.match(/^#partage=([A-Za-z0-9_-]+)/);if(!m)return;
+  try{const v=JSON.parse(atob(m[1].replace(/-/g,"+").replace(/_/g,"/")));if(v&&v.u&&v.k&&/^https:\/\/script\.google\.com\//.test(v.u)){cloudSetCfg({u:v.u,k:v.k})}}catch(e){}
+  try{history.replaceState(null,"",location.pathname+location.search)}catch(e){location.hash=""}
 }
 
 /* ---------- Outils d'affichage ---------- */
@@ -1003,12 +1093,13 @@ function stackBar(a){return a.n?ECAT.map(([k,,c])=>a[k]?`<i style="flex:${a[k]};
 
 /* ---------- Bandeau et navigation ---------- */
 function renderTop(){
+  $("#btnImport").hidden=RO;$("#btnRoster").hidden=RO;
   let clock="";
   if(anyDl()){const now=nowT(),n=MNUMS.find(k=>dl(k)!=null&&dl(k)>now);
     if(n){const d=Math.ceil((dl(n)-now)/86400000);clock=`<span class="pill clock">Mission ${n} · ${d>1?"cours dans "+d+" jours":d===1?"cours demain":"cours aujourd'hui"}</span>`}
     else clock=`<span class="pill clock">Les ${NM} cours sont passés</span>`}
-  $("#src").innerHTML=(demo?`<span class="pill demo">Exemple fictif</span><span>Importe l'export Moodle de ton activité SCORM pour remplacer ces données.</span>`
-    :`<span class="pill real">${D.students.length} élève${D.students.length>1?"s":""} importé${D.students.length>1?"s":""}</span><span>${D.files[0]&&D.files[0].at?"export importé le "+esc(dateFmt(D.files[0].at))+" · ":""}${esc(D.files.map(f=>f.name).join(" · "))}${D.roster?" · liste de "+D.roster.length+" élèves":""}</span>`)+clock;
+  $("#src").innerHTML=(demo&&RO?`<span class="pill demo">Aucune donnée</span><span>Rien n'a encore été publié dans la feuille Google.</span>`:demo?`<span class="pill demo">Exemple fictif</span><span>Importe l'export Moodle de ton activité SCORM pour remplacer ces données.</span>`
+    :`<span class="pill real">${D.students.length} élève${D.students.length>1?"s":""} importé${D.students.length>1?"s":""}</span><span>${D.files[0]&&D.files[0].at?"export importé le "+esc(dateFmt(D.files[0].at))+" · ":""}${esc(D.files.map(f=>f.name).join(" · "))}${D.roster?" · liste de "+D.roster.length+" élèves":""}</span>`)+clock+cloudPill();
   const R=filtered({anyStatus:true}),N=R.length||1;
   $("#gauges").innerHTML=MISSIONS.map((m,i)=>{const d=dl(m.n),on=d!=null;
     const v=R.filter(s=>{const x=stats(s).ms[i].status;return on?x==="atemps"||x==="fini":stats(s).ms[i].state==="v"}).length/N;
@@ -1932,11 +2023,13 @@ function openSettings(){
     <div class="field">Adresse aux élèves${seg("sVous",[["0","Tutoiement"],["1","Vouvoiement"]],D.vous?"1":"0")}</div>
     <div class="field">Moyenne de référence dans les rapports${seg("sAvg",[["class","Promotion"],["group","Classe de l'élève"]],D.avg)}</div>
     <div class="field">Si un élève a fait plusieurs tentatives, retenir${seg("sAtt",[["last","la dernière"],["best","la meilleure"],["first","la première"]],D.att)}</div>
-    <div class="field">Données<span class="help">${demo?"Le tableau affiche un exemple fictif : les dates modifiées ici ne sont pas enregistrées.":"Les données importées restent dans ton navigateur et dans ton espace privé claude.ai."}</span>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn danger" type="button" id="sClear" ${demo?"disabled":""}>Effacer les données importées</button></div></div>
+    ${cloudSection()}
+    <div class="field">Données<span class="help">${RO?"Lecture seule : le tableau affiche les données publiées dans la feuille Google ; tes réglages sur ce poste ne sont pas enregistrés.":cloud.role==="admin"&&!demo?"Les données importées restent dans ton navigateur et sont publiées dans ta feuille Google.":demo?"Le tableau affiche un exemple fictif : les dates modifiées ici ne sont pas enregistrées.":"Les données importées restent dans ton navigateur et dans ton espace privé claude.ai."}</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn danger" type="button" id="sClear" ${demo||RO?"disabled":""}>Effacer les données importées</button></div></div>
   </aside>`;
   document.body.append(ov);
   const close=()=>{ov.remove();render()};
+  cloudBind(ov,close);
   ov.onclick=e=>{if(e.target===ov||e.target.closest("[data-close]"))close()};
   const pd=v=>{const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);return m?Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]):null};
   if(!Array.isArray(D.courses))D.courses=NULLS();while(D.courses.length<NM)D.courses.push(null);
@@ -1949,7 +2042,7 @@ function openSettings(){
   const sb=(id,f)=>{ov.querySelectorAll("#"+id+" button").forEach(b=>b.onclick=()=>{f(b.dataset.v);ov.querySelectorAll("#"+id+" button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));save()})};
   sb("sVous",v=>D.vous=v==="1");sb("sAvg",v=>D.avg=v);sb("sAtt",v=>{D.att=v;rebuild()});
   let armed=false;$("#sClear").onclick=e=>{const b=e.currentTarget;if(!armed){armed=true;b.textContent="Confirmer l'effacement";return}
-    try{localStorage.removeItem(STORE)}catch(_){}if(store.db)remoteSave("");D=makeDemo();rebuild();demo=true;ov.remove();render();toast("Données effacées, retour à l'exemple")};
+    try{localStorage.removeItem(STORE)}catch(_){}if(store.db)remoteSave("");D=makeDemo();rebuild();demo=true;if(cloud.role==="admin")cloudPush(true);ov.remove();render();toast("Données effacées, retour à l'exemple")};
   $("#sC1").focus();
 }
 
@@ -1958,6 +2051,7 @@ function msg(html,cls,keep){const box=$("#msgs");const d=document.createElement(
 function readFile(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{try{res(XLSX.read(new Uint8Array(r.result),{type:"array"}))}catch(e){rej(e)}};r.onerror=rej;r.readAsArrayBuffer(f)})}
 function leaveDemo(){if(demo){D=emptyD();demo=false}}
 async function importFiles(files){
+  if(RO)return;
   if(typeof XLSX==="undefined"){msg("Import impossible : la bibliothèque de lecture des fichiers Excel ne s'est pas chargée (connexion ou navigateur qui la bloque). Recharge la page ; si le problème persiste, ouvre le tableau de bord dans une fenêtre normale.","err",true);return}
   for(const f of files){
     try{const wb=await readFile(f);let got=null,lastErr="";
@@ -1997,6 +2091,7 @@ async function importRoster(f){
 }
 
 /* ---------- Démarrage ---------- */
+cloudLoadCfg();cloudFromHash();
 loadLocal();
 if(demo){D=makeDemo();rebuild()}
 $("#btnImport").onclick=()=>$("#fileIn").click();
@@ -2005,10 +2100,11 @@ $("#btnRoster").onclick=()=>$("#rosterIn").click();
 $("#rosterIn").onchange=e=>{if(e.target.files[0])importRoster(e.target.files[0]);e.target.value=""};
 $("#btnSettings").onclick=openSettings;
 document.addEventListener("dragover",e=>e.preventDefault());
-document.addEventListener("drop",e=>{e.preventDefault();const fs=[...(e.dataTransfer?.files||[])];if(fs.length)importFiles(fs)});
+document.addEventListener("drop",e=>{e.preventDefault();const fs=[...(e.dataTransfer?.files||[])];if(fs.length&&!RO)importFiles(fs)});
 const h=location.hash.slice(1);if(VIEWS.some(v=>v[0]===h))ui.view=h;
 render();
 initStore();
+if(cloud.cfg)cloudPull();
 (async()=>{try{sampleNS=window.claude?.use?await window.claude.use("sample"):null}catch(_){sampleNS=null}if(sampleNS&&ui.view==="mail")render()})();
 })();
 </script>
