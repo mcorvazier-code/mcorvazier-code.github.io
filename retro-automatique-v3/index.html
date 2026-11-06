@@ -762,6 +762,8 @@ body:has(.hmenu.open) .nb-toast{display:none}
 .st-badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;margin-left:6px;border-radius:999px;background:#e3b02a;color:#1b1405;font:700 12px 'Chakra Petch',system-ui,sans-serif}
 .st-notice{max-width:560px;text-align:left}
 @media (max-width:640px){.st-part{grid-template-columns:1fr}.st-in input{width:100%}}
+.st-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 4px;padding-top:12px;border-top:1px dashed rgba(0,0,0,.3)}
+.st-pos{font:600 13px 'Chakra Petch',system-ui,sans-serif;opacity:.8}
 
 </style>
 
@@ -3694,7 +3696,12 @@ function openStudy(n0){
       fig?h('figure',{class:'st-fig'},h('div',{html:fig.svg()}),h('figcaption',null,fig.cap)):null,
       h('div',{class:'st-parts'},...fields.map(f=>f.row)),
       h('p',{class:'hint'},'Nombres décimaux avec une virgule ou un point ; les angles en degrés, les gains en dB.'),
-      msg,h('div',{class:'row'},chk,rev),res].filter(Boolean));
+      msg,h('div',{class:'row'},chk,rev),res,
+      (()=>{const k=d.i.indexOf(id),prev=d.i[k-1],next=d.i[k+1];
+        return h('div',{class:'st-nav'},
+          h('button',{class:'btn ghost',disabled:!prev,title:prev?stEx(prev).t:'',onclick:()=>{if(prev){drawTabs();exo(prev);}}},'‹ Précédent'),
+          h('span',{class:'st-pos'},'Exercice '+(k+1)+' / '+d.i.length),
+          h('button',{class:'btn',disabled:!next,title:next?stEx(next).t:'',onclick:()=>{if(next){drawTabs();exo(next);}}},'Suivant ›'));})()].filter(Boolean));
     if(x.d){msg.textContent=x.d===1?'Exercice réussi. Tu peux le refaire pour t’entraîner.':'Tu as consulté les résultats de cet exercice.';}
     body.scrollTop=0;};
   drawTabs();list();layer(card);
