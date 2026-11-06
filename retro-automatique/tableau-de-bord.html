@@ -1620,7 +1620,7 @@ async function aiAll(R,sc){
 /* D.exo : edits (modifications de la banque), custom (exercices ajoutés), sheets (feuille modifiée à la main, par mission et par élève) */
 const EXMAX=4,EXMIN=2;
 function exoD(){if(!D.exo||typeof D.exo!=="object")D.exo={};const x=D.exo;x.edits=x.edits||{};x.custom=Array.isArray(x.custom)?x.custom:[];x.sheets=x.sheets||{};return x}
-function exAll(){const x=exoD();return [...EXB.map(e=>{const d=x.edits[e.id];return d?{...e,...d,base:true,mod:true}:{...e,base:true}}),...x.custom.map(e=>({...e,m:NIDX[e.n]?.m||e.m,custom:true}))].filter(e=>NIDX[e.n])}
+function exAll(){const x=exoD();return [...EXB.map(e=>{const d=x.edits[e.id];return d?{...e,off:d.off,nofig:d.nofig,base:true}:{...e,base:true}}),...x.custom.map(e=>({...e,m:NIDX[e.n]?.m||e.m,custom:true}))].filter(e=>NIDX[e.n])}
 const exById=id=>exAll().find(e=>e.id===id);
 const exOfNotion=n=>exAll().filter(e=>e.n===n);
 /* notions de la mission où l'élève a commis des erreurs, de la plus coûteuse à la moins coûteuse */
@@ -1735,20 +1735,19 @@ function sheetPdf(s,sc){
 function renderBank(v){
   const sc=ui.from||1,x=exoD(),R=filtered({anyStatus:true}),N=NOTIONS.filter(n=>n.m===sc);
   const use={};let withSheet=0;R.forEach(s=>{const ids=sheetOf(s,sc).ids;if(ids.length)withSheet++;ids.forEach(id=>{const e=exById(id);if(e)use[e.n]=(use[e.n]||0)+1})});
-  const card=e=>{const open=ui.bankOpen===e.id;return `<details class="excard" data-ex="${esc(e.id)}" ${open?"open":""}><summary><span class="ext"><b>${esc(e.t)}</b><span class="foot">${e.off?"non proposé automatiquement":"proposé automatiquement"}${hasFig(e)?" · illustré":""}${e.mod?" · modifié":""}${e.custom?" · ajouté":""}</span></span><span class="chev" aria-hidden="true">›</span></summary>
-    <div class="exf"><label class="field">Titre<input data-f="t" value="${esc(e.t)}"></label>
-      <label class="field">Énoncé<textarea data-f="e" rows="6">${esc(e.e)}</textarea></label>
-      <label class="field">Résultats<textarea data-f="r" rows="4">${esc(e.r)}</textarea></label>
+  const card=e=>{const open=ui.bankOpen===e.id;return `<details class="excard" data-ex="${esc(e.id)}" ${open?"open":""}><summary><span class="ext"><b>${esc(e.t)}</b><span class="foot">${e.off?"non proposé automatiquement":"proposé automatiquement"}${hasFig(e)?" · illustré":""}${e.custom?" · ajouté":""}</span></span><span class="chev" aria-hidden="true">›</span></summary>
+    <div class="exf"><div class="field">Énoncé<p class="mailbody" style="margin:0">${esc(e.e)}</p></div>
+      <div class="field">Résultats<p class="mailbody" style="margin:0">${esc(e.r)}</p></div>
       ${FIGS[e.id]?`<label class="chk"><input type="checkbox" data-f="nofig" ${e.nofig?"":"checked"}> Joindre l'illustration</label>${e.nofig?"":`<figure class="exfig bankfig">${FIGS[e.id].svg()}<figcaption>Figure · ${esc(FIGS[e.id].cap)}</figcaption></figure>`}`:""}
       <label class="chk"><input type="checkbox" data-f="off" ${e.off?"":"checked"}> Proposer cet exercice automatiquement</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">${e.mod?`<button class="btn" type="button" data-orig="${esc(e.id)}">Rétablir l'original</button>`:""}${e.custom?`<button class="btn danger" type="button" data-del="${esc(e.id)}">Supprimer</button>`:""}</div></div></details>`};
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${e.custom?`<button class="btn danger" type="button" data-del="${esc(e.id)}">Supprimer</button>`:""}</div></div></details>`};
   v.innerHTML=`<div class="backbar"><button class="btn" type="button" data-back>‹ Retour aux rapports de la mission ${sc}</button><span class="foot">Banque d'exercices</span></div>
   <div class="panel"><div class="tbar"><div style="display:flex;flex-direction:column;gap:6px"><h2>Banque d'exercices · Mission ${sc}</h2><span class="foot">${esc(MISSIONS[sc-1].t)}</span></div>
     <span class="foot">${withSheet} élève${withSheet>1?"s":""} sur ${R.length} reçoi${withSheet>1?"vent":"t"} une feuille · ${scopeLbl()}</span></div>
-    <p class="help">Chaque feuille est composée automatiquement : ${EXMIN} à ${EXMAX} exercices pris dans les notions où l'élève a commis des erreurs, en commençant par la plus coûteuse et par les exercices les plus guidés. Les modifications faites ici s'appliquent à toutes les feuilles qui utilisent l'exercice.${demo?" <b>Mode exemple : rien n'est enregistré.</b>":""}</p></div>
+    <p class="help">Chaque feuille est composée automatiquement : ${EXMIN} à ${EXMAX} exercices pris dans les notions où l'élève a commis des erreurs, en commençant par la plus coûteuse et par les exercices les plus guidés. Les énoncés et les résultats ne se modifient pas ici : ce sont aussi ceux de la salle d'études du jeu, qui vérifie les réponses des élèves. Pour en changer un, demande-le à Claude, qui mettra à jour le jeu en même temps.${demo?" <b>Mode exemple : rien n'est enregistré.</b>":""}</p></div>
   ${N.map(n=>`<div class="panel"><div class="ph"><h2>${esc(n.t)}</h2><p>questions ${n.q.join(", ")} · dans ${use[n.id]||0} feuille${(use[n.id]||0)>1?"s":""}</p></div>
     <div class="exgrid">${exOfNotion(n.id).map(card).join("")}</div>
-    <div><button class="btn" type="button" data-addex="${n.id}">+ Ajouter un exercice</button></div></div>`).join("")}`;
+    </div>`).join("")}`;
   v.querySelector("[data-back]").onclick=()=>{ui.view="mail";render();window.scrollTo({top:0})};
   v.querySelectorAll("details.excard").forEach(d=>d.addEventListener("toggle",()=>{if(d.open)ui.bankOpen=d.dataset.ex;else if(ui.bankOpen===d.dataset.ex)ui.bankOpen=null}));
   v.querySelectorAll("details.excard [data-f]").forEach(el=>{
