@@ -1063,7 +1063,7 @@ function fsToggle(){try{if(fsIs())(document.exitFullscreen||document.webkitExitF
 function fullBtn(){if(!fsCan())return null;const b=h('button',{class:'fullbtn','aria-label':'Plein écran',title:'Plein écran',onclick:fsToggle,html:fsIs()?FS_OFF:FS_ON});return b;}
 ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{document.querySelectorAll('.fullbtn').forEach(b=>{b.innerHTML=fsIs()?FS_OFF:FS_ON;b.title=b.ariaLabel=fsIs()?'Quitter le plein écran':'Plein écran';});setTimeout(placeHud,150);}));
 function oscarBtn(){return h('button',{class:'oscbtn',onclick:()=>{if(layerStack.length&&layerStack[layerStack.length-1].querySelector('.oscar'))return;oscar();},'aria-label':'ICAM_BOT 2.0, le robot assistant du laboratoire : indices et questions',title:'Besoin d’aide ? Demande à ICAM_BOT 2.0'},h('span',{class:'rb',html:ROBOT_SVG}),h('span',{class:'tip'},'Besoin d’aide ?'));}
-function addHud(el){$ui.append(el);placeHud();requestAnimationFrame(placeHud);}
+function addHud(el){$ui.append(el);try{stRefresh();}catch(e){}placeHud();requestAnimationFrame(placeHud);}
 function profBtn(){if(!aclProfBtnOk())return null;return h('button',{class:PROF?'profon':'',onclick:()=>{if(PROF){closeAll();profMenu();}else profLogin();},title:'Mode prof (accès enseignant)'},PROF?'🔓 Mode prof':'🔒 Mode prof');}
 function hudMenu(items){
   const list=h('div',{class:'hm-list',role:'menu'},...items);
@@ -3612,6 +3612,17 @@ function studyMenuItem(classic){
   return h('button',{role:classic?null:'menuitem',class:classic?'cl-study':'st-mi',onclick:()=>{closeAll();openStudy();},title:'Exercices personnalisés, pour revoir les notions de chaque mission'},
     '📚 Salle d’études',todo?h('span',{class:'st-badge'},String(todo)):null);
 }
+/* bouton toujours visible (en haut à droite dans l'escape game, dans l'en-tête du parcours e-learning), avec le nombre d'exercices restants */
+function stRefresh(){
+  document.querySelectorAll('.hud-study').forEach(e=>e.remove());
+  let L=[];try{L=stMissions();}catch(e){}
+  if(document.body.classList.contains('classic-on')){const hb=document.querySelector('.cl-hb');if(!hb)return;const old=hb.querySelector('.cl-study'),m=studyMenuItem(true);
+    if(old){if(m)old.replaceWith(m);else old.remove();}else if(m){const fs=hb.querySelectorAll('.cl-fs');hb.insertBefore(m,fs.length?fs[fs.length-1].nextSibling:null);}return;}
+  if(!L.length)return;const hud=document.querySelector('#ui .hud');if(!hud)return;
+  const todo=L.reduce((a,n)=>a+stData()[n].i.length-stDone(n),0);
+  hud.prepend(h('button',{class:'hud-study',onclick:()=>{closeAll();openStudy();},title:'L’ancienne salle d’études : exercices personnalisés'},'📚 Salle d’études',todo?h('span',{class:'st-badge'},String(todo)):null));
+  try{placeHud();}catch(e){}
+}
 /* avis de fin de mission (après l'auto-positionnement) */
 function studyNotice(n){
   const d=stFreeze(n);if(!d||!d.i.length)return;
@@ -3621,9 +3632,9 @@ function studyNotice(n){
     d.a?h('p',null,'Aucune erreur dans cette mission, bravo ! ',h('b',null,d.i.length+' exercice'+(d.i.length>1?'s':'')+' d’approfondissement'),' t’attendent, si tu veux aller plus loin.')
        :h('p',null,'D’après tes réponses, ',h('b',null,d.i.length+' exercice'+(d.i.length>1?'s':'')),' t’attendent pour revoir : '+nb.join(', ')+'.'),
     h('p',{class:'hint'},d.a?'Ils sont facultatifs et ne comptent pas dans ton score.':'Ils ne comptent pas dans ton score. Ceux que tu n’auras pas faits te seront envoyés en feuille d’exercices avec ton bilan.'),
-    h('p',{class:'hint'},'Tu pourras y revenir à tout moment : ☰ Menu › 📚 Salle d’études.'),
-    h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{closeTop();openStudy(n);}},'📚 Y aller maintenant'),h('button',{class:'btn ghost',onclick:closeTop},'Plus tard')));
-  layer(card);
+    h('p',{class:'hint'},document.body.classList.contains('classic-on')?'Tu pourras y revenir à tout moment avec le bouton 📚 Salle d’études, en haut de la page.':'Tu pourras y revenir à tout moment avec le bouton 📚 Salle d’études, en haut à droite de l’écran (ou ☰ Menu › 📚 Salle d’études).'),
+    h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{closeTop();openStudy(n);}},'📚 Y aller maintenant'),h('button',{class:'btn ghost',onclick:()=>{closeTop();stRefresh();}},'Plus tard')));
+  layer(card);stRefresh();
 }
 /* vérification d'une partie */
 function stNum(v){const t=String(v==null?'':v).trim().replace(/[\s\u00a0\u202f]/g,'').replace(/[\u2212\u2013]/g,'-').replace(',','.');const x=parseFloat(t);return isFinite(x)?x:null;}
@@ -3644,7 +3655,7 @@ function openStudy(n0){
   const card=h('div',{class:'card study'},
     h('div',{class:'st-hero'},h('span',{class:'st-kick'},'Archives du laboratoire'),h('b',null,'L’ancienne salle d’études'),
       h('small',null,'Exercices choisis d’après tes résultats · ils ne comptent pas dans ton score')),
-    tabs,body,h('div',{class:'row st-foot'},h('button',{class:'btn ghost',onclick:closeTop},'Fermer')));
+    tabs,body,h('div',{class:'row st-foot'},h('button',{class:'btn ghost',onclick:()=>{closeTop();stRefresh();}},'Fermer')));
   const drawTabs=()=>{tabs.innerHTML='';L.forEach(n=>{const d=stData()[n];tabs.append(h('button',{role:'tab',class:'st-tab'+(n===cur?' on':''),'aria-selected':String(n===cur),style:`--mc:var(--m${n},var(--acc))`,
     onclick:()=>{cur=n;drawTabs();list();}},'Mission '+n,h('small',null,stDone(n)+' / '+d.i.length)));});};
   const list=()=>{body.innerHTML='';const d=stData()[cur];
