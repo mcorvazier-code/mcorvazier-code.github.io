@@ -1080,7 +1080,7 @@ function hud(){
     S.m>=1?h('span',{class:'hud-score',title:`Départ : ${SCORE0} pts · bonne réponse +${GOOD_PTS} · mauvaise réponse −${ERR_PEN} · indice −${HINT_PEN}`,'aria-live':'polite'},'Score : '+gameScore()+' pts'):null,
     hudMenu([
       S.m>=1&&(S.m<=4||(S.m===5&&has('m5open'))||(S.m===6&&has('m6open')))?h('button',{role:'menuitem',onclick:()=>{closeAll();briefing(S.m);},title:'Revoir la présentation de la mission en cours'},'🎯 Objectif de mission'):null,
-      h('button',{role:'menuitem',class:'nb-mi',onclick:()=>openPapers(),title:'Codes et documents trouvés'},'📒 Carnet'),studyMenuItem(),
+      h('button',{role:'menuitem',class:'nb-mi',onclick:()=>openPapers(),title:'Codes et documents trouvés'},'📒 Carnet'),
       h('button',{role:'menuitem',onclick:resetMode,title:'Passer au parcours e-learning (ta progression est conservée)'},'🔁 Changer de format'),
       settingsMenu([
         h('button',{role:'menuitem',onclick:()=>{closeAll();showRules();}},'📜 Règles du jeu'),
@@ -3634,7 +3634,7 @@ function studyNotice(n){
     d.a?h('p',null,'Aucune erreur dans cette mission, bravo ! ',h('b',null,d.i.length+' exercice'+(d.i.length>1?'s':'')+' d’approfondissement'),' t’attendent, si tu veux aller plus loin.')
        :h('p',null,'D’après tes réponses, ',h('b',null,d.i.length+' exercice'+(d.i.length>1?'s':'')),' t’attendent pour revoir : '+nb.join(', ')+'.'),
     h('p',{class:'hint'},d.a?'Ils sont facultatifs et ne comptent pas dans ton score.':'Ils ne comptent pas dans ton score. Ceux que tu n’auras pas faits te seront envoyés en feuille d’exercices avec ton bilan.'),
-    h('p',{class:'hint'},document.body.classList.contains('classic-on')?'Tu pourras y revenir à tout moment avec le bouton 📚 Salle d’études, en haut de la page.':'Tu pourras y revenir à tout moment avec le bouton 📚 Salle d’études, en haut à droite de l’écran (ou ☰ Menu › 📚 Salle d’études).'),
+    h('p',{class:'hint'},document.body.classList.contains('classic-on')?'Tu pourras y revenir à tout moment avec le bouton 📚 Salle d’études, en haut de la page.':'Tu pourras y revenir à tout moment avec le bouton 📚 Salle d’études, en haut à droite de l’écran.'),
     h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{closeTop();openStudy(n);}},'📚 Y aller maintenant'),h('button',{class:'btn ghost',onclick:()=>{closeTop();stRefresh();}},'Plus tard')));
   layer(card);stRefresh();
 }
