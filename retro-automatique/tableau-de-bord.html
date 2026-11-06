@@ -986,7 +986,31 @@ async function initStore(){
    dernière version publiée, sans pouvoir la modifier ni importer. */
 const CLOUD="retro-auto-partage",GPAGE="https://mcorvazier-code.github.io/retro-automatique/tableau-de-bord.html";
 const cloud={cfg:null,role:null,at:0,state:"off",err:"",timer:null,gen:0,busy:false};
-let RO=false;
+const VIEWER=/[?&]lecteur=1(&|$)/.test(location.search);
+let RO=VIEWER;
+function cloudParseLink(t){
+  const m=String(t||"").match(/#partage=([A-Za-z0-9_-]+)/);if(!m)return null;
+  try{const v=JSON.parse(atob(m[1].replace(/-/g,"+").replace(/_/g,"/")));if(v&&v.u&&v.k&&/^https:\/\/script\.google\.com\//.test(v.u))return{u:v.u,k:v.k}}catch(e){}return null}
+function renderViewerSetup(){
+  $("#nav").innerHTML="";$("#filters").innerHTML="";$("#gauges").innerHTML="";
+  $("#src").innerHTML=`<span class="pill clock">👁 Accès en lecture seule</span>`;
+  $("#main").innerHTML=`<section class="panel" style="max-width:640px"><div class="ph"><h2>Accès au tableau de bord</h2></div>
+    <p class="callout">Colle ici le lien d'accès que Maximilien Corvazier t'a envoyé par mail. Il n'est demandé qu'une fois sur ce navigateur.</p>
+    <label class="field" for="vLink">Lien d'accès<input id="vLink" type="text" autocomplete="off" placeholder="https://mcorvazier-code.github.io/…#partage=…"></label>
+    <div><button class="btn primary" type="button" id="vGo">Valider</button></div></section>`;
+  const go=()=>{const c=cloudParseLink($("#vLink").value);if(!c){toast("Lien non reconnu : copie-le en entier depuis le mail");return}
+    cloudSetCfg(c);try{localStorage.removeItem(CLOUD+"-etat")}catch(e){}cloudPull()};
+  $("#vGo").onclick=go;$("#vLink").onkeydown=e=>{if(e.key==="Enter")go()};
+}
+function viewerBar(){
+  if(!VIEWER)return;
+  $("#btnSettings").hidden=true;
+  if($("#vBar"))return;
+  const a=document.querySelector(".top .actions"),mk=(id,t,f)=>{const b=document.createElement("button");b.className="btn";b.type="button";b.id=id;b.textContent=t;b.onclick=f;a.append(b);return b};
+  const sp=document.createElement("span");sp.id="vBar";sp.hidden=true;a.append(sp);
+  mk("vReload","↻ Recharger les données",()=>cloudPull());
+  mk("vRelink","Changer de lien d'accès",()=>{cloudSetCfg(null);cloud.state="off";cloud.at=0;cloud.role=null;D=makeDemo();rebuild();demo=true;render()});
+}
 function cloudLoadCfg(){try{const v=JSON.parse(localStorage.getItem(CLOUD)||"null");if(v&&v.u&&v.k)cloud.cfg={u:v.u,k:v.k}}catch(e){}}
 function cloudSetCfg(v){cloud.cfg=v;try{if(v)localStorage.setItem(CLOUD,JSON.stringify(v));else{localStorage.removeItem(CLOUD);localStorage.removeItem(CLOUD+"-etat")}}catch(e){}}
 const cMeta=()=>{try{return JSON.parse(localStorage.getItem(CLOUD+"-etat")||"{}")||{}}catch(e){return{}}};
@@ -1004,7 +1028,7 @@ const cErr=e=>(e&&e.message)||"erreur";
 function cloudKeep(json,at){restore(json);try{localStorage.setItem(STORE,json)}catch(e){}cMetaSet({base:at,dirty:false})}
 async function cloudPull(){
   if(!cloud.cfg)return;cloud.state="sync";renderTop();
-  try{const o=await cloudCall({action:"lire"}),m=cMeta();cloud.role=o.role;cloud.at=o.at;RO=o.role!=="admin";cloud.state="ok";
+  try{const o=await cloudCall({action:"lire"}),m=cMeta();cloud.role=o.role;cloud.at=o.at;RO=VIEWER||o.role!=="admin";cloud.state="ok";
     if(RO){if(o.json&&restore(o.json)){}else{D=makeDemo();rebuild();demo=true}}
     else if(m.dirty&&!demo&&o.json&&o.at!==(m.base||0)){cloud.state="conflit";cloudConflict(o)}
     else if(m.dirty&&!demo){await cloudPush()}
@@ -1037,6 +1061,7 @@ function cloudPill(){
   if(st==="sync")return w("☁️ Synchronisation…");
   if(st==="err")return `<span class="pill" style="background:var(--bad-soft);color:var(--bad)" title="${esc(cloud.err)}">⚠️ Partage Google : ${esc(cloud.err)}</span>`;
   if(st==="conflit")return w("⚠️ Choisis la version à garder");
+  if(VIEWER&&!cloud.role)return w("👁 Lecture seule");
   if(RO)return w("👁 Lecture seule · publié le "+esc(cDate(cloud.at)));
   if(cloud.role==="admin")return w(cMeta().dirty?"☁️ Publication en attente":cloud.at?"☁️ Publié le "+esc(cDate(cloud.at)):"☁️ Relié à Google · rien de publié");
   return "";
@@ -1139,6 +1164,8 @@ function setHero(){
   top.classList.remove("swap");void top.offsetWidth;top.classList.add("swap");
 }
 function render(){
+  viewerBar();
+  if(VIEWER){$("#vReload").hidden=$("#vRelink").hidden=!cloud.cfg;if(!cloud.cfg){$("#btnImport").hidden=$("#btnRoster").hidden=true;renderViewerSetup();return}}
   ROWS=allRows();
   renderTop();renderNav();renderFilters();
   const m=$("#main");tip.hidden=true;document.body.dataset.m=/^m\d$/.test(ui.view)?ui.view[1]:"";setHero();
@@ -2009,6 +2036,7 @@ function nightNote(s,sc){const H=(stats(s).night||[]).filter(h=>h.n===sc),d=deep
 
 /* ---------- Paramètres ---------- */
 function openSettings(){
+  if(VIEWER)return;
   const iso=t=>t!=null?new Date(t).toISOString().slice(0,16):"";
   const ov=document.createElement("div");ov.className="overlay";
   ov.innerHTML=`<aside class="drawer" role="dialog" aria-modal="true" aria-label="Paramètres">
@@ -2092,7 +2120,7 @@ async function importRoster(f){
 
 /* ---------- Démarrage ---------- */
 cloudLoadCfg();cloudFromHash();
-loadLocal();
+if(!VIEWER)loadLocal();
 if(demo){D=makeDemo();rebuild()}
 $("#btnImport").onclick=()=>$("#fileIn").click();
 $("#fileIn").onchange=e=>{importFiles([...e.target.files]);e.target.value=""};

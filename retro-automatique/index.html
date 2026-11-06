@@ -2977,7 +2977,7 @@ function autoAsk(n){
 /* Dans Moodle (paquet SCORM), le jeu connaît le compte connecté (cmi.core.student_id = identifiant,
    cmi.core.student_name = « Nom, Prénom »), mais ni son rôle ni ses groupes.
    - Maximilien Corvazier : mode prof (mot de passe prof) + tableau de bord ;
-   - collègues de PROF_LIST (repérés par leur nom et leur prénom) : mode prof classique (mot de passe prof), sans tableau de bord ;
+   - collègues de PROF_LIST (repérés par leur nom et leur prénom) : mode prof classique (mot de passe prof) + tableau de bord en lecture seule ;
    - tous les autres comptes : élèves, aucun bouton enseignant.
    Hors Moodle (site GitHub, artefact), le jeu ne sait pas qui est connecté : mode prof classique avec le mot de passe. */
 const PROF_LIST=['MEGHOUACHE Hedi','HAGNERE Marc'];
@@ -2997,19 +2997,22 @@ function aclInit(){if(ACL.init)return ACL;ACL.init=true;try{
 /* bouton « Mode prof » : hors Moodle pour tous (mot de passe), dans Moodle pour toi et tes collègues seulement */
 const aclProfBtnOk=()=>{aclInit();return !ACL.on||ACL.prof;};
 const aclAdmin=()=>aclInit().admin;
+/* tableau de bord dans Moodle : toi en complet, tes collègues en lecture seule (sans paramètres, ni import) */
+const aclTDB=()=>{aclInit();return ACL.on&&ACL.prof;};
 
 /* ----- tableau de bord : fenêtre posée sur le jeu, que l'on devine en arrière-plan ----- */
 function openTDB(){
-  if(!aclAdmin())return;
+  if(!aclTDB())return;
+  const src='tableau-de-bord.html'+(ACL.admin?'':'?lecteur=1');
   if(document.querySelector('.tdb-ov'))return;
   const close=()=>{ov.classList.add('out');document.removeEventListener('keydown',esc,true);setTimeout(()=>ov.remove(),220);};
   const esc=e=>{if(e.key==='Escape'&&!e.defaultPrevented){e.stopPropagation();close();}};
   const win=h('div',{class:'tdb-win',role:'dialog','aria-modal':'true','aria-label':'Tableau de bord'},
     h('div',{class:'tdb-bar'},h('b',null,'📊 Tableau de bord'),
       h('span',{class:'tdb-who'},ACL.name||''),
-      h('a',{class:'tdb-b',href:'tableau-de-bord.html',target:'_blank',rel:'noopener',title:'Ouvrir le tableau de bord dans un nouvel onglet'},'↗ Nouvel onglet'),
+      h('a',{class:'tdb-b',href:src,target:'_blank',rel:'noopener',title:'Ouvrir le tableau de bord dans un nouvel onglet'},'↗ Nouvel onglet'),
       h('button',{class:'tdb-x',onclick:close,'aria-label':'Fermer le tableau de bord',title:'Fermer'},'✕')),
-    h('iframe',{class:'tdb-fr',src:'tableau-de-bord.html',title:'Tableau de bord'}));
+    h('iframe',{class:'tdb-fr',src,title:'Tableau de bord'}));
   const ov=h('div',{class:'tdb-ov',onclick:e=>{if(e.target===ov)close();}},win);
   document.body.append(ov);document.addEventListener('keydown',esc,true);
 }
@@ -3042,7 +3045,7 @@ function profMenu(){
       h('div',{class:'pmiss'},...CH().map(ch=>h('button',{class:'pmis pm'+(ch.n===5?'5m':ch.n),onclick:()=>{closeAll();C.ch=ch.n;csave();renderClassic();}},h('b',null,'Chapitre '+ch.n),h('span',null,ch.t))),
         h('button',{class:'pmis pm5',onclick:()=>{closeAll();C.ch='bilan';csave();renderClassic();}},h('b',null,'Bilan'),h('span',null,'Notes par chapitre'))),
       h('div',{class:'row',style:{marginTop:'14px'}},
-        h('button',{class:'btn',style:{background:'var(--gold)',color:'#1b1405'},onclick:()=>{closeTop();profKey();}},'Voir le corrigé'),aclAdmin()?h('button',{class:'btn',onclick:()=>{closeTop();openTDB();}},'📊 Tableau de bord'):null,
+        h('button',{class:'btn',style:{background:'var(--gold)',color:'#1b1405'},onclick:()=>{closeTop();profKey();}},'Voir le corrigé'),aclTDB()?h('button',{class:'btn',onclick:()=>{closeTop();openTDB();}},'📊 Tableau de bord'):null,
         h('button',{class:'btn ghost',onclick:()=>{S={m:0,scene:null,f:{}};save();resetClassic();closeAll();renderClassic();toast('Progression et score effacés');}},'Effacer la progression'),
         h('button',{class:'btn ghost',onclick:resetMode},'Changer de format'),
         h('button',{class:'btn ghost',onclick:()=>{PROF=null;try{sessionStorage.removeItem('retro-prof');}catch(e){}closeAll();renderClassic();}},'Quitter le mode prof')));
@@ -3054,7 +3057,7 @@ function profMenu(){
       h('button',{class:'pmis pm5m',onclick:()=>{closeAll();profPrereq(5);briefing(5);}},h('b',null,'Mission 5'),h('span',null,'Démasquer la carte de régulation')),
       h('button',{class:'pmis pm6',onclick:()=>{closeAll();profPrereq(6);briefing(6);}},h('b',null,'Mission 6'),h('span',null,'Reprogrammer la carte de régulation'))),
     h('div',{class:'row',style:{marginTop:'14px'}},
-      h('button',{class:'btn',style:{background:'var(--gold)',color:'#1b1405'},onclick:()=>{closeTop();profKey();}},'Voir le corrigé'),aclAdmin()?h('button',{class:'btn',onclick:()=>{closeTop();openTDB();}},'📊 Tableau de bord'):null,
+      h('button',{class:'btn',style:{background:'var(--gold)',color:'#1b1405'},onclick:()=>{closeTop();profKey();}},'Voir le corrigé'),aclTDB()?h('button',{class:'btn',onclick:()=>{closeTop();openTDB();}},'📊 Tableau de bord'):null,
       h('button',{class:'btn ghost',onclick:()=>{S={m:0,scene:null,f:{}};save();resetClassic();closeAll();showTitle();updScore(0);toast('Progression et score effacés');}},'Effacer la progression'),
       h('button',{class:'btn ghost',onclick:resetMode},'Changer de format'),
       h('button',{class:'btn ghost',onclick:()=>{PROF=null;try{sessionStorage.removeItem('retro-prof');}catch(e){}closeAll();showTitle();}},'Quitter le mode prof')));
